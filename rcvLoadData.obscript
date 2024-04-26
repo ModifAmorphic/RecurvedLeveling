@@ -1,18 +1,12 @@
 scn rcvLoadData
 
-; internal
-; short skillCode
-; string_var skillName
-; float useInc1
-; float useInc2
-; int softCap
 int i
 
 
 ; params
 short isGameRestarted
 short isGameLoaded
-Begin _Function { isGameLoaded isGameRestarted }
+Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurved quest variables.
 
 	if isGameLoaded == 0
 		return
@@ -45,47 +39,4 @@ Begin _Function { isGameLoaded isGameRestarted }
 			loop
 		endif
 	endif
-	
-	; let Recurved.Skills := call rcvGetSkills
-	; let Recurved.MajorSkills := Recurved.Skills["major"]
-	; let Recurved.MinorSkills := Recurved.Skills["minor"]
-		
-;	PrintToConsole "RecurvedGetSkills: Major Skills:"
-;	let i := 0
-;	while (i < ar_size MajorSkills)
-;		let skillCode := MajorSkills[i]["code"]
-;		let skillName := MajorSkills[i]["name"]
-;		let useInc1 := MajorSkills[i]["useIncrements"][0]
-;		let useInc2 := MajorSkills[i]["useIncrements"][1]
-;		PrintToConsole "recurve:     %z (%g) | Use 1: %.2f, Use 2: %.2f" skillName skillCode useInc1 useInc2
-;		let i += 1
-;	Loop
-	; PrintToConsole "RecurvedGetSkills: Minor Skills:"
-	; let i := 0
-	; while (i < ar_size MinorSkills)
-	; 	let skillCode := MinorSkills[i]["code"]
-	; 	let skillName := MinorSkills[i]["name"]
-	; 	let useInc1 := MinorSkills[i]["useIncrements"][0]
-	; 	let useInc2 := MinorSkills[i]["useIncrements"][1]
-	; 	let softCap := MinorSkills[i]["softCap"]
-	; 	PrintToConsole "recurve:     %z (%g) | Use 1: %.2f, Use 2: %.2f, SoftCap: %g" skillName skillCode useInc1 useInc2 softCap
-	; 	let i += 1
-	; Loop
-	
-	; if isGameRestarted
-	; 	SetSkillUseIncrementC .35 19 0
-	; endif
-
-	; PrintToConsole "RecurvedGetSkills: Minor Skills (Curved):"
-	; let i := 0
-	; while (i < ar_size MinorSkills)
-	; 	let skillCode := MinorSkills[i]["code"]
-	; 	let skillName := MinorSkills[i]["name"]
-	; 	let useInc1 := MinorSkills[i]["useIncrements"][0]
-	; 	let useInc2 := MinorSkills[i]["useIncrements"][1]
-	; 	let softCap := MinorSkills[i]["softCap"]
-	; 	PrintToConsole "recurve:     %z (%g) | Use 1: %.2f, Use 2: %.2f, SoftCap: %g" skillName skillCode useInc1 useInc2 softCap
-	; 	let i += 1
-	; Loop
-
 End

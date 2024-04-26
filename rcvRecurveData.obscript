@@ -24,15 +24,16 @@ short DebugEnabled
 ; End External ini variables
 array_var DefaultSkillUseIncrements
 
+array_var Levels
 array_var LevelCurves
 
-; TODO: Not used
-array_var SkillMinimums
-; TODO: Not used
-array_var Skills
-; TODO: Not used
-array_var MajorSkills
-; TODO: Not used
-array_var MinorSkills
-; TODO: Not used
-array_var Levels
+; ; TODO: Not used
+; array_var SkillMinimums
+; ; TODO: Not used
+; array_var Skills
+; ; TODO: Not used
+; array_var MajorSkills
+; ; TODO: Not used
+; array_var MinorSkills
+; ; TODO: Not used
+; array_var Levels

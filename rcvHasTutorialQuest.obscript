@@ -6,7 +6,7 @@ string_var editorId
 
 ; Output
 short isAssigned
-Begin _Function {  }
+Begin _Function {  } ; Checks if the player has either the MQ01 or Charactergen tutorial quests in their list of current quests.
 	set isAssigned to 0
 	let quests := GetCurrentQuests
 

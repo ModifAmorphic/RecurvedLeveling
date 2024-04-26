@@ -8,7 +8,7 @@ int attributeBonus
 ; params
 int skillActorValueCode
 int amount
-Begin _Function { skillActorValueCode amount }
+Begin _Function { skillActorValueCode amount } ; Listens to Scripted Skill Up events and capture attribute progress if needed.
 	if player.IsClassSkillC skillActorValueCode
 		set levelProgress to GetPCMajorSkillUps + amount
 		set iLevelUpSkillCount to GetGameSetting "iLevelUpSkillCount"

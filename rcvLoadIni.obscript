@@ -1,7 +1,7 @@
 scn rcvLoadIni
 
 ; params
-Begin _Function { }
+Begin _Function { } ; Loads ini file, setting default values first.
 	; set all ini settings to defaults in case on is missing from the ini
 	; Disables soft caps on minor skills
 	set Recurved.MinorSkillSoftCapsDisabled to 0

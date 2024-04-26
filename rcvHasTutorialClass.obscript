@@ -4,7 +4,7 @@ ref class
 
 ; Output
 short isTutorialClass
-Begin _Function {  }
+Begin _Function {  } ; Checks if the player character has the CharactergenClass class assigned.
 	let class := player.GetClass
 	if class != CharactergenClass
 		set isTutorialClass to 0

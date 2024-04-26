@@ -4,6 +4,7 @@ array_var remainingPoints
 int points
 
 Begin Function {  } ; Sets attribute progress points based on remaining points from previous level
+
     let remainingPoints := call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) (Recurved.LevelCurves[player.GetLevel - 2])
     let points := ar_Size remainingPoints
 	DebugPrint "Character leveled. Applying any left over attribute points to the current level. Found %g points." points
@@ -11,4 +12,5 @@ Begin Function {  } ; Sets attribute progress points based on remaining points f
 	    call rcvSetAttributeProgress (call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) (Recurved.LevelCurves[player.GetLevel - 2]))
 	endif
 	let remainingPoints := ar_Null
+	
 End
