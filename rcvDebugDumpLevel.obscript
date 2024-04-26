@@ -1,0 +1,20 @@
+scn rcvDebugDumpLevel
+
+int i
+
+;input character level
+int level
+int index
+Begin Function { level } ; Dumps element of the Recurved.Level Array
+	set index to level - 1
+	DebugPrint "Dumping Recurved.Levels[%g]:" index
+	ar_Dump Recurved.Levels[level - 1]
+	set i to 0
+	DebugPrint "Dumping Recurved.Levels[%g].attributes:" index
+	while (i < ar_size Recurved.Levels[level - 1]["attributes"])
+		ar_Dump Recurved.Levels[level - 1]["attributes"][i]
+		let i += 1
+	loop
+	set i to 0
+	call rcvDebugDumpSkills (Recurved.Levels[level - 1]["skills"])
+End

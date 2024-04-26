@@ -1,0 +1,27 @@
+scn rcvDebugDumpLevelCurve
+
+int i
+
+;input character level
+int level
+int index
+Begin Function { level } ; Dumps Recurved.LevelCurves Array
+	set index to level - 1
+	DebugPrint "Dumping Recurved.LevelCurves[%g]:" index
+	ar_Dump Recurved.LevelCurves[level - 1]
+	set i to 0
+	DebugPrint "Dumping Recurved.LevelCurves[%g].iLevelUpMults:" index
+	while (i < ar_size Recurved.LevelCurves[level - 1]["iLevelUpMults"])
+		ar_Dump Recurved.LevelCurves[level - 1]["iLevelUpMults"][i]
+		let i += 1
+	loop
+	set i to 0
+	DebugPrint "Dumping Recurved.LevelCurves[%g].skills:" index
+	while (i < ar_size Recurved.LevelCurves[level - 1]["skills"])
+		ar_Dump Recurved.LevelCurves[level - 1]["skills"][i]
+		DebugPrint "useExp:"
+		ar_Dump Recurved.LevelCurves[level - 1]["skills"][i]["useExp"]
+		let i += 1
+	loop
+	set i to 0
+End

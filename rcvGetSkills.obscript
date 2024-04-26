@@ -1,0 +1,51 @@
+scn rcvGetSkills
+
+; locals
+int i
+string_var skillType
+int iMajor
+int iMinor
+int skillCode
+short isClassSkill
+
+; ouput
+array_var skills
+Begin Function { } ; Gets list of current skills split in to major and minor lists
+
+	let skills := ar_Construct stringmap
+	let skills["major"] := ar_Construct array
+	let skills["minor"] := ar_Construct array
+
+	let skillCode := 12
+	while (skillCode < 33)
+		let isClassSkill := player.IsClassSkillC skillCode
+		if isClassSkill
+			set i to iMajor
+			let skillType := "major"
+			let iMajor := iMajor + 1
+		else
+			set i to iMinor
+			let skillType := "minor"
+			let iMinor := iMinor + 1
+		endif
+		
+		; DebugPrint "recurve: skillCode=%g, isClassSkill=%g, skillType=%z" skillCode isClassSkill skillType
+
+		let skills[skillType][i] := ar_Construct stringmap
+		let skills[skillType][i]["name"] := ActorValueToStringC skillCode
+		let skills[skillType][i]["code"] := skillCode
+		let skills[skillType][i]["amount"] := player.GetBaseAV3C skillCode
+		let skills[skillType][i]["useIncrements"] := ar_Construct array
+		let skills[skillType][i]["useIncrements"][0] := GetSkillUseIncrementC skillCode 0
+		let skills[skillType][i]["useIncrements"][1] := GetSkillUseIncrementC skillCode 1
+
+		if isClassSkill == 0
+			let skills[skillType][i]["softCap"] := call rcvGetSkillSoftCap skillCode
+		endif
+		
+		let skillCode := skillCode + 1
+	loop
+	
+	SetFunctionValue skills
+	sv_Destruct skillType
+End

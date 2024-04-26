@@ -1,0 +1,21 @@
+scn rcvSetSkillUseIncrements
+
+; locals
+int skillCode
+float useIncrement
+; input param(s)
+array_var useIncrements
+
+
+Begin Function { useIncrements }
+
+	set skillCode to 12
+	while (skillCode < 33)
+		let useIncrement := useIncrements[skillCode][0]
+		SetSkillUseIncrementC useIncrement skillCode 0
+		let useIncrement := useIncrements[skillCode][1]
+		SetSkillUseIncrementC useIncrement skillCode 1
+		let skillCode := skillCode + 1
+	loop
+
+End

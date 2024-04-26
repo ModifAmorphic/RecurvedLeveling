@@ -1,0 +1,16 @@
+scn rcvSubtractOrMin
+
+; params
+int value
+int minus
+int min
+
+; out
+int result
+Begin Function { value minus min }
+	set result to value - minus
+	if result < min
+		set result to min
+	endif
+	SetFunctionValue result
+End

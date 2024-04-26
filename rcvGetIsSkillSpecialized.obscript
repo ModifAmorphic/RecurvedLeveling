@@ -1,0 +1,16 @@
+scn rcvGetIsSkillSpecialized
+;locals
+int playerSpecialization
+int skillSpecialization
+
+; outputs
+short isSpecialized
+; params
+int skillCode
+Begin _Function { skillCode } ; Determines if a skill is part of the player's class specialization
+	let playerSpecialization := GetClassSpecialization player.GetClass
+	let skillSpecialization := GetSkillSpecializationC skillCode
+
+	let isSpecialized := (skillSpecialization == playerSpecialization)
+	SetFunctionValue isSpecialized
+End

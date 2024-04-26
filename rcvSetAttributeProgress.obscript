@@ -1,0 +1,18 @@
+scn rcvSetAttributeProgress
+
+int i
+int attributeCode
+int progressPoints
+
+
+; Input Params
+array_var remainingProgress
+Begin _Function { remainingProgress } ; Gets any attribute progress remaining that would not have been used entirely by the attribute increase on level up.
+
+	while (i < ar_Size remainingProgress)
+		let attributeCode := remainingProgress[i]["attributeCode"]
+		let progressPoints := remainingProgress[i]["progressPoints"]
+		SetPCAttributeBonusC attributeCode progressPoints 
+        let i += 1
+    loop
+End

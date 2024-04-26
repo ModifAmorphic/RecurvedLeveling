@@ -1,0 +1,15 @@
+scn rcvHasTutorialClass
+
+ref class
+
+; Output
+short isTutorialClass
+Begin _Function {  }
+	let class := player.GetClass
+	if class != CharactergenClass
+		set isTutorialClass to 0
+	else
+		set isTutorialClass to 1
+	endif
+	SetFunctionValue isTutorialClass
+End

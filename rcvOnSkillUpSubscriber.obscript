@@ -1,0 +1,28 @@
+scn rcvOnSkillUpSubscriber
+
+int attributeCode
+int attributeBonus
+int levelProgress
+int iLevelUpSkillCount
+; params
+int skillActorValueCode
+Begin _Function { skillActorValueCode }
+	; Double bonus from Major Skills
+	if player.IsClassSkillC skillActorValueCode
+		set attributeCode to GetSkillGoverningAttributeC skillActorValueCode
+		set attributeBonus to GetPCAttributeBonusC attributeCode
+		DebugPrint "Skill %g is a major skill and will increase attribute bonus by 2, from %g to %g." skillActorValueCode attributeBonus attributeBonus + 2
+		SetPCAttributeBonusC attributeCode (attributeBonus + 1)
+		
+		set levelProgress to GetPCMajorSkillUps + 1
+		set iLevelUpSkillCount to GetGameSetting "iLevelUpSkillCount"
+		; Snapshot current level before levelup happens
+		if levelProgress == iLevelUpSkillCount
+			DebugPrint "Skill %g increase will cause level up. Snapshotting level and level curve." skillActorValueCode
+			let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+			let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetCurrentCurve
+		endif
+	endif
+	
+	set RecurvedController.hasUpdate to 1
+End

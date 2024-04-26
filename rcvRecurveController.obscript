@@ -1,0 +1,182 @@
+scn rcvRecurveController
+
+float fQuestDelayTime
+
+; Flags for flow control
+short isSleepMenuInit
+short isLevelMenuInit
+short isPlayerLeveled
+short hasUpdate
+short isGameRestarted
+short isGameLoaded
+short isGameRestartedPeek
+short isGameLoadedPeek
+short isTutorialActive
+short isTutorialQuestPassed
+short isClassSelected
+
+; locals
+
+; array_var remainingPoints
+; debugging
+; array_var levelCurve
+; ref class
+; int i
+; array_var skills
+; array_var quests
+; string_var questId
+; float delay
+; short showQuests
+
+
+;array_var skills
+; Sleep Menu
+begin MenuMode 1012
+
+	if (isSleepMenuInit)
+		return
+	endif
+
+	set isSleepMenuInit to 1
+	set hasUpdate to 1
+end
+
+; Level Up Menu
+begin MenuMode 1027
+	if (isLevelMenuInit)
+		return
+	endif
+	
+	set hasUpdate to 1
+	set isPlayerLeveled to 1
+	set isLevelMenuInit to 1
+	DebugPrint "Level Up Menu detected. Capturing Current level attributes and level curves."
+	if Recurved.DebugEnabled
+		call rcvDebugDumpLevel player.GetLevel
+		call rcvDebugDumpLevelCurve player.GetLevel
+	endif
+end
+
+; Begin MenuMode 1030
+
+; End
+
+; Begin MenuMode 1033
+
+; End
+
+Begin _GameMode
+	set isGameRestartedPeek to GetGameRestarted
+	set isGameLoadedPeek to GetGameLoaded
+
+	; Preserve load and restart statuses for later
+	; if the tutorial is active
+	if isTutorialActive == 0 || isGameRestartedPeek
+		set isGameRestarted to isGameRestartedPeek
+	endif
+	if isTutorialActive == 0 || isGameLoadedPeek
+		set isGameLoaded to isGameLoadedPeek
+	endif
+	
+	if isGameLoaded == 0 && hasUpdate == 0
+		return
+	endif
+
+	if isGameRestartedPeek
+		set fQuestDelayTime to .2
+		call rcvLoadIni
+		if Recurved.DebugEnabled
+			SetDebugMode 1
+		endif
+		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, isTutorialActive=%g, hasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected isTutorialActive hasUpdate
+	endif
+	;;; Start Tutorial Check
+	;;;; 1. If the player started a new game, wait for a valid class to be selected
+	;;;; 2. If #1 happened, then wait for the player to leave the sewers
+	;;;; 3. If neither were true, then continue
+	; Wait for a class to be selected
+	if isClassSelected == 0
+		if call rcvHasTutorialClass
+			set isTutorialActive to 1
+			if isGameLoadedPeek
+				DebugPrint "recurve: Character's class is CharactergenClass. Setting isTutorialActive to 1."
+			endif
+			return
+		else
+			set isClassSelected to 1
+		endif
+	endif
+	
+	; Catch active tutorial for existing saves still in tutorial before this mod was added
+	if isTutorialQuestPassed == 0
+		if call rcvHasTutorialQuest
+			set isTutorialActive to 1
+		else
+			DebugPrint "Tutorial quest marked complete."
+			set isTutorialActive to 0 
+			set isTutorialQuestPassed to 1
+
+			; let quests := GetCurrentQuests
+			; DebugPrint "Current Quests: %g" ar_size GetCurrentQuests
+			; set i to 0
+			; while (i < ar_size quests)
+			; 	let questId := GetEditorID quests[i]
+			; 	DebugPrint "    %z" questId
+			; 	let i += 1
+			; loop
+			; set i to 0			
+		endif
+	endif
+
+	; If Tutorial was active, wait until player is outside sewers
+	if isTutorialActive 
+		if Player.IsInInterior == 0
+			set isTutorialActive to 0
+			set isTutorialQuestPassed to 1
+			set isGameRestarted to 1
+			set isGameLoaded to 1
+			DebugPrint "Tutorial complete."
+		else
+			if isGameLoadedPeek
+				PrintToConsole "recurve: Tutorial is active. Delaying level scaling changes until tutorial is finished."
+			endif
+			return
+		endif
+	endif
+	;;; End Tutorial Check
+
+	; Subscribe to Skill Up Events on restart
+	if isGameRestarted
+		DebugPrint "recurve: Loading..."
+		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
+		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
+	endif
+	
+	; Load data on game load event
+	if isGameLoaded
+		call rcvLoadData isGameLoaded isGameRestarted
+	endif
+	
+	; Reset Skill Use Increments Prior to reconfiguring
+	DebugPrint "recurve: Resetting Skill Use Increments"
+	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
+
+	; Configure attribute gains and required skill increase for the current level
+	call rcvConfigureCurve (call rcvGetCurrentCurve)
+	
+	; Handle Player level up 
+	if (isPlayerLeveled == 1)
+		; Carry over any left over progress points from the previous level and apply.
+		call rcvSetLevelProgress
+	endif
+	
+	; reset variables
+	set isSleepMenuInit to 0
+	set isLevelMenuInit to 0
+	set isPlayerLeveled to 0
+	set hasUpdate to 0
+
+	if isGameLoaded
+		PrintToConsole "Recurved Levels Loaded."
+	endif
+end

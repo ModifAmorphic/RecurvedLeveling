@@ -1,0 +1,62 @@
+scn rcvGetRemainingAttributeProgress
+
+int i
+int c
+int p
+
+array_var currentLevel
+array_var lastAttr
+array_var currentAttr
+array_var lvlMult
+int difference
+int lastProgress
+int pointsSpent
+
+; Input Params
+array_var lastLevel
+array_var levelCurve
+
+; Output array of attributes with progress remaining, if any.
+array_var remainingProgress
+Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining that would not have been used entirely by the attribute increase on level up.
+    let currentLevel := call rcvGetCurrentLevel
+    let remainingProgress := ar_Construct Array
+    set i to 0
+    set p to 0
+    while (i < ar_Size lastLevel["attributes"])
+        let lastAttr := lastLevel["attributes"][i]
+        let currentAttr := currentLevel["attributes"][i]
+        let difference := currentAttr["value"] - lastAttr["value"]
+        DebugPrint "Attribute: %g, Difference: %g" i difference
+        ; If a attribute was increased, calculate how many attribute progress 
+        ;    points were used by reading through the iLevelUpMults table
+        set pointsSpent to 0
+        if difference > 0
+            DebugPrint "Found Difference=%g for Attribute %g. Calculating points spent." i difference
+            while (c < ar_Size levelCurve["iLevelUpMults"])
+                let lvlMult := levelCurve["iLevelUpMults"][c]
+                ; Select the lowest used value to subtract from total progress made
+                if Eval (lvlMult["value"] == difference)
+                    set pointsSpent to c + 1
+                    break
+                endif
+                let c += 1
+            loop
+            set c to 0
+        endif
+        ; If points were spent, see if there's any left over
+        if (pointsSpent > 0)
+            let lastProgress := lastAttr["skillProgress"]
+            DebugPrint "Calculated %g points spent for attribute %g. Checking last level's attribute for left over progress. LastSkillProgress=%g" pointsSpent i lastProgress
+            if (lastProgress > pointsSpent)
+                let remainingProgress[p] := ar_Construct StringMap
+                let remainingProgress[p]["attributeCode"] := i
+                let remainingProgress[p]["progressPoints"] := lastProgress - pointsSpent
+                DebugPrint "Calculated %g points remaining for attribute %g." remainingProgress[p]["progressPoints"] i
+                let p += 1
+            endif
+        endif
+        let i += 1
+    loop
+    SetFunctionValue remainingProgress
+End

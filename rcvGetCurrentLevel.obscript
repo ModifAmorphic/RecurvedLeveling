@@ -1,0 +1,25 @@
+scn rcvGetCurrentLevel
+
+int i
+array_var attribute
+
+; Output
+array_var level
+Begin _Function {  }
+    let level := ar_Construct StringMap
+    let level["attributes"] := ar_Construct Array
+    let level["characterLevel"] := player.GetLevel
+    set i to 0
+    while (i < 8)
+        let level["attributes"][i] := ar_Construct StringMap
+        let attribute := level["attributes"][i]
+        let attribute["value"] := player.GetBaseAV3C i
+		let attribute["skillProgress"] := GetPCAttributeBonusC i
+        ; let attribute["leveledIncreased"] := 
+		let i += 1
+    loop
+
+    let level["skills"] := call rcvGetSkills
+
+    SetFunctionValue level
+End

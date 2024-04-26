@@ -1,0 +1,35 @@
+scn rcvLoadIni
+
+; params
+Begin _Function { }
+	; set all ini settings to defaults in case on is missing from the ini
+	; Disables soft caps on minor skills
+	set Recurved.MinorSkillSoftCapsDisabled to 0
+	; Increases amount of experience required to level a skill past the soft cap. 
+	;     Must be greater than 1. Has no effect if MinorSkillSoftCapsDisabled is set to 1.
+	set Recurved.SoftCapMulti to 5.0
+	
+	; Advanced settings
+	;; This section controls when level tiers start and end.
+	set Recurved.Tier1StartLevel to 1
+	set Recurved.Tier2StartLevel to 21
+	set Recurved.Tier3StartLevel to 41
+	
+	;; Sets attribute points gained per level up for a tier
+	set Recurved.Tier1MaxAttributeUp to 4
+	set Recurved.Tier2MaxAttributeUp to 5
+	set Recurved.Tier3MaxAttributeUp to 8
+	
+	;; Major Skills increases required for a level up
+	set Recurved.Tier1LevelUpSkillIncs to 12
+	set Recurved.Tier2LevelUpSkillIncs to 10
+	set Recurved.Tier3LevelUpSkillIncs to 8
+
+	;run batch ini settings script
+	if FileExists "Data\Recurved.ini"
+		RunBatchScript "Data\Recurved.ini"
+		DebugPrint "Ini file Data\Recurved.ini loaded."
+	else
+		PrintToConsole "recurve: Data\Recurved.ini not found."
+	endif
+End

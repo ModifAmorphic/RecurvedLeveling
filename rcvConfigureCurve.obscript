@@ -1,0 +1,124 @@
+scn rcvConfigureCurve
+
+; ; locals
+; int startLevel1
+; int startLevel2
+; int startLevel3
+; int level
+; int maxAttributeUp
+; int skillsForLevelUp
+
+; ; softcap variables
+; int i
+; int skillCode
+; int skillAmount
+; int softCap
+
+; int inc1
+; int inc2
+; int inc3
+
+; float skillUseInc1
+; float skillUseInc2
+
+; array_var skills
+int i
+array_var skill
+array_var lvlUpMult
+
+;inputs
+array_var levelCurve
+Begin _Function { levelCurve }
+	set i to 0
+	while (i < ar_Size levelCurve["iLevelUpMults"])
+		let lvlUpMult := levelCurve["iLevelUpMults"][i]
+		SetNumericGameSetting lvlUpMult["setting"] lvlUpMult["value"]
+		let i += 1
+	loop
+
+	set i to 0
+	while (i < ar_Size levelCurve["skills"])
+		let skill := levelCurve["skills"][i]
+		if Eval (skill["softCapEnabled"] == 1)
+			SetSkillUseIncrementC skill["softCapUseExp"][0] skill["skillCode"] 0
+			SetSkillUseIncrementC skill["softCapUseExp"][1] skill["skillCode"] 1
+		endif
+		let i += 1
+	loop
+	set i to 0
+
+	SetNumericGameSetting "iLevelUpSkillCount" levelCurve["iLevelUpSkillCount"]
+
+	; ; Configure Attributes per next level
+	; set level to player.GetLevel
+	; ; Subtract one from starting levels because we want to display and calculate towards the
+	; ; next level
+	; let startLevel1 := call rcvSubtractOrMin Recurved.Tier1StartLevel 1 1
+	; let startLevel2 := call rcvSubtractOrMin Recurved.Tier2StartLevel 1 (Recurved.Tier1StartLevel + 1)
+	; let startLevel3 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier2StartLevel + 1)
+
+	; if (level >= startLevel1) && (level < startLevel2)
+	; 	set maxAttributeUp to Recurved.Tier1MaxAttributeUp
+	; 	set skillsForLevelUp to Recurved.Tier1LevelUpSkillIncs
+	; elseif (level >= startLevel2) && (level < startLevel3)
+	; 	set maxAttributeUp to Recurved.Tier2MaxAttributeUp
+	; 	set skillsForLevelUp to Recurved.Tier2LevelUpSkillIncs
+	; elseif (level >= startLevel3)
+	; 	set maxAttributeUp to Recurved.Tier3MaxAttributeUp
+	; 	set skillsForLevelUp to Recurved.Tier3LevelUpSkillIncs
+	; else
+	; 	set maxAttributeUp to 10
+	; 	set skillsForLevelUp to 5
+	; endif
+
+	; DebugPrint "recurve: Setting iLevelUpXXMult to %g for player level %g." maxAttributeUp level
+	; let inc3 := call rcvSubtractOrMin maxAttributeUp 1 2
+	; let inc2 := call rcvSubtractOrMin inc3 1 2
+	; let inc1 := call rcvSubtractOrMin (maxAttributeUp / 2) 1 2
+
+	; SetNumericGameSetting "iLevelUp01Mult" inc1
+	; SetNumericGameSetting "iLevelUp02Mult" inc1
+	; SetNumericGameSetting "iLevelUp03Mult" inc1
+	; SetNumericGameSetting "iLevelUp04Mult" inc1
+	; SetNumericGameSetting "iLevelUp05Mult" inc2
+	; SetNumericGameSetting "iLevelUp06Mult" inc2
+	; SetNumericGameSetting "iLevelUp07Mult" inc2
+	; SetNumericGameSetting "iLevelUp08Mult" inc3
+	; SetNumericGameSetting "iLevelUp09Mult" inc3
+	; SetNumericGameSetting "iLevelUp10Mult" maxAttributeUp
+
+	; DebugPrint "recurve: Setting iLevelUpSkillCount to %g for player level %g." skillsForLevelUp level
+	; SetNumericGameSetting "iLevelUpSkillCount" skillsForLevelUp
+
+	; ; Exit if soft caps disabled
+	; if Recurved.MinorSkillSoftCapsDisabled
+	; 	return
+	; endif
+	
+	; ; Configure Current Skill Softcaps
+	; ;; We divide the experience gained per skill use by the Recurved.SoftCapMulti to multiply 
+	; ;; the amount of experience needed per skill level.
+	; let skills := call rcvGetSkills
+	; let i := 0
+	; while (i < ar_size skills["minor"])
+	; 	let skillCode := skills["minor"][i]["code"]
+	; 	let softCap := skills["minor"][i]["softCap"]
+	; 	let skillAmount := skills["minor"][i]["amount"]
+	; 	let skillUseInc1 := Recurved.DefaultSkillUseIncrements[skillCode][0]
+	; 	let skillUseInc2 := Recurved.DefaultSkillUseIncrements[skillCode][1]
+	; 	if (skillAmount >= softCap)
+	; 		if (skillUseInc1 > 0)
+	; 			let skillUseInc1 /= Recurved.SoftCapMulti
+	; 		endif
+	; 		if (skillUseInc2 > 0)
+	; 			let skillUseInc2 /= Recurved.SoftCapMulti
+	; 		endif
+	; 	endif
+	; 	;DebugPrint "recurve: Setting SkillUseIncrement for minor skill %g (level: %g | softCap: %g) to: 0 = %.2f, 1 = %.2f." skillCode skillAmount softCap skillUseInc1 skillUseInc2
+	; 	SetSkillUseIncrementC skillUseInc1 skillCode 0
+	; 	SetSkillUseIncrementC skillUseInc2 skillCode 1
+	; 	let i += 1
+	; 	set skillUseInc1 to 0
+	; 	set skillUseInc2 to 0
+	; Loop
+End

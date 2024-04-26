@@ -1,0 +1,29 @@
+scn rcvDebugDumpSkills
+
+int i
+int majorSkills
+int minorSkills
+
+;input
+array_var skills
+Begin Function { skills } ; Dumps a Skills Array
+	set i to 0 
+	set majorSkills to ar_size skills["major"]
+	DebugPrint "MajorSkills (%g):" majorSkills
+	while (i < ar_size skills["major"])
+		ar_Dump skills["major"][i]
+		DebugPrint "useIncrements:"
+		ar_Dump skills["major"][i]["useIncrements"]
+		let i += 1
+	loop
+	set i to 0
+	set minorSkills to ar_size skills["minor"]
+	DebugPrint "MinorSkills (%g):" minorSkills
+	while (i < ar_size skills["minor"])
+		ar_Dump skills["minor"][i]
+		DebugPrint "useIncrements:"
+		ar_Dump skills["minor"][i]["useIncrements"]
+		let i += 1
+	loop
+	set i to 0
+End

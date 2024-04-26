@@ -1,0 +1,42 @@
+scn rcvGetSkillSoftCap
+; locals
+int attributeCode
+int attributeValue
+ref race
+int raceBonus
+
+; params
+int skillCode
+; ouput
+int softCap
+
+Begin Function { skillCode }
+
+	;PrintToConsole "RecurvedGetSkills: Major Skills:"
+	let attributeCode := GetSkillGoverningAttributeC skillCode
+	let attributeValue := player.GetBaseAV3C attributeCode
+
+	if player.GetLevel < 21
+		set softCap to attributeValue / 2
+	elseif player.GetLevel < 41
+		set softCap to attributeValue * .75
+	else
+		set softCap to attributeValue * .95
+	endif
+
+	let race := player.GetRace
+	let raceBonus := GetRaceSkillBonusC skillCode race
+	let softCap := softCap + raceBonus
+
+	; Add 5 to softcap if skill matches player's specialization
+	if call rcvGetIsSkillSpecialized skillCode
+		let softCap := softCap + 5
+	endif
+	
+	if softCap > 100
+		set softCap to 100
+	endif
+	
+	SetFunctionValue softCap
+	
+End

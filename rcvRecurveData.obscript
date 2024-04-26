@@ -1,0 +1,38 @@
+scn rcvRecurveData
+float fQuestDelayTime
+
+; External ini variables
+;; Disables soft caps on minor skills
+short MinorSkillSoftCapsDisabled
+;; Increases amount of experience required to level a skill past the soft cap. 
+float SoftCapMulti
+;; Controls when level tiers start and end.
+int Tier1StartLevel
+int Tier2StartLevel
+int Tier3StartLevel
+;; Sets attribute points gained per level up for a tier
+int Tier1MaxAttributeUp
+int Tier2MaxAttributeUp
+int Tier3MaxAttributeUp
+;; Major Skills increases required for a level up
+int Tier1LevelUpSkillIncs
+int Tier2LevelUpSkillIncs
+int Tier3LevelUpSkillIncs
+;; Debugging
+short DebugEnabled
+
+; End External ini variables
+array_var DefaultSkillUseIncrements
+
+array_var LevelCurves
+
+; TODO: Not used
+array_var SkillMinimums
+; TODO: Not used
+array_var Skills
+; TODO: Not used
+array_var MajorSkills
+; TODO: Not used
+array_var MinorSkills
+; TODO: Not used
+array_var Levels
