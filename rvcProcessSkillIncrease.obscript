@@ -1,0 +1,63 @@
+scn rvcProcessSkillIncrease
+
+short isMajorSkill
+int attributeCode
+int attributeBonus
+int secondaryAttrbCode
+int secondaryAttrBonus
+int maxLvlProgress
+int levelProgress
+int newLevelProgress
+array_var overlLevel
+; params
+int skillActorValueCode
+int amount
+short isScripted
+Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up events and capture attribute progress if needed.
+	
+    set isMajorSkill to player.IsClassSkillC skillActorValueCode
+    
+    let overlLevel := call rvcPreventOverlevel skillActorValueCode amount isScripted
+    if Eval (overlLevel["wasOverLeveled"] == 1)
+        if (Recurved.OverlevelMsgShown == 0)
+            MessageBoxEx Recurved.OverlevelMessage
+            set Recurved.OverlevelMsgShown to 1
+        endif
+        ; if Eval (overlLevel["willLevelSkill"] == 0)
+        ;     ; no skill increase, no changes, no need to continue
+        ;     return
+        ; endif
+    endif
+    ; Process Major Skills
+	if isMajorSkill
+        ; Process Bonus Attribute progress for Major Skill increases that weren't scripted
+        if (isScripted == 0)
+            set attributeCode to GetSkillGoverningAttributeC skillActorValueCode
+            set attributeBonus to GetPCAttributeBonusC attributeCode 
+            DebugPrint "Skill %g is a major skill and will increase attribute %g progress by an additional %g." skillActorValueCode attributeCode Recurved.MajorAttributeBonus
+            SetPCAttributeBonusC attributeCode attributeBonus + Recurved.MajorAttributeBonus
+            
+            ; Increase secondary attribute bonus if enabled
+            if (Recurved.SecondaryAttributesDisabled == 0)
+                let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
+                set secondaryAttrBonus to GetPCAttributeBonusC secondaryAttrbCode
+                DebugPrint "Skill %g is a major skill and will increase it's secondary attribute %g progress by %g." skillActorValueCode secondaryAttrbCode Recurved.SecondaryAttributeIncrease
+                SetPCAttributeBonusC secondaryAttrbCode secondaryAttrBonus + Recurved.SecondaryAttributeIncrease
+            endif
+		endif
+
+		; Snapshot current level before levelup happens
+		if (newLevelProgress == maxLvlProgress) || (isScripted && levelProgress < maxLvlProgress && newLevelProgress >= maxLvlProgress)
+			let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+			let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
+            DebugPrint "Skill %g increase will cause level up. Snapshotted level and level curve." skillActorValueCode
+            ; Manually add skill progress because Scripted Skill Up events are
+            ; invoked before the skill is modified
+            if (isScripted)
+                let Recurved.Levels[player.GetLevel - 1]["attributes"][attributeCode]["skillProgress"] := attributeBonus + amount
+            endif
+		endif
+	endif
+	
+	set RecurvedController.hasUpdate to 1
+End

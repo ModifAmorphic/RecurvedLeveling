@@ -32,7 +32,7 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
         ;    points were used by reading through the iLevelUpMults table
         set pointsSpent to 0
         if difference > 0
-            DebugPrint "Found Difference=%g for Attribute %g. Calculating points spent." i difference
+            DebugPrint "Found Difference=%g for Attribute %g. Calculating points spent." difference i
             while (c < ar_Size levelCurve["iLevelUpMults"])
                 let lvlMult := levelCurve["iLevelUpMults"][c]
                 ; Select the lowest used value to subtract from total progress made

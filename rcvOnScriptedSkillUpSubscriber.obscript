@@ -9,22 +9,5 @@ int attributeBonus
 int skillActorValueCode
 int amount
 Begin _Function { skillActorValueCode amount } ; Listens to Scripted Skill Up events and capture attribute progress if needed.
-	if player.IsClassSkillC skillActorValueCode
-		set levelProgress to GetPCMajorSkillUps + amount
-		set iLevelUpSkillCount to GetGameSetting "iLevelUpSkillCount"
-		; Snapshot current level before levelup happens
-		if levelProgress >= iLevelUpSkillCount
-			
-			set attributeCode to GetSkillGoverningAttributeC skillActorValueCode
-			set attributeBonus to GetPCAttributeBonusC attributeCode
-
-			let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
-			let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetCurrentCurve
-			; manually update
-			DebugPrint "Scripted increase of skill %g by %g will cause level up. Snapshotting level and level curve. Current attribute code %g has a bonus of %g." skillActorValueCode amount attributeCode attributeBonus
-			let Recurved.Levels[player.GetLevel - 1]["attributes"][attributeCode]["skillProgress"] := attributeBonus + amount
-		endif
-	endif
-	
-	set RecurvedController.hasUpdate to 1
+	call rvcProcessSkillIncrease skillActorValueCode amount 1
 End

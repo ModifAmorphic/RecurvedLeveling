@@ -14,29 +14,38 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 	
 	; Capture default skill use increments on startup
 	if isGameRestarted
-		let Recurved.DefaultSkillUseIncrements := call rcvGetSkillUseIncrements
-		let Recurved.SkillMinimums := call rcvGetSkillMinimums
-		
-		if Eval ((ar_size Recurved.Levels) == -1)
-			let Recurved.Levels := ar_Construct Array
-			; Populate the levels array with nulls for 
-			; levels the mod wasn't installed for
-			set i to 0
-			while (i < player.GetLevel - 1)
-				let Recurved.Levels[i] := ar_Null
-				let i += 1
-			loop
-			;let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
-		endif
-		if Eval ((ar_size Recurved.LevelCurves) == -1)
-			let Recurved.LevelCurves := ar_Construct Array
-			; Populate the levels array with nulls for 
-			; levels the mod wasn't installed for
-			set i to 0
-			while (i < player.GetLevel - 1)
-				let Recurved.LevelCurves[i] := ar_Null
-				let i += 1
-			loop
-		endif
+		let Recurved.DefaultSkillUseIncrements := call rcvGetSkillUseIncrements		
 	endif
+
+	; Initialize Recurved.Levels and Recurved.LevelCurves arrays on game load.
+	if Eval ((ar_size Recurved.Levels) == -1)
+		let Recurved.Levels := ar_Construct Array
+		; Populate the levels array with nulls for 
+		; levels the mod wasn't installed for
+		set i to 0
+		while (i < player.GetLevel - 1)
+			let Recurved.Levels[i] := ar_Null
+			let i += 1
+		loop
+		DebugPrint "recurve: Initializing Recurved.Levels array. Inserted %g null records." i
+		;let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+	endif
+	if Eval ((ar_size Recurved.LevelCurves) == -1)
+		let Recurved.LevelCurves := ar_Construct Array
+		; Populate the levels array with nulls for 
+		; levels the mod wasn't installed for
+		set i to 0
+		while (i < player.GetLevel - 1)
+			let Recurved.LevelCurves[i] := ar_Null
+			let i += 1
+		loop
+		DebugPrint "recurve: Initializing Recurved.LevelCurves array. Inserted %g null records." i
+	endif
+	set i to 0
+	
+	if Eval ((ar_size Recurved.HardCapSkills) == -1)
+		let Recurved.HardCapSkills := ar_Construct Array
+		DebugPrint "recurve: Initializing Recurved.HardCapSkills array."
+	endif
+
 End

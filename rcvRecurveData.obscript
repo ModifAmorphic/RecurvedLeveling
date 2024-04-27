@@ -1,7 +1,15 @@
 scn rcvRecurveData
-float fQuestDelayTime
 
-; External ini variables
+; Attribute "Constants"
+int Strength
+int Endurance
+int Speed
+int Agility
+int Personality
+int Intelligence
+int Willpower
+
+; ### Ini variables  ###
 ;; Disables soft caps on minor skills
 short MinorSkillSoftCapsDisabled
 ;; Increases amount of experience required to level a skill past the soft cap. 
@@ -10,30 +18,59 @@ float SoftCapMulti
 int Tier1StartLevel
 int Tier2StartLevel
 int Tier3StartLevel
+int Tier4StartLevel
 ;; Sets attribute points gained per level up for a tier
 int Tier1MaxAttributeUp
 int Tier2MaxAttributeUp
 int Tier3MaxAttributeUp
+int Tier4MaxAttributeUp
 ;; Major Skills increases required for a level up
 int Tier1LevelUpSkillIncs
 int Tier2LevelUpSkillIncs
 int Tier3LevelUpSkillIncs
+int Tier4LevelUpSkillIncs
+
+;; Adds additonal progress points On Major skill ups
+int MajorAttributeBonus
+
+;; Increases to Major skills will contribute Secondary Attribute Bonuses
+;;; If set to 1, disables secondary attribute bonuses
+short SecondaryAttributesDisabled
+
+;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if SecondaryAttributesDisabled is set.
+int SecondaryAttributeIncrease
+
+;;; Maps a skill's governing attribute to a secondary attribute to increase.
+int StrengthSecondary
+int EnduranceSecondary
+int SpeedSecondary
+int AgilitySecondary
+int PersonalitySecondary
+int IntelligenceSecondary
+int WillpowerSecondary
+
+;; Message shown when no more skill increases are allowed before a level up
+string_var OverlevelMessage
+
 ;; Debugging
 short DebugEnabled
+
+; ### End Ini variables  ###
+
+;;; Contains the secondary's above indexed for lookups.
+array_var AttributeSecondaries
 
 ; End External ini variables
 array_var DefaultSkillUseIncrements
 
+; Persistant Arrays for tracking Levels
 array_var Levels
 array_var LevelCurves
+; Skils that have temporarly hardcapped due to over leveling.
+array_var HardCapSkills
 
-; ; TODO: Not used
-; array_var SkillMinimums
-; ; TODO: Not used
-; array_var Skills
-; ; TODO: Not used
-; array_var MajorSkills
-; ; TODO: Not used
-; array_var MinorSkills
-; ; TODO: Not used
-; array_var Levels
+; Flag for when character has a level pending
+short LevelPending
+; Amount of attribute progress over the max needed for the next level
+int ExcessAttributeProgress
+short OverlevelMsgShown

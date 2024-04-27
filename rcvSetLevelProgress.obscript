@@ -2,10 +2,19 @@ scn rcvSetLevelProgress
 
 array_var remainingPoints
 int points
+int levelsAmt
+int curvesAmt
 
 Begin Function {  } ; Sets attribute progress points based on remaining points from previous level
+	let levelsAmt := ar_Size Recurved.Levels
+    let curvesAmt := ar_Size Recurved.LevelCurves
 
-    let remainingPoints := call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) (Recurved.LevelCurves[player.GetLevel - 2])
+	if (levelsAmt < 1 || curvesAmt < 1) && (levelsAmt > player.GetLevel - 2) && (curvesAmt > player.GetLevel - 2)
+		DebugPrint "Character leveled but no data was available to apply attribute progress carryover from previous levels. Total levels: %g, Total Curves: %g." levelsAmt curvesAmt
+		return
+	endif
+
+	let remainingPoints := call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) (Recurved.LevelCurves[player.GetLevel - 2])
     let points := ar_Size remainingPoints
 	DebugPrint "Character leveled. Applying any left over attribute points to the current level. Found %g points." points
 	if (points > 0)

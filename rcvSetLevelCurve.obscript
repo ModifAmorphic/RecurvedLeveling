@@ -1,16 +1,19 @@
-scn rcvConfigureCurve
+scn rcvSetLevelCurve
 
 int i
 array_var skill
 array_var lvlUpMult
-
+string_var levelUpMultSetting
 ;inputs
 array_var levelCurve
-Begin _Function { levelCurve }
+array_var hardCappedSkills
+Begin _Function { levelCurve hardCappedSkills }
 	set i to 0
 	while (i < ar_Size levelCurve["iLevelUpMults"])
 		let lvlUpMult := levelCurve["iLevelUpMults"][i]
-		SetNumericGameSetting lvlUpMult["setting"] lvlUpMult["value"]
+		let levelUpMultSetting := lvlUpMult["setting"]
+		SetNumericGameSetting $levelUpMultSetting lvlUpMult["value"]
+		DebugPrint "Set %z to %g." levelUpMultSetting lvlUpMult["value"]
 		let i += 1
 	loop
 
@@ -23,7 +26,14 @@ Begin _Function { levelCurve }
 		endif
 		let i += 1
 	loop
-	set i to 0
-
+	DebugPrint "Set iLevelUpSkillCount to %g." levelCurve["iLevelUpSkillCount"]
 	SetNumericGameSetting "iLevelUpSkillCount" levelCurve["iLevelUpSkillCount"]
+	
+	set i to 0
+	while (i < ar_Size hardCappedSkills)
+		SetSkillUseIncrementC 0 hardCappedSkills[i] 0
+		SetSkillUseIncrementC 0 hardCappedSkills[i] 1
+		let i += 1
+	loop
+	set i to 0
 End

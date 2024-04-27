@@ -1,10 +1,10 @@
-scn rcvGetCurrentCurve
+scn rcvGetLevelCurve
 
 ; locals
 int startLevel1
 int startLevel2
 int startLevel3
-int level
+int startLevel4
 int maxAttributeUp
 int skillsForLevelUp
 
@@ -24,16 +24,18 @@ float capUseInc2
 array_var skills
 
 array_var levelCurve
-Begin _Function { }
+
+; input params
+int level
+Begin _Function { level }
 	let levelCurve := ar_Construct StringMap
 	
-	; Configure Attributes per next level
-	set level to player.GetLevel
 	; Subtract one from starting levels because we want to display and calculate towards the
 	; next level
 	let startLevel1 := call rcvSubtractOrMin Recurved.Tier1StartLevel 1 1
 	let startLevel2 := call rcvSubtractOrMin Recurved.Tier2StartLevel 1 (Recurved.Tier1StartLevel + 1)
 	let startLevel3 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier2StartLevel + 1)
+	let startLevel4 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier3StartLevel + 1)
 	
 	;DebugPrint "Start1: %g, Start2: %g, Start3: %g, level: %g" startLevel1 startLevel2 startLevel3 level
 	if (level >= startLevel1) && (level < startLevel2)
@@ -46,10 +48,15 @@ Begin _Function { }
 		set skillsForLevelUp to Recurved.Tier2LevelUpSkillIncs
 		let levelCurve["startLvl"] := Recurved.Tier2StartLevel
 		let levelCurve["endLvl"] := startLevel3
-	elseif (level >= startLevel3)
+	elseif (level >= startLevel3) && (level < startLevel4)
 		set maxAttributeUp to Recurved.Tier3MaxAttributeUp
 		set skillsForLevelUp to Recurved.Tier3LevelUpSkillIncs
 		let levelCurve["startLvl"] := Recurved.Tier3StartLevel
+		let levelCurve["endLvl"] := startLevel4
+	elseif (level >= startLevel4)
+		set maxAttributeUp to Recurved.Tier4MaxAttributeUp
+		set skillsForLevelUp to Recurved.Tier4LevelUpSkillIncs
+		let levelCurve["startLvl"] := Recurved.Tier4StartLevel
 		let levelCurve["endLvl"] := 999
 	else
 		set maxAttributeUp to 10
@@ -58,7 +65,7 @@ Begin _Function { }
 		let levelCurve["endLvl"] := 999
 	endif
 
-	DebugPrint "recurve: Setting iLevelUpXXMult to %g for player level %g." maxAttributeUp level
+	DebugPrint "recurve: Calculating iLevelUpXXMult attribute gains with a max of%g for player level %g. %g skills are required for level up" maxAttributeUp level skillsForLevelUp
 	let inc3 := call rcvSubtractOrMin maxAttributeUp 1 2
 	let inc2 := call rcvSubtractOrMin inc3 1 2
 	let inc1 := call rcvSubtractOrMin (maxAttributeUp / 2) 1 2
@@ -68,19 +75,21 @@ Begin _Function { }
 	while (i < 9)
 		let levelCurve["iLevelUpMults"][i] := ar_Construct StringMap
 		let levelCurve["iLevelUpMults"][i]["setting"] := sv_Construct "iLevelUp0%gMult" (i + 1)
-		if i < 4
+		if i < 3 ; iLevelUpMults 1-3
 			let levelCurve["iLevelUpMults"][i]["value"] := inc1
-		elseif i < 7
+		elseif i < 6 ; iLevelUpMults 4-6
 			let levelCurve["iLevelUpMults"][i]["value"] := inc2
-		elseif i < 9
+		elseif i < 9 ; iLevelUpMults 7-9
 			let levelCurve["iLevelUpMults"][i]["value"] := inc3
 		endif
 		let i += 1
 	loop
+	; Finally, set iLevelUp10Mult to the max
 	let levelCurve["iLevelUpMults"][9] := ar_Construct StringMap
 	let levelCurve["iLevelUpMults"][9]["setting"] := "iLevelUp10Mult"
 	let levelCurve["iLevelUpMults"][9]["value"] := maxAttributeUp
 	
+	; Major skill increases required for new level
 	let levelCurve["iLevelUpSkillCount"] := skillsForLevelUp
 	
 	; Configure Current Skill Softcaps

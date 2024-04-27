@@ -7,14 +7,18 @@ int level
 int index
 Begin Function { level } ; Dumps element of the Recurved.Level Array
 	set index to level - 1
+	if Eval (index >= ar_Size Recurved.Levels)
+		DebugPrint "Unable to dump Recurved.Levels[%g] for level %g. Level does not exist in Recurved.Levels." index level
+		return
+	endif
 	DebugPrint "Dumping Recurved.Levels[%g]:" index
-	ar_Dump Recurved.Levels[level - 1]
+	ar_Dump Recurved.Levels[index]
 	set i to 0
 	DebugPrint "Dumping Recurved.Levels[%g].attributes:" index
-	while (i < ar_size Recurved.Levels[level - 1]["attributes"])
-		ar_Dump Recurved.Levels[level - 1]["attributes"][i]
+	while (i < ar_size Recurved.Levels[index]["attributes"])
+		ar_Dump Recurved.Levels[index]["attributes"][i]
 		let i += 1
 	loop
 	set i to 0
-	call rcvDebugDumpSkills (Recurved.Levels[level - 1]["skills"])
+	call rcvDebugDumpSkills (Recurved.Levels[index]["skills"])
 End

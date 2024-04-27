@@ -27,9 +27,8 @@ short isClassSelected
 ; string_var questId
 ; float delay
 ; short showQuests
-
-
 ;array_var skills
+
 ; Sleep Menu
 begin MenuMode 1012
 
@@ -39,6 +38,11 @@ begin MenuMode 1012
 
 	set isSleepMenuInit to 1
 	set hasUpdate to 1
+
+	if Recurved.DebugEnabled
+		call rcvDebugDumpLevel player.GetLevel
+		call rcvDebugDumpLevelCurve player.GetLevel
+	endif
 end
 
 ; Level Up Menu
@@ -84,6 +88,8 @@ Begin _GameMode
 
 	if isGameRestartedPeek
 		set fQuestDelayTime to .2
+	endif
+	if isGameLoadedPeek
 		call rcvLoadIni
 		if Recurved.DebugEnabled
 			SetDebugMode 1
@@ -150,6 +156,9 @@ Begin _GameMode
 		DebugPrint "recurve: Loading..."
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
 		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
+		; set current and next level curves
+		let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
+		let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve player.GetLevel + 1
 	endif
 	
 	; Load data on game load event
@@ -162,12 +171,19 @@ Begin _GameMode
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
 
 	; Configure attribute gains and required skill increase for the current level
-	call rcvConfigureCurve (call rcvGetCurrentCurve)
+	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel)
 	
 	; Handle Player level up 
 	if (isPlayerLeveled == 1)
 		; Carry over any left over progress points from the previous level and apply.
 		call rcvSetLevelProgress
+		set Recurved.OverlevelMsgShown to 0
+		; clear any hardcaps set for the previous level and reinit the array
+		let Recurved.HardCapSkills := ar_Null
+		let Recurved.HardCapSkills := ar_Construct Array
+		; set current and next level curves
+		let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
+		let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve player.GetLevel + 1
 	endif
 	
 	; reset variables

@@ -1,0 +1,94 @@
+scn rvcPreventOverlevel
+
+; Overlevel variables
+short isMajorSkill
+int lvlProgress
+
+int overLvlProgress
+int maxLvlProgress
+int maxAttrbProgOver
+int skillLevel
+int adjSkillLevel
+int cappedSkillLvl
+
+float skillAdjExp
+; Debug
+float skillExp
+float reqSkillExp
+float skillUse
+float skillUseIncrement
+
+; inputs
+int skillCode ; Actor Value Code of the skill
+int skillIncrease ; The amount the skill will or has increased.
+int isScripted ; Whether or not the increase was caused by a scripted event.
+
+; Outputs
+array_var result
+
+Begin _Function { skillCode skillIncrease isScripted }
+
+	let result := ar_Construct StringMap
+	
+	set isMajorSkill to player.IsClassSkillC skillCode
+	set lvlProgress to GetPCMajorSkillUps
+	; Attribute progress needed for the current level
+	set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
+	; Attribute progress needed for the level after this, minus 1
+	let maxAttrbProgOver := Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"] - 1
+	let skillLevel := (player.GetBaseAV3C skillCode) + skillIncrease
+	let result["wasOverLeveled"] := 0
+	let result["willLevelSkill"] := 0
+	DebugPrint "PreventOverlevel processing for Skill: %g. IsMajor: %g, SkillIncrease: %g, Progress: %g/%g, skillLevel: %g, isScripted: %g." skillCode isMajorSkill skillIncrease lvlProgress maxLvlProgress skillLevel isScripted
+	if (isMajorSkill)
+		; set newlvlProgress to lvlProgress + skillIncrease
+	    ; block overleveling. Prevent any skills from advancing
+		if (lvlProgress > maxLvlProgress)
+			let result["wasOverLeveled"] := 1
+			set overLvlProgress to lvlProgress - maxLvlProgress
+			let Recurved.ExcessAttributeProgress += overLvlProgress
+			if (Recurved.ExcessAttributeProgress >= maxAttrbProgOver)
+				; hardcap all skills
+			endif
+	        
+	        if (isScripted == 0)
+	            ; If not scripted, a level is removed from the skill above. Then, set the current level at 99% exp
+	            ; set skillExp to GetRequiredSkillExpC skillCode - GetPlayerSkillUseC skillCode
+				; set reqSkillExp to GetRequiredSkillExpC skillCode
+				; set skillUse to GetPlayerSkillUseC skillCode
+				; set skillUseIncrement to GetSkillUseIncrement skillCode
+				set skillExp to GetRequiredSkillExpC skillCode
+				set adjSkillLevel to player.GetBaseAV3C skillCode
+				let skillExp := skillExp * .5
+				let skillAdjExp := -(call rcvGetHighestSkillUse skillCode) * 2
+				DebugPrint "Overlevel progress prevented. Previous progress %g/%g. Current progress %g/%g. Skill %g previous level %g, current level %g" lvlProgress maxLvlProgress maxLvlProgress maxLvlProgress skillCode skillLevel adjSkillLevel
+	            ;ModPlayerSkillExp skillCode skillAdjExp
+				set adjSkillLevel to player.GetBaseAV3C skillCode
+				DebugPrint "Skill %g set to level %g. skillExp=%.2f, reqSkillExp=%.2f, skillUse=%.2f, skillUseIncrement=%.2f, cappedSkillLvl=%g" skillCode skillLevel skillExp reqSkillExp skillUse skillUseIncrement cappedSkillLvl
+				; Hardcap the skill
+				ar_Append Recurved.HardCapSkills skillCode
+	        else
+				; if scripted, check if there was still a level increase
+	            if (maxLvlProgress - lvlProgress > 0)
+	                let result["willLevelSkill"] := 1
+	            endif
+			endif
+		endif
+	
+		; Limit the level progress to the max to prevent adding to the next level
+		SetPCMajorSkillUps maxLvlProgress
+	; Also prevent minor skill level ups to encourage leveling
+	elseif (lvlProgress > maxLvlProgress)
+		 if (isScripted == 0)
+		 	;DebugPrint "PreventOverlevel processing for Minor Skill: %g. SkillIncrease: %g, Progress: %g/%g, skillLevel: %g, isScripted: %g." skillCode skillIncrease lvlProgress maxLvlProgress skillLevel isScripted
+			; If not scripted, a level is removed and the current level is set at at 99% exp
+			player.SetActorValueC skillCode skillLevel - 1
+            set skillExp to 0 - GetRequiredSkillExpC skillCode
+			ModPlayerSkillExp skillCode (skillExp * .90)
+			let result["wasOverLeveled"] := 1
+		endif
+	endif
+	DebugPrint "PreventOverlevel result['wasOverLeveled']=%g, result['willLevelSkill']=%g" result["wasOverLeveled"] result["willLevelSkill"]
+	SetFunctionValue result
+	
+End

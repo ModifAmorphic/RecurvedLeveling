@@ -2,6 +2,7 @@ scn rcvSetAttributeProgress
 
 int i
 int attributeCode
+int remainingPoints
 int progressPoints
 
 
@@ -11,8 +12,9 @@ Begin _Function { remainingProgress } ; Gets any attribute progress remaining th
 
 	while (i < ar_Size remainingProgress)
 		let attributeCode := remainingProgress[i]["attributeCode"]
-		let progressPoints := remainingProgress[i]["progressPoints"]
-		SetPCAttributeBonusC attributeCode progressPoints 
+		let remainingPoints := remainingProgress[i]["progressPoints"]
+		set progressPoints to GetPCAttributeBonusC attributeCode
+		SetPCAttributeBonusC attributeCode (progressPoints + remainingPoints)
         let i += 1
     loop
 End
