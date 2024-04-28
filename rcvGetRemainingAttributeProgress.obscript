@@ -27,12 +27,12 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
         let lastAttr := lastLevel["attributes"][i]
         let currentAttr := currentLevel["attributes"][i]
         let difference := currentAttr["value"] - lastAttr["value"]
-        DebugPrint "Attribute: %g, Difference: %g" i difference
+        DebugPrint "recurve: rcvGetRemainingAttributeProgress Attribute: %g, Difference: %g" i difference
         ; If a attribute was increased, calculate how many attribute progress 
         ;    points were used by reading through the iLevelUpMults table
         set pointsSpent to 0
         if difference > 0
-            DebugPrint "Found Difference=%g for Attribute %g. Calculating points spent." difference i
+            DebugPrint "recurve: Found Difference=%g for Attribute %g. Calculating points spent." difference i
             while (c < ar_Size levelCurve["iLevelUpMults"])
                 let lvlMult := levelCurve["iLevelUpMults"][c]
                 ; Select the lowest used value to subtract from total progress made
@@ -47,12 +47,12 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
         ; If points were spent, see if there's any left over
         if (pointsSpent > 0)
             let lastProgress := lastAttr["skillProgress"]
-            DebugPrint "Calculated %g points spent for attribute %g. Checking last level's attribute for left over progress. LastSkillProgress=%g" pointsSpent i lastProgress
+            DebugPrint "recurve: Calculated %g points spent for attribute %g. Checking last level's attribute for left over progress. LastSkillProgress=%g" pointsSpent i lastProgress
             if (lastProgress > pointsSpent)
                 let remainingProgress[p] := ar_Construct StringMap
                 let remainingProgress[p]["attributeCode"] := i
                 let remainingProgress[p]["progressPoints"] := lastProgress - pointsSpent
-                DebugPrint "Calculated %g points remaining for attribute %g." remainingProgress[p]["progressPoints"] i
+                DebugPrint "recurve: Calculated %g points remaining for attribute %g." remainingProgress[p]["progressPoints"] i
                 let p += 1
             endif
         endif

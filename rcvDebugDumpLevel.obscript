@@ -8,17 +8,28 @@ int index
 Begin Function { level } ; Dumps element of the Recurved.Level Array
 	set index to level - 1
 	if Eval (index >= ar_Size Recurved.Levels)
-		DebugPrint "Unable to dump Recurved.Levels[%g] for level %g. Level does not exist in Recurved.Levels." index level
+		DebugPrint "recurve: Unable to dump Recurved.Levels[%g] for level %g. Level does not exist in Recurved.Levels." index level
 		return
 	endif
-	DebugPrint "Dumping Recurved.Levels[%g]:" index
+	DebugPrint "recurve: Dumping Recurved.Levels[%g]:" index
 	ar_Dump Recurved.Levels[index]
 	set i to 0
-	DebugPrint "Dumping Recurved.Levels[%g].attributes:" index
+	DebugPrint "recurve: Dumping Recurved.Levels[%g].attributes:" index
 	while (i < ar_size Recurved.Levels[index]["attributes"])
 		ar_Dump Recurved.Levels[index]["attributes"][i]
 		let i += 1
 	loop
 	set i to 0
 	call rcvDebugDumpSkills (Recurved.Levels[index]["skills"])
+
+	;; dump quests
+	; let quests := GetCurrentQuests
+	; DebugPrint "recurve: Current Quests: %g" ar_size GetCurrentQuests
+	; set i to 0
+	; while (i < ar_size quests)
+	; 	let questId := GetEditorID quests[i]
+	; 	DebugPrint "    %z" questId
+	; 	let i += 1
+	; loop
+	; set i to 0			
 End

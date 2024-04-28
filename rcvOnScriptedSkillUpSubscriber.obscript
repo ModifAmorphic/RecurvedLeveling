@@ -9,5 +9,5 @@ int attributeBonus
 int skillActorValueCode
 int amount
 Begin _Function { skillActorValueCode amount } ; Listens to Scripted Skill Up events and capture attribute progress if needed.
-	call rvcProcessSkillIncrease skillActorValueCode amount 1
+	call rcvProcessSkillIncrease skillActorValueCode amount 1
 End

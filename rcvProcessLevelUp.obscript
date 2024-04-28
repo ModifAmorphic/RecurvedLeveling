@@ -1,0 +1,20 @@
+scn rcvProcessLevelUp
+
+Begin _Function { }
+	; Carry over any left over progress points from the previous level and apply.
+	call rcvSetLevelProgress
+	; reset the over level message box
+	set Recurved.OverlevelMsgShown to 0
+	; clear any hardcaps set for the previous level and reinit the array
+	let Recurved.HardCappedSkills := ar_Null
+	let Recurved.HardCappedSkills := ar_Construct Array
+	; set current and next level curves
+	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
+	let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve player.GetLevel + 1
+	; Apply any attribute progress overages to the new level
+	if (Recurved.ExcessAttributeProgress > 0)
+		SetPCMajorSkillUps Recurved.ExcessAttributeProgress
+	endif
+	; reset excess attribute progress
+	set Recurved.ExcessAttributeProgress to 0
+End

@@ -1,0 +1,20 @@
+scn rcvFindHardCappedSkill
+
+int i
+
+; params
+int skillCode      ; Actor Value Code for the skill 
+; output
+array_var hardCappedSkill ; 1 if the skill is currently hardcapped, otherwise 0
+Begin _Function { skillCode }
+	while (i < ar_Size Recurved.HardCappedSkills)
+		;DebugPrint "recurve: rcvFindHardCappedSkill: Checking if skill %g matches hard capped skill %g." skillCode (Recurved.HardCappedSkills[i]["skillCode"])
+		if Eval(Recurved.HardCappedSkills[i]["skillCode"] == skillCode)
+			let hardCappedSkill := Recurved.HardCappedSkills[i]
+			DebugPrint "recurve: rcvFindHardCappedSkill: Found skill %g hardcapped for reason %g." skillCode (Recurved.HardCappedSkills[i]["reason"])
+			break
+		endif
+		let i += 1
+	loop
+	SetFunctionValue hardCappedSkill
+End

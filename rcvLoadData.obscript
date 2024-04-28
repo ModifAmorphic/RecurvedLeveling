@@ -43,9 +43,9 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 	endif
 	set i to 0
 	
-	if Eval ((ar_size Recurved.HardCapSkills) == -1)
-		let Recurved.HardCapSkills := ar_Construct Array
-		DebugPrint "recurve: Initializing Recurved.HardCapSkills array."
+	if Eval ((ar_size Recurved.HardCappedSkills) == -1)
+		let Recurved.HardCappedSkills := ar_Construct Array
+		DebugPrint "recurve: Initializing Recurved.HardCappedSkills array."
 	endif
 
 End

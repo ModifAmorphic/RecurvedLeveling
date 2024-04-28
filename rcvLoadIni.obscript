@@ -11,14 +11,33 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	set Recurved.Intelligence to 5
 	set Recurved.Willpower to 6
 	
+	let Recurved.HardCapReasons := ar_Construct StringMap
+	let Recurved.HardCapReasons["Overlevel"] := 0
+	let Recurved.HardCapReasons["OverageProtection"] := 1
+
 	; ### Load Default Values ###
-	; Disables soft caps on minor skills
+	;; Major Overage Prevention temporarily caps major skill increases for governing attributes 
+	;;; that have reached the max for the current level until 3 attributes have been maxed.
+	;;; Disabling this allows Major Attributes to always increase.
+	set Recurved.MajorOveragePreventionDisabled to 0
+	;; Disables soft caps on minor skills
 	set Recurved.MinorSkillSoftCapsDisabled to 0
-	; Increases amount of experience required to level a skill past the soft cap. 
-	;     Must be greater than 1. Has no effect if MinorSkillSoftCapsDisabled is set to 1.
+	;; Disables additional bonus progress points towards attribute increases 
+	;;; when major skills increase in level
+	set Recurved.AttributeBonusDisabled to 0
+	;; Increases to Major skills will contribute Secondary Attribute Bonuses
+	;;; If set to 1, disables secondary attribute bonuses
+	set Recurved.SecondaryAttributesDisabled to 0
+	;; Enable/Disable Debugging Logs
+	set Recurved.DebugEnabled to 1
+
+
+	; Level Scaling Settings
+
+	;: Increases amount of experience required to level a skill past the soft cap. 
+	;:     Must be greater than 1. Has no effect if MinorSkillSoftCapsDisabled is set to 1.
 	set Recurved.SoftCapMulti to 5.0
 
-	; Advanced settings
 	;; This section controls when level tiers start and end.
 	set Recurved.Tier1StartLevel to 1
 	set Recurved.Tier2StartLevel to 11
@@ -31,26 +50,33 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	set Recurved.Tier3MaxAttributeUp to 5
 	set Recurved.Tier4MaxAttributeUp to 8
 
-	;; Major Skills increases required for a level up
+	;; Major Skill level increases required for next level
 	set Recurved.Tier1LevelUpSkillIncs to 15
 	set Recurved.Tier2LevelUpSkillIncs to 12
 	set Recurved.Tier3LevelUpSkillIncs to 10
 	set Recurved.Tier4LevelUpSkillIncs to 8
 
-	;; Adds additonal progress points on Major skill ups. Normally a skill increase
-	;; adds 1 progress point towards the next level, so setting MajorAttributeBonus to 1
-	;; increases it to 2. (1 + 1 = 2) [Default Progress + Bonus Progress]
-	set Recurved.MajorAttributeBonus to 1
+	;; Adds additonal attribute progression on Major Skill ups. Normally a skill increase
+	;;; adds 1 progress towards higher attribute gains. This setting allows for increasing
+	;;; that amount to reduce dependency on Minor Skill leveling.  For example, setting
+	;;; MajorAttributeBonus to 2 increases the the total amount to 3 for every skill level up. 
+	;;;   (1 + 2 = 3) [Default Progress + Bonus Progress]
+	set Recurved.Tier1MajorAttributeBonus to 1
+	set Recurved.Tier2MajorAttributeBonus to 2
+	set Recurved.Tier3MajorAttributeBonus to 2
+	set Recurved.Tier4MajorAttributeBonus to 3
 
-	;; Increases to Major skills will contribute Secondary Attribute Bonuses
-	;;; If set to 1, disables secondary attribute bonuses
-	set Recurved.SecondaryAttributesDisabled to 0
+	;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if 
+	;;; SecondaryAttributesDisabled is set.
+	set Recurved.Tier1SecondaryAttributeBonus to 1
+	set Recurved.Tier2SecondaryAttributeBonus to 1
+	set Recurved.Tier3SecondaryAttributeBonus to 1
+	set Recurved.Tier4SecondaryAttributeBonus to 1
 
-	;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if SecondaryAttributesDisabled is set.
-	set Recurved.SecondaryAttributeIncrease to 1
-
-	;; Maps attributes to secondary. No effect if SecondaryAttributesDisabled is set.
-	;; Strength -> Speed -> Intelligence -> Personality -> Agility -> Endurance -> Willpower -> Strength
+	;; Maps attributes to secondary. When a major skill increase occurs, then both the skill's governing
+	;;; attribute and the associated secondary attribute will gain progress towards attribute increases.
+	;;; Has no effect if SecondaryAttributesDisabled is set.
+	;;; Strength -> Speed -> Intelligence -> Personality -> Agility -> Endurance -> Willpower -> Strength
 	set Recurved.StrengthSecondary to Recurved.Speed
 	set Recurved.EnduranceSecondary to Recurved.Willpower
 	set Recurved.SpeedSecondary to Recurved.Intelligence
@@ -59,9 +85,8 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	set Recurved.IntelligenceSecondary to Recurved.Personality
 	set Recurved.WillpowerSecondary to Recurved.Strength
 
+	;; Message shown when no more skill increases are allowed before a level up
 	set Recurved.OverlevelMessage to sv_Construct "You can't possible learn anything else today. Get some rest!"
-	;; Enable Debugging
-	set Recurved.DebugEnabled to 1
 	; ### End Defaults ###
 
 	;run batch ini settings script

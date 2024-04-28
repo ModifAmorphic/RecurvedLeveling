@@ -26,7 +26,7 @@ Begin _Function {  } ; Gets array of skills, indexed by skill code, and their mi
 				let minimums[skillCode]["major"] := 20
 			endif
 			let minimums[skillCode]["modified"] := minimums[skillCode]["base"] + minimums[skillCode]["racial"] + minimums[skillCode]["specialized"] + minimums[skillCode]["major"]
-			;DebugPrint "Skill %g has a modified minimum value of %g." skillCode minimums[skillCode]["modified"]
+			;DebugPrint "recurve: Skill %g has a modified minimum value of %g." skillCode minimums[skillCode]["modified"]
 		endif
 		let skillCode := skillCode + 1
 	loop

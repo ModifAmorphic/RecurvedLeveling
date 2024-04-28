@@ -34,6 +34,7 @@ Begin Function { } ; Gets list of current skills split in to major and minor lis
 		let skills[skillType][i] := ar_Construct stringmap
 		let skills[skillType][i]["name"] := ActorValueToStringC skillCode
 		let skills[skillType][i]["code"] := skillCode
+		let skills[skillType][i]["attributeCode"] := GetSkillGoverningAttributeC skillCode
 		let skills[skillType][i]["amount"] := player.GetBaseAV3C skillCode
 		let skills[skillType][i]["useIncrements"] := ar_Construct array
 		let skills[skillType][i]["useIncrements"][0] := GetSkillUseIncrementC skillCode 0

@@ -9,9 +9,25 @@ int Personality
 int Intelligence
 int Willpower
 
+array_var HardCapReasons
+
 ; ### Ini variables  ###
+;; Major Overage Prevention temporarily caps major skill increases for governing attributes 
+;;; that have reached the max for the current level until 3 attributes have been maxed.
+;;; Disabling this allows Major Attributes to always increase.
+short MajorOveragePreventionDisabled
 ;; Disables soft caps on minor skills
 short MinorSkillSoftCapsDisabled
+;; Disables additional bonus progress points towards attribute increases 
+;;; when major skills increase in level
+short AttributeBonusDisabled
+;; Increases to Major skills will contribute Secondary Attribute Bonuses
+;;; If set to 1, disables secondary attribute bonuses
+short SecondaryAttributesDisabled
+;; Debugging
+short DebugEnabled
+
+; Level Scaling Settings
 ;; Increases amount of experience required to level a skill past the soft cap. 
 float SoftCapMulti
 ;; Controls when level tiers start and end.
@@ -31,14 +47,16 @@ int Tier3LevelUpSkillIncs
 int Tier4LevelUpSkillIncs
 
 ;; Adds additonal progress points On Major skill ups
-int MajorAttributeBonus
-
-;; Increases to Major skills will contribute Secondary Attribute Bonuses
-;;; If set to 1, disables secondary attribute bonuses
-short SecondaryAttributesDisabled
+int Tier1MajorAttributeBonus
+int Tier2MajorAttributeBonus
+int Tier3MajorAttributeBonus
+int Tier4MajorAttributeBonus
 
 ;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if SecondaryAttributesDisabled is set.
-int SecondaryAttributeIncrease
+int Tier1SecondaryAttributeBonus
+int Tier2SecondaryAttributeBonus
+int Tier3SecondaryAttributeBonus
+int Tier4SecondaryAttributeBonus
 
 ;;; Maps a skill's governing attribute to a secondary attribute to increase.
 int StrengthSecondary
@@ -52,12 +70,11 @@ int WillpowerSecondary
 ;; Message shown when no more skill increases are allowed before a level up
 string_var OverlevelMessage
 
-;; Debugging
-short DebugEnabled
+
 
 ; ### End Ini variables  ###
 
-;;; Contains the secondary's above indexed for lookups.
+;;; Contains the secondary's above indexed by primary attribute code for lookups.
 array_var AttributeSecondaries
 
 ; End External ini variables
@@ -67,10 +84,12 @@ array_var DefaultSkillUseIncrements
 array_var Levels
 array_var LevelCurves
 ; Skils that have temporarly hardcapped due to over leveling.
-array_var HardCapSkills
+array_var HardCappedSkills
 
 ; Flag for when character has a level pending
 short LevelPending
+
 ; Amount of attribute progress over the max needed for the next level
 int ExcessAttributeProgress
+; Flag to track if the message about over leveling has been shown or not this level
 short OverlevelMsgShown

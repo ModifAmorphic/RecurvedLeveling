@@ -13,7 +13,7 @@ Begin _Function { levelCurve hardCappedSkills }
 		let lvlUpMult := levelCurve["iLevelUpMults"][i]
 		let levelUpMultSetting := lvlUpMult["setting"]
 		SetNumericGameSetting $levelUpMultSetting lvlUpMult["value"]
-		DebugPrint "Set %z to %g." levelUpMultSetting lvlUpMult["value"]
+		DebugPrint "recurve: Set %z to %g." levelUpMultSetting lvlUpMult["value"]
 		let i += 1
 	loop
 
@@ -26,13 +26,14 @@ Begin _Function { levelCurve hardCappedSkills }
 		endif
 		let i += 1
 	loop
-	DebugPrint "Set iLevelUpSkillCount to %g." levelCurve["iLevelUpSkillCount"]
+	DebugPrint "recurve: Set iLevelUpSkillCount to %g." levelCurve["iLevelUpSkillCount"]
 	SetNumericGameSetting "iLevelUpSkillCount" levelCurve["iLevelUpSkillCount"]
 	
 	set i to 0
 	while (i < ar_Size hardCappedSkills)
-		SetSkillUseIncrementC 0 hardCappedSkills[i] 0
-		SetSkillUseIncrementC 0 hardCappedSkills[i] 1
+		SetSkillUseIncrementC 0 hardCappedSkills[i]["skillCode"] 0
+		SetSkillUseIncrementC 0 hardCappedSkills[i]["skillCode"] 1
+		DebugPrint "recurve: Set skill use increment to 0 for hard capped skill %g for reason %g." (hardCappedSkills[i]["skillCode"]) (hardCappedSkills[i]["reason"])
 		let i += 1
 	loop
 	set i to 0
