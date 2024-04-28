@@ -11,12 +11,14 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	set Recurved.Intelligence to 5
 	set Recurved.Willpower to 6
 	
-	let Recurved.HardCapReasons := ar_Construct StringMap
-	let Recurved.HardCapReasons["Overlevel"] := 0
-	let Recurved.HardCapReasons["OverageProtection"] := 1
+	let Recurved.SkillUseOverrideReasons := ar_Construct StringMap
+	let Recurved.SkillUseOverrideReasons["Overlevel"] := 0
+	let Recurved.SkillUseOverrideReasons["OverageProtection"] := 1
 
 	; ### Load Default Values ###
-	;; Major Overage Prevention temporarily caps major skill increases for governing attributes 
+	; Main Toggles
+
+	;; Major Overage Prevention temporarily slows major skill increases for governing attributes 
 	;;; that have reached the max for the current level until 3 attributes have been maxed.
 	;;; Disabling this allows Major Attributes to always increase.
 	set Recurved.MajorOveragePreventionDisabled to 0
@@ -28,15 +30,26 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	;; Increases to Major skills will contribute Secondary Attribute Bonuses
 	;;; If set to 1, disables secondary attribute bonuses
 	set Recurved.SecondaryAttributesDisabled to 0
+	;; Disables carrying over of remaining Attribute progress from the previous level
+	set Recurved.ExcessAttributeProgressDisabled to 0
 	;; Enable/Disable Debugging Logs
 	set Recurved.DebugEnabled to 1
 
-
 	; Level Scaling Settings
 
-	;: Increases amount of experience required to level a skill past the soft cap. 
-	;:     Must be greater than 1. Has no effect if MinorSkillSoftCapsDisabled is set to 1.
+	;: Increases amount of experience required to level a minor skill past its soft cap. 
+	;:     Has no effect if MinorSkillSoftCapsDisabled is set to 1.
+	;;; 0  : Hard caps the skill
+	;;; 1  : No effect
+	;;; 2+ : Multiplies the amount of experience by the SoftCapMulti value
 	set Recurved.SoftCapMulti to 5.0
+	;; Increases amount of experience required to level a Major skill once there are
+	;; enough attribute progress points banked for the full attribute increase. Penalty is removed
+	;; when a 3rd full attribute increase is acheived or the character is leveled.
+	;;; 0  : Hard caps any major skills responsible for attribute increases
+	;;; 1  : No effect
+	;;; 2+ : Multiplies the amount of experience by the MajorOveragePreventionMulti
+	set Recurved.MajorOveragePreventionMulti to 5.0
 
 	;; This section controls when level tiers start and end.
 	set Recurved.Tier1StartLevel to 1

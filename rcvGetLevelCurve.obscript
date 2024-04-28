@@ -115,11 +115,12 @@ Begin _Function { level }
 		let capUseInc1 := Recurved.DefaultSkillUseIncrements[skillCode][0]
 		let capUseInc2 := Recurved.DefaultSkillUseIncrements[skillCode][1]
 		if Recurved.MinorSkillSoftCapsDisabled == 0
-			if (capUseInc1 > 0)
+			if (Recurved.SoftCapMulti > 0)
 				let capUseInc1 /= Recurved.SoftCapMulti
-			endif
-			if (capUseInc2 > 0)
 				let capUseInc2 /= Recurved.SoftCapMulti
+			else
+				set capUseInc1 to 0
+				set capUseInc2 to 0
 			endif
 		endif
 		let levelCurve["skills"][i] := ar_Construct StringMap

@@ -162,7 +162,7 @@ Begin _GameMode
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
 
 	; Configure attribute gains and required skill increase for the current level
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.HardCappedSkills
+	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.SkillUserOverrides
 	
 	; Handle Player level up 
 	if (isPlayerLeveled == 1)

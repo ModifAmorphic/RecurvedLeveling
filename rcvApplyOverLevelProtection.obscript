@@ -9,15 +9,7 @@ int overLvlProgress
 int maxLvlProgress
 int maxAttrbProgOver
 int skillLevel
-array_var hardCap
-
-; Overage prevention
-;int attributeCode
-;int progressPoints
-;array_var maxedAttrProgress
-;array_var tmpHardCaps
-;array_var majorSkills
-;short isCapsRemoved
+array_var useOverride
 
 ; inputs
 int skillCode ; Actor Value Code of the skill
@@ -25,14 +17,14 @@ int skillIncrease ; The amount the skill will or has increased.
 int isScripted ; Whether or not the increase was caused by a scripted event.
 
 ; Outputs
-short skillsHardcapped
+short skillsCapped
 
 Begin _Function { skillCode skillIncrease isScripted }
 
-	set skillsHardcapped to 0
+	set skillsCapped to 0
 	set isMajorSkill to player.IsClassSkillC skillCode
 	if (isMajorSkill == 0)
-		SetFunctionValue skillsHardcapped
+		SetFunctionValue skillsCapped
 		return
 	endif
 
@@ -51,74 +43,25 @@ Begin _Function { skillCode skillIncrease isScripted }
 			; Hardcap all skills
 			set i to 12
 			while (i < 33)
-				let hardCap := ar_Construct StringMap
-				let hardCap["skillCode"] := i
-				let hardCap["reason"] := Recurved.HardCapReasons["Overlevel"]
-				ar_Append Recurved.HardCappedSkills hardCap
+				let useOverride := ar_Construct StringMap
+				let useOverride["skillCode"] := i
+				let useOverride["reason"] := Recurved.SkillUseOverrideReasons["Overlevel"]
+				let useOverride["useExp"] := sv_Construct Array
+				let useOverride["useExp"][0] := 0
+				let useOverride["useExp"][1] := 0
+				ar_Append Recurved.SkillUserOverrides useOverride
 				let i += 1
 			loop
-			let hardCap := ar_Null
+			let useOverride := ar_Null
 			set i to 0
-			set skillsHardcapped to 1
+			set skillsCapped to 1
 		endif
 		; Limit the level progress to the max to prevent adding to the next level
 		DebugPrint "recurve: Overlevel Protection - Setting current major skillups to %g/%g from %g/%g. Stashed excess levels: %g." maxLvlProgress maxLvlProgress lvlProgress maxLvlProgress Recurved.ExcessAttributeProgress
 		SetPCMajorSkillUps maxLvlProgress
 	endif
 
-	; Overage prevention
-	; if (skillsHardcapped == 0 && Recurved.MajorOveragePreventionDisabled == 0)
-	; 	set attributeCode to GetSkillGoverningAttributeC skillCode
-	; 	; Get a list of attributes whose progress is maxed (or will be maxed with this increase)
-	; 	let maxedAttrProgress := ar_Construct Array
-	; 	set i to 0
-	; 	while (i < 7)
-	; 		set progressPoints to GetPCAttributeBonusC i + skillIncrease
-	; 		; include any bonus, bonus progress if enabled
-	; 		if (Recurved.AttributeBonusDisabled == 0 && i == attributeCode)
-	; 			let progressPoints += Recurved.LevelCurves[player.GetLevel - 1]["MajorAttributeBonus"]
-	; 		endif
-	; 		if (progressPoints >= 10)
-	; 			ar_Append maxedAttrProgress i
-	; 		endif
-	; 		let i += 1
-	; 	loop
-	; 	set i to 0
-	; 	; If maxed out attribute progress is less than 3, then hardcap this and any other major skills
-	; 	; that will increase the attribute (secondary bonus to attributes not included)
-	; 	if Eval ((ar_size maxedAttrProgress) < 3)
-	; 		if Eval ((ar_Find attributeCode maxedAttrProgress) > -1)
-	; 			let majorSkills := call rcvGetAttributeMajorSkills
-	; 			while (i < ar_Size majorSkills)
-	; 				ar_Construct hardCap StringMap
-	; 				let hardCap["skillCode"] := majorSkills["code"]
-	; 				let hardCap["reason"] := HardCapReasons["OverageProtection"]
-	; 				ar_Append Recurved.HardCappedSkills hardCap
-	; 				let i += 1
-	; 			loop
-	; 			DebugPrint "recurve: MajorOveragePrevention triggered for Attribute %g Skill: %g. IsMajor: %g, SkillIncrease: %g, Progress: %g/%g, maxAttrbProgOver: %g, skillLevel: %g, ExcessAttributeProgress: %g, isScripted: %g, skillsHardcapped: %g." attributeCode skillCode isMajorSkill skillIncrease lvlProgress maxLvlProgress maxAttrbProgOver skillLevel Recurved.ExcessAttributeProgress isScripted skillsHardcapped
-	; 		endif
-	; 	else ; 3 attributes are maxed. Unlock any hardcapped skills
-	; 		let tmpHardCaps := ar_Construct Array
-	; 		while (i < ar_Size Recurved.HardCappedSkills)
-	; 			if Recurved.HardCappedSkills[i]["reason"] == HardCapReasons["OverageProtection"]
-	; 				set isCapsRemoved to 1
-	; 			else
-	; 				ar_Append Recurved.HardCappedSkills[i] tmpHardCaps
-	; 			endif
-	; 			let i += 1
-	; 		loop
-	; 		if isCapsRemoved
-	; 			let Recurved.HardCappedSkills := ar_Null
-	; 			let Recurved.HardCappedSkills := tmpHardCaps
-	; 			let tmpHardCaps := ar_Null
-	; 			DebugPrint "recurve: Found %g hard caps "
-	; 		endif
-	; 	endif
-	; 	let maxedAttrProgress := ar_Null
-	; endif
-
-	DebugPrint "recurve: PreventOverlevel processed for Skill: %g. IsMajor: %g, SkillIncrease: %g, Progress: %g/%g, maxAttrbProgOver: %g, skillLevel: %g, ExcessAttributeProgress: %g, isScripted: %g, skillsHardcapped: %g." skillCode isMajorSkill skillIncrease lvlProgress maxLvlProgress maxAttrbProgOver skillLevel Recurved.ExcessAttributeProgress isScripted skillsHardcapped
-	SetFunctionValue skillsHardcapped
+	DebugPrint "recurve: PreventOverlevel processed for Skill: %g. IsMajor: %g, SkillIncrease: %g, Progress: %g/%g, maxAttrbProgOver: %g, skillLevel: %g, ExcessAttributeProgress: %g, isScripted: %g, skillsCapped: %g." skillCode isMajorSkill skillIncrease lvlProgress maxLvlProgress maxAttrbProgOver skillLevel Recurved.ExcessAttributeProgress isScripted skillsCapped
+	SetFunctionValue skillsCapped
 	
 End

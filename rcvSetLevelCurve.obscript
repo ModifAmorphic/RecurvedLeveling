@@ -6,8 +6,9 @@ array_var lvlUpMult
 string_var levelUpMultSetting
 ;inputs
 array_var levelCurve
-array_var hardCappedSkills
-Begin _Function { levelCurve hardCappedSkills }
+array_var useOverrides
+array_var useOverride
+Begin _Function { levelCurve useOverrides }
 	set i to 0
 	while (i < ar_Size levelCurve["iLevelUpMults"])
 		let lvlUpMult := levelCurve["iLevelUpMults"][i]
@@ -30,10 +31,11 @@ Begin _Function { levelCurve hardCappedSkills }
 	SetNumericGameSetting "iLevelUpSkillCount" levelCurve["iLevelUpSkillCount"]
 	
 	set i to 0
-	while (i < ar_Size hardCappedSkills)
-		SetSkillUseIncrementC 0 hardCappedSkills[i]["skillCode"] 0
-		SetSkillUseIncrementC 0 hardCappedSkills[i]["skillCode"] 1
-		DebugPrint "recurve: Set skill use increment to 0 for hard capped skill %g for reason %g." (hardCappedSkills[i]["skillCode"]) (hardCappedSkills[i]["reason"])
+	while (i < ar_Size useOverrides)
+		let useOverride := useOverrides[i]
+		SetSkillUseIncrementC useOverride["useExp"][0] useOverride["skillCode"] 0
+		SetSkillUseIncrementC useOverride["useExp"][1] useOverride["skillCode"] 1
+		DebugPrint "recurve: Set skill use increment to 0 for hard capped skill %g for reason %g." (useOverrides[i]["skillCode"]) (useOverrides[i]["reason"])
 		let i += 1
 	loop
 	set i to 0

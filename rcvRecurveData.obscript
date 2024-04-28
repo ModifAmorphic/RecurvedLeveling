@@ -9,7 +9,7 @@ int Personality
 int Intelligence
 int Willpower
 
-array_var HardCapReasons
+array_var SkillUseOverrideReasons
 
 ; ### Ini variables  ###
 ;; Major Overage Prevention temporarily caps major skill increases for governing attributes 
@@ -21,15 +21,23 @@ short MinorSkillSoftCapsDisabled
 ;; Disables additional bonus progress points towards attribute increases 
 ;;; when major skills increase in level
 short AttributeBonusDisabled
-;; Increases to Major skills will contribute Secondary Attribute Bonuses
-;;; If set to 1, disables secondary attribute bonuses
+;; Disables increases Major skills will contribute Secondary Attribute Bonuses
 short SecondaryAttributesDisabled
+;; Disables carrying over of remaining Attribute progress from the previous level
+short ExcessAttributeProgressDisabled
 ;; Debugging
 short DebugEnabled
 
 ; Level Scaling Settings
 ;; Increases amount of experience required to level a skill past the soft cap. 
 float SoftCapMulti
+;; Increases amount of experience required to level a Major skill once there are
+;; enough attribute progress points banked for the full attribute increase. Penalty is removed
+;; when a 3rd full attribute increase is acheived or the character is leveled.
+;;; 0  : Hard caps any major skills responsible for attribute increases
+;;; 1  : No effect
+;;; 2+ : Multiplies the amount of experience by the MajorOveragePreventionMulti
+float MajorOveragePreventionMulti
 ;; Controls when level tiers start and end.
 int Tier1StartLevel
 int Tier2StartLevel
@@ -70,8 +78,6 @@ int WillpowerSecondary
 ;; Message shown when no more skill increases are allowed before a level up
 string_var OverlevelMessage
 
-
-
 ; ### End Ini variables  ###
 
 ;;; Contains the secondary's above indexed by primary attribute code for lookups.
@@ -83,8 +89,8 @@ array_var DefaultSkillUseIncrements
 ; Persistant Arrays for tracking Levels
 array_var Levels
 array_var LevelCurves
-; Skils that have temporarly hardcapped due to over leveling.
-array_var HardCappedSkills
+; Skils that are temporarily capped once their governing attribute has enough progress points.
+array_var SkillUserOverrides
 
 ; Flag for when character has a level pending
 short LevelPending

@@ -1,0 +1,20 @@
+scn rcvFindSkillUseOverride
+
+int i
+
+; params
+int skillCode      ; Actor Value Code for the skill 
+; output
+array_var overriddenSkillUse ; Array of skill use overrides for the skill
+Begin _Function { skillCode }
+	while (i < ar_Size Recurved.SkillUserOverrides)
+		;DebugPrint "recurve: rcvFindSkillUseOverride: Checking if skill %g matches hard capped skill %g." skillCode (Recurved.SkillUserOverrides[i]["skillCode"])
+		if Eval(Recurved.SkillUserOverrides[i]["skillCode"] == skillCode)
+			let overriddenSkillUse := Recurved.SkillUserOverrides[i]
+			DebugPrint "recurve: rcvFindSkillUseOverride: Found skill %g capped for reason %g." skillCode (Recurved.SkillUserOverrides[i]["reason"])
+			break
+		endif
+		let i += 1
+	loop
+	SetFunctionValue overriddenSkillUse
+End
