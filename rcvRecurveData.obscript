@@ -24,7 +24,7 @@ short AttributeBonusDisabled
 ;; Disables increases Major skills will contribute Secondary Attribute Bonuses
 short SecondaryAttributesDisabled
 ;; Disables carrying over of remaining Attribute progress from the previous level
-short ExcessAttributeProgressDisabled
+short RemainingAttributeProgressDisabled
 ;; Debugging
 short DebugEnabled
 

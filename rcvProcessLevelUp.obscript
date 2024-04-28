@@ -2,7 +2,9 @@ scn rcvProcessLevelUp
 
 Begin _Function { }
 	; Carry over any left over progress points from the previous level and apply.
-	call rcvSetLevelProgress
+	if (Recurved.RemainingAttributeProgressDisabled == 0)
+		call rcvSetLevelProgress
+	endif
 	; reset the over level message box
 	set Recurved.OverlevelMsgShown to 0
 	; clear any skill use overrides set for the previous level and reinit the array

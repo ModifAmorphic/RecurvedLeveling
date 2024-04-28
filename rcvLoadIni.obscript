@@ -31,7 +31,7 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	;;; If set to 1, disables secondary attribute bonuses
 	set Recurved.SecondaryAttributesDisabled to 0
 	;; Disables carrying over of remaining Attribute progress from the previous level
-	set Recurved.ExcessAttributeProgressDisabled to 0
+	set Recurved.RemainingAttributeProgressDisabled to 0
 	;; Enable/Disable Debugging Logs
 	set Recurved.DebugEnabled to 1
 
