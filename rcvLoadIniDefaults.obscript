@@ -8,21 +8,27 @@ Begin Function {}
 ;;; that have reached the max for the current level until 3 attributes have been maxed.
 ;;; Disabling this allows Major Attributes to always increase.
 set Recurved.MajorOveragePreventionDisabled to 0
+
 ;; Disables soft caps on minor skills
 set Recurved.MinorSkillSoftCapsDisabled to 0
+
 ;; Disables additional bonus progress points towards attribute increases 
 ;;; when major skills increase in level
 set Recurved.AttributeBonusDisabled to 0
+
 ;; Increases to Major skills will contribute Secondary Attribute Bonuses
 ;;; If set to 1, disables secondary attribute bonuses
 set Recurved.SecondaryAttributesDisabled to 0
+
 ;; Disables carrying over of remaining Attribute progress from the previous level
 set Recurved.RemainingAttributeProgressDisabled to 0
+
 ;; Disables normalization of endurance for health increase calculations.
 ;;; Without this enabled, a character could end up with considerably less life under the default
 ;;; config than typical with vanilla. The inverse is also true if the TierXMaxAttributeUp values 
 ;;; are adjusted to allow for larger attribute gains early on.
 set Recurved.EnduranceHealthNormalizationDisabled to 0
+
 ;; Enable/Disable Debugging Logs
 set Recurved.DebugEnabled to 1
 
@@ -34,13 +40,19 @@ set Recurved.DebugEnabled to 1
 ;;; 1  : No effect
 ;;; 2+ : Multiplies the amount of experience by the SoftCapMulti value
 set Recurved.SoftCapMulti to 5.0
+
 ;; Increases amount of experience required to level a Major skill once there are
 ;; enough attribute progress points banked for the full attribute increase. Penalty is removed
 ;; when a 3rd full attribute increase is acheived or the character is leveled.
 ;;; 0  : Hard caps any major skills responsible for attribute increases
 ;;; 1  : No effect
 ;;; 2+ : Multiplies the amount of experience required by the MajorOveragePreventionMulti
-set Recurved.MajorOveragePreventionMulti to 5.0
+set Recurved.MajorOveragePreventionMulti to 10.0
+
+;; Controls what percentage, rounded down, of each remaining attribute progress is brought over to the next level.
+;;; Vanilla does not bring any unused points over to the next level.
+;;; Set between .1 (ten percent) to 1 (all points)
+set Recurved.RemainingAttributeProgressPerc to .8
 
 ;; This section controls when level tiers start and end.
 set Recurved.Tier1StartLevel to 1

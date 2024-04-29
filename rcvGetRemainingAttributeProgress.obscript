@@ -11,6 +11,7 @@ array_var lvlMult
 int increase
 int lastProgress
 int pointsSpent
+int rawPointsRemain
 
 ; Input Params
 array_var lastLevel
@@ -24,6 +25,10 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
     set i to 0
     set p to 0
     while (i < ar_Size lastLevel["attributes"])
+        if (i == Recurved.LuckAvc)
+            ; don't calculate luck progress
+            break;
+        endif
         let lastAttr := lastLevel["attributes"][i]
         ;let currentAttr := currentLevel["attributes"][i]
         let increase := currentLevel["attributes"][i]["increase"]   ;currentAttr["value"] - lastAttr["value"]
@@ -50,8 +55,9 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
         if (lastProgress > pointsSpent)
             let remainingProgress[p] := ar_Construct StringMap
             let remainingProgress[p]["attributeCode"] := i
-            let remainingProgress[p]["progressPoints"] := lastProgress - pointsSpent
-            DebugPrint "recurve: Calculated %g points remaining for attribute %g." remainingProgress[p]["progressPoints"] i
+            set rawPointsRemain to (lastProgress - pointsSpent)
+            let remainingProgress[p]["progressPoints"] := Floor (rawPointsRemain * Recurved.RemainingAttributeProgressPerc)
+            DebugPrint "recurve: Calculated %g points remaining for attribute %g after adjusting %g points remaining by RemainingAttributeProgressPerc %.2f." remainingProgress[p]["progressPoints"] i rawPointsRemain Recurved.RemainingAttributeProgressPerc
             let p += 1
         endif
         let i += 1

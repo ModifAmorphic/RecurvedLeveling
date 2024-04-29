@@ -49,6 +49,11 @@ float SoftCapMulti
 ;;; 2+ : Multiplies the amount of experience by the MajorOveragePreventionMulti
 float MajorOveragePreventionMulti
 
+;; Controls what percentage of each remaining attribute progress is brought over to the next level.
+;; Vanilla does not bring any unused points over to the next level.
+;; Set this to a value less than 1 unless you want to be swimming in attribute progress points in a few levels.
+float RemainingAttributeProgressPerc
+
 ;; Controls when level tiers start and end.
 int Tier1StartLevel
 int Tier2StartLevel
@@ -84,7 +89,7 @@ int PersonalitySecondary
 int IntelligenceSecondary
 int WillpowerSecondary
 
-;; Converts endurance increases to the normalized amount when calculating helath increases on level ups. This is done
+;; Converts endurance increases to the normalized amount when calculating health increases on level ups. This is done
 ;; to compensate the lower attribute inceases in lower levels.
 int Tier1EnduranceNormalizeAmount
 int Tier2EnduranceNormalizeAmount

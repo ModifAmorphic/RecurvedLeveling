@@ -57,7 +57,7 @@ Begin _Function { skillCode skillIncrease isScripted }
 			set skillsCapped to 1
 		endif
 		; Limit the level progress to the max to prevent adding to the next level
-		DebugPrint "recurve: Overlevel Protection - Setting current major skillups to %g/%g from %g/%g. Stashed excess levels: %g." maxLvlProgress maxLvlProgress lvlProgress maxLvlProgress Recurved.ExcessAttributeProgress
+		DebugPrint "recurve: Overlevel Protection - Setting current major skillups to %g/%g from %g/%g. Stashed excess progress increases: %g." maxLvlProgress maxLvlProgress lvlProgress maxLvlProgress Recurved.ExcessAttributeProgress
 		SetPCMajorSkillUps maxLvlProgress
 	endif
 
