@@ -1,0 +1,28 @@
+scn rcvDebugRunCommands
+
+Begin _Function {}
+	if (Recurved.DumpLevel > 0)
+        call rcvDebugDumpLevel Recurved.DumpLevel
+    endif
+
+    if (Recurved.DumpCurrentLevel)
+        call rcvDebugDumpLevel player.GetLevel
+    endif
+
+    if (Recurved.DumpLevelCurve > 0)
+        call rcvDebugDumpLevelCurve Recurved.DumpLevelCurve
+    endif
+
+    if (Recurved.ResetSkillUseOverrides)
+        let Recurved.SkillUseOverrides := ar_Null
+	    let Recurved.SkillUseOverrides := ar_Construct Array
+        call rcvApplyOverageProtection 0 0
+        set RecurvedController.hasUpdate to 1
+    endif
+
+    set Recurved.DumpLevel to 0
+    set Recurved.DumpCurrentLevel to 0
+    set Recurved.DumpLevelCurve to 0
+    set Recurved.ResetSkillUseOverrides to 0
+
+End

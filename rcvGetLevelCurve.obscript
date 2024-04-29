@@ -45,6 +45,7 @@ Begin _Function { level }
 		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier1SecondaryAttributeBonus
 		let levelCurve["startLvl"] := Recurved.Tier1StartLevel
 		let levelCurve["endLvl"] := startLevel2
+		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier1EnduranceNormalizeAmount
 	elseif (level >= startLevel2) && (level < startLevel3)
 		set maxAttributeUp to Recurved.Tier2MaxAttributeUp
 		set skillsForLevelUp to Recurved.Tier2LevelUpSkillIncs
@@ -52,6 +53,7 @@ Begin _Function { level }
 		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier2SecondaryAttributeBonus
 		let levelCurve["startLvl"] := Recurved.Tier2StartLevel
 		let levelCurve["endLvl"] := startLevel3
+		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier2EnduranceNormalizeAmount
 	elseif (level >= startLevel3) && (level < startLevel4)
 		set maxAttributeUp to Recurved.Tier3MaxAttributeUp
 		set skillsForLevelUp to Recurved.Tier3LevelUpSkillIncs
@@ -59,6 +61,7 @@ Begin _Function { level }
 		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier3SecondaryAttributeBonus
 		let levelCurve["startLvl"] := Recurved.Tier3StartLevel
 		let levelCurve["endLvl"] := startLevel4
+		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier3EnduranceNormalizeAmount
 	elseif (level >= startLevel4)
 		set maxAttributeUp to Recurved.Tier4MaxAttributeUp
 		set skillsForLevelUp to Recurved.Tier4LevelUpSkillIncs
@@ -66,6 +69,7 @@ Begin _Function { level }
 		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier4SecondaryAttributeBonus
 		let levelCurve["startLvl"] := Recurved.Tier4StartLevel
 		let levelCurve["endLvl"] := 999
+		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier4EnduranceNormalizeAmount
 	else
 		set maxAttributeUp to 5
 		set skillsForLevelUp to 10
@@ -73,6 +77,7 @@ Begin _Function { level }
 		let levelCurve["SecondaryAttributeBonus"] := 0
 		let levelCurve["startLvl"] := level
 		let levelCurve["endLvl"] := 999
+		let levelCurve["EnduranceNormalizeAmount"] := 5
 	endif
 
 	DebugPrint "recurve: Calculating iLevelUpXXMult attribute gains with a max of %g for player level %g. %g skills are required for level up" maxAttributeUp level skillsForLevelUp

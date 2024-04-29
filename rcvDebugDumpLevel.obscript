@@ -7,7 +7,7 @@ int level
 int index
 Begin Function { level } ; Dumps element of the Recurved.Level Array
 	set index to level - 1
-	if Eval (index >= ar_Size Recurved.Levels)
+	if Eval (index > ar_Size Recurved.Levels)
 		DebugPrint "recurve: Unable to dump Recurved.Levels[%g] for level %g. Level does not exist in Recurved.Levels." index level
 		return
 	endif

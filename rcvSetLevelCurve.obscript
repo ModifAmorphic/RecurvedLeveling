@@ -4,6 +4,7 @@ int i
 array_var skill
 array_var lvlUpMult
 string_var levelUpMultSetting
+string_var skillName
 ;inputs
 array_var levelCurve
 array_var useOverrides
@@ -24,6 +25,7 @@ Begin _Function { levelCurve useOverrides }
 		if Eval (skill["softCapEnabled"] == 1)
 			SetSkillUseIncrementC skill["softCapUseExp"][0] skill["skillCode"] 0
 			SetSkillUseIncrementC skill["softCapUseExp"][1] skill["skillCode"] 1
+			DebugPrint "recurve: Applied softcap to skill %g. Set UseExp0=%.4f, UseExp1=%.4f." skill["skillCode"] skill["softCapUseExp"][0] skill["softCapUseExp"][1]
 		endif
 		let i += 1
 	loop
@@ -35,7 +37,7 @@ Begin _Function { levelCurve useOverrides }
 		let useOverride := useOverrides[i]
 		SetSkillUseIncrementC useOverride["useExp"][0] useOverride["skillCode"] 0
 		SetSkillUseIncrementC useOverride["useExp"][1] useOverride["skillCode"] 1
-		DebugPrint "recurve: Set skill use increment to 0 for hard capped skill %g for reason %g." (useOverrides[i]["skillCode"]) (useOverrides[i]["reason"])
+		DebugPrint "recurve: Overrode skill %g use increments for reason %g. Set UseExp0=%.4f, UseExp1=%.4f." (useOverrides[i]["skillCode"]) (useOverrides[i]["reason"]) (useOverride["useExp"][0]) (useOverride["useExp"][1])
 		let i += 1
 	loop
 	set i to 0

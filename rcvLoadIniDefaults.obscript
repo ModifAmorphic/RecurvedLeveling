@@ -1,0 +1,102 @@
+scn rcvLoadIniDefaults
+
+Begin Function {}
+
+; Main Toggles
+
+;; Major Overage Prevention temporarily slows major skill increases for governing attributes 
+;;; that have reached the max for the current level until 3 attributes have been maxed.
+;;; Disabling this allows Major Attributes to always increase.
+set Recurved.MajorOveragePreventionDisabled to 0
+;; Disables soft caps on minor skills
+set Recurved.MinorSkillSoftCapsDisabled to 0
+;; Disables additional bonus progress points towards attribute increases 
+;;; when major skills increase in level
+set Recurved.AttributeBonusDisabled to 0
+;; Increases to Major skills will contribute Secondary Attribute Bonuses
+;;; If set to 1, disables secondary attribute bonuses
+set Recurved.SecondaryAttributesDisabled to 0
+;; Disables carrying over of remaining Attribute progress from the previous level
+set Recurved.RemainingAttributeProgressDisabled to 0
+;; Disables normalization of endurance for health increase calculations.
+;;; Without this enabled, a character could end up with considerably less life under the default
+;;; config than typical with vanilla. The inverse is also true if the TierXMaxAttributeUp values 
+;;; are adjusted to allow for larger attribute gains early on.
+set Recurved.EnduranceHealthNormalizationDisabled to 0
+;; Enable/Disable Debugging Logs
+set Recurved.DebugEnabled to 1
+
+; Level Scaling Settings
+
+;: Increases amount of experience required to level a minor skill past its soft cap. 
+;:     Has no effect if MinorSkillSoftCapsDisabled is set to 1.
+;;; 0  : Hard caps the skill
+;;; 1  : No effect
+;;; 2+ : Multiplies the amount of experience by the SoftCapMulti value
+set Recurved.SoftCapMulti to 5.0
+;; Increases amount of experience required to level a Major skill once there are
+;; enough attribute progress points banked for the full attribute increase. Penalty is removed
+;; when a 3rd full attribute increase is acheived or the character is leveled.
+;;; 0  : Hard caps any major skills responsible for attribute increases
+;;; 1  : No effect
+;;; 2+ : Multiplies the amount of experience required by the MajorOveragePreventionMulti
+set Recurved.MajorOveragePreventionMulti to 5.0
+
+;; This section controls when level tiers start and end.
+set Recurved.Tier1StartLevel to 1
+set Recurved.Tier2StartLevel to 11
+set Recurved.Tier3StartLevel to 21
+set Recurved.Tier4StartLevel to 41
+
+;; Sets attribute points gained per level up for a tier
+set Recurved.Tier1MaxAttributeUp to 3
+set Recurved.Tier2MaxAttributeUp to 4
+set Recurved.Tier3MaxAttributeUp to 6
+set Recurved.Tier4MaxAttributeUp to 8
+
+;; Major Skill level increases required for next level
+set Recurved.Tier1LevelUpSkillIncs to 15
+set Recurved.Tier2LevelUpSkillIncs to 12
+set Recurved.Tier3LevelUpSkillIncs to 10
+set Recurved.Tier4LevelUpSkillIncs to 8
+
+;; Adds additonal attribute progression on Major Skill ups. Normally a skill increase
+;;; adds 1 progress towards higher attribute gains. This setting allows for increasing
+;;; that amount to reduce dependency on Minor Skill leveling.  For example, setting
+;;; MajorAttributeBonus to 2 increases the the total amount to 3 for every skill level up. 
+;;;   (1 + 2 = 3) [Default Progress + Bonus Progress]
+set Recurved.Tier1MajorAttributeBonus to 1
+set Recurved.Tier2MajorAttributeBonus to 2
+set Recurved.Tier3MajorAttributeBonus to 2
+set Recurved.Tier4MajorAttributeBonus to 3
+
+;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if 
+;;; SecondaryAttributesDisabled is set.
+set Recurved.Tier1SecondaryAttributeBonus to 1
+set Recurved.Tier2SecondaryAttributeBonus to 1
+set Recurved.Tier3SecondaryAttributeBonus to 1
+set Recurved.Tier4SecondaryAttributeBonus to 2
+
+;; Maps attributes to secondary. When a major skill increase occurs, then both the skill's governing
+;;; attribute and the associated secondary attribute will gain progress towards attribute increases.
+;;; Has no effect if SecondaryAttributesDisabled is set.
+;;; Strength -> Speed -> Intelligence -> Personality -> Agility -> Endurance -> Willpower -> Strength
+set Recurved.StrengthSecondary to Recurved.SpeedAvc
+set Recurved.EnduranceSecondary to Recurved.WillpowerAvc
+set Recurved.SpeedSecondary to Recurved.IntelligenceAvc
+set Recurved.AgilitySecondary to Recurved.EnduranceAvc
+set Recurved.PersonalitySecondary to Recurved.AgilityAvc
+set Recurved.IntelligenceSecondary to Recurved.PersonalityAvc
+set Recurved.WillpowerSecondary to Recurved.StrengthAvc
+
+;; Converts endurance increases to the normalized amount when calculating helath increases on level ups. This is done
+;; to compensate the lower attribute inceases in lower levels.
+set Recurved.Tier1EnduranceNormalizeAmount to 5
+set Recurved.Tier2EnduranceNormalizeAmount to 5
+set Recurved.Tier3EnduranceNormalizeAmount to 5
+set Recurved.Tier4EnduranceNormalizeAmount to 5
+
+;; Message shown when no more skill increases are allowed before a level up
+set Recurved.OverlevelMessage to sv_Construct "You can't possible learn anything else today. Get some rest!"
+	
+End

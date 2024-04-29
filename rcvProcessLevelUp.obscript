@@ -8,11 +8,18 @@ Begin _Function { }
 	; reset the over level message box
 	set Recurved.OverlevelMsgShown to 0
 	; clear any skill use overrides set for the previous level and reinit the array
-	let Recurved.SkillUserOverrides := ar_Null
-	let Recurved.SkillUserOverrides := ar_Construct Array
+	let Recurved.SkillUseOverrides := ar_Null
+	let Recurved.SkillUseOverrides := ar_Construct Array
+	; set current level
+	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+	DebugPrint "recurve: Loaded level data for current level."
 	; set current and next level curves
 	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
-	let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve player.GetLevel + 1
+	let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve (player.GetLevel + 1)
+	; Normalize health for the level
+	if (Recurved.EnduranceHealthNormalizationDisabled == 0)
+		call rcvApplyHealthNormalization player.GetLevel
+	endif
 	; Apply any attribute progress overages to the new level
 	if (Recurved.ExcessAttributeProgress > 0)
 		SetPCMajorSkillUps Recurved.ExcessAttributeProgress

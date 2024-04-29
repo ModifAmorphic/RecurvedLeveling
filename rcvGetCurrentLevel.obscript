@@ -1,7 +1,17 @@
 scn rcvGetCurrentLevel
 
 int i
+int prevLvlIndex
+short isPrevLvlRecorded
+short isAttrbIncreaseSet
 array_var attribute
+array_var levelCurve
+array_var prevLevel
+
+int maxEndIncrease
+int endIncrease
+int normalizedSetting
+float normalizedIncrease
 
 ; Output
 array_var level
@@ -9,13 +19,48 @@ Begin _Function {  }
     let level := ar_Construct StringMap
     let level["attributes"] := ar_Construct Array
     let level["characterLevel"] := player.GetLevel
+    let level["health"] := player.GetBaseAV3C Recurved.HealthAvc
+    let level["magicka"] := player.GetBaseAV3C Recurved.MagickaAvc
+    set prevLvlIndex to player.GetLevel - 2
+    if (player.GetLevel > 1)
+        if Eval ((ar_Size Recurved.Levels) > prevLvlIndex)
+            if Eval (Recurved.Levels[prevLvlIndex] != ar_Null)
+                set isPrevLvlRecorded to 1
+                let prevLevel := Recurved.Levels[prevLvlIndex]
+            endif
+        endif
+    endif
     set i to 0
     while (i < 8)
         let level["attributes"][i] := ar_Construct StringMap
         let attribute := level["attributes"][i]
+        let attribute["code"] := i
         let attribute["value"] := player.GetBaseAV3C i
 		let attribute["skillProgress"] := GetPCAttributeBonusC i
-        ; let attribute["leveledIncreased"] := 
+        let attribute["increase"] := 0
+        if (isPrevLvlRecorded)
+            if Eval ((ar_Size prevLevel["attributes"]) > i)
+                let attribute["increase"] := attribute["value"] - prevLevel["attributes"][i]["value"]
+                set isAttrbIncreaseSet to 1
+            endif
+        endif
+        ; Process Endurance Normalization
+        if (i == Recurved.EnduranceAvc)
+            if Eval (isAttrbIncreaseSet && attribute["increase"] > 0)
+                ; get level curve for the prior level, which was the curve used to reach this level
+                let levelCurve := call rcvGetLevelCurve (player.GetLevel - 1)
+                let maxEndIncrease := levelCurve["iLevelUpMults"][9]["value"]
+                let normalizedSetting := levelCurve["EnduranceNormalizeAmount"]
+                let normalizedIncrease := (attribute["increase"] / maxEndIncrease) * normalizedSetting
+                let attribute["normalizedIncrease"] := normalizedIncrease
+                let attribute["normalizedValue"] := prevLevel["attributes"][i]["normalizedValue"] + normalizedIncrease
+            else
+                ; if no normalization occured, then set to the raw values to make
+                ;; future calculations easier
+                let attribute["normalizedIncrease"] := attribute["increase"]
+                let attribute["normalizedValue"] := attribute["value"]
+            endif
+        endif
 		let i += 1
     loop
 

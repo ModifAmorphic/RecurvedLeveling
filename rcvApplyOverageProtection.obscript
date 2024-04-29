@@ -11,8 +11,10 @@ float capUseInc2
 short isMajorSkill
 array_var maxedAttrProgress
 array_var useOverride
+array_var useExps
 array_var tmpOverrides
 array_var majorSkills
+array_var maxedAttributes
 int capsRemoved
 
 ; inputs
@@ -21,7 +23,7 @@ int skillIncrease   ; Increase to the skill that will be applied
 
 ; output
 int skillsCapped
-Begin _Function { skillCode skillIncrease } ; Gets array of major skills associated to the attribute code
+Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute progress overage and slows down Major Skills if found
 	set skillsCapped to 0
 	set isMajorSkill to player.IsClassSkillC skillCode
 	if Recurved.MajorOveragePreventionDisabled
@@ -33,18 +35,17 @@ Begin _Function { skillCode skillIncrease } ; Gets array of major skills associa
 	let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
 
 	DebugPrint "recurve: Major Skill Overage Prevention processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
-	;DebugPrint "recurve: Dumping array Recurved.SkillUserOverrides before processing"
-	;ar_Dump Recurved.SkillUserOverrides
 	; Get a list of attributes whose progress is maxed (or will be maxed with this increase)
 	let maxedAttrProgress := ar_Construct Array
 	set i to 0
 	while (i < 7)
 		set progressPoints to GetPCAttributeBonusC i
+		; Add the incoming skill increase
+		if (i == attributeCode)
+			let progressPoints += skillIncrease
+		endif
 		; include any bonus, bonus progress if enabled
 		if (isMajorSkill)
-			if (i == attributeCode)
-				let progressPoints += skillIncrease
-			endif
 			if (Recurved.AttributeBonusDisabled == 0 && i == attributeCode)
 				let progressPoints += Recurved.LevelCurves[player.GetLevel - 1]["MajorAttributeBonus"]
 			endif
@@ -52,7 +53,7 @@ Begin _Function { skillCode skillIncrease } ; Gets array of major skills associa
 				let progressPoints += Recurved.LevelCurves[player.GetLevel - 1]["SecondaryAttributeBonus"]
 			endif
 		endif
-		DebugPrint "recurve: Calculated skill %g will set progress points to %g for attribute %g." skillCode progressPoints i
+		;DebugPrint "recurve: Calculated skill %g will set progress points to %g for attribute %g." skillCode progressPoints i
 		if (progressPoints >= 10)
 			ar_Append maxedAttrProgress i
 		endif
@@ -63,11 +64,13 @@ Begin _Function { skillCode skillIncrease } ; Gets array of major skills associa
 
 	set i to 0
 	; If maxed out attribute progress is less than 3, then cap any major skills
-	; that will increase the attribute (secondary bonus to attributes not included)
-	if Eval ((ar_size maxedAttrProgress) < 3)
+	; that will increase the attribute (secondary bonus to attributes not included).
+	; Only do the above if there are 3 or more unmaxed attributes remaining.
+	let maxedAttributes := call rcvGetMaxedAttributes 0
+	if Eval ((ar_size maxedAttrProgress) < 3 && (ar_size maxedAttributes) < 5)
 		while (progIndex < ar_Size maxedAttrProgress)
 			let majorSkills := call rcvGetAttributeMajorSkills maxedAttrProgress[progIndex]
-			DebugPrint "recurve: Found %g Major Skill for Attribute %g" (ar_Size majorSkills) maxedAttrProgress[progIndex]
+			DebugPrint "recurve: Found %g Major Skills for Attribute %g." (ar_Size majorSkills) maxedAttrProgress[progIndex]
 			while (i < ar_Size majorSkills)
 				let useOverride := call rcvFindSkillUseOverride majorSkills[i]["code"]
 				if Eval ((ar_Size useOverride) == -1)
@@ -77,50 +80,39 @@ Begin _Function { skillCode skillIncrease } ; Gets array of major skills associa
 						let capUseInc1 /= Recurved.MajorOveragePreventionMulti
 						let capUseInc2 /= Recurved.MajorOveragePreventionMulti
 					else
-						set capUseInc1 to 0
-						set capUseInc2 to 0
+						set capUseInc1 to 0.0
+						set capUseInc2 to 0.0
 					endif
 					let useOverride := ar_Construct StringMap
 					let useOverride["skillCode"] := majorSkills[i]["code"]
 					let useOverride["reason"] := Recurved.SkillUseOverrideReasons["OverageProtection"]
-					let useOverride["useExp"] := sv_Construct Array
-					let useOverride["useExp"][0] := capUseInc1
-					let useOverride["useExp"][1] := capUseInc2
-					ar_Append Recurved.SkillUserOverrides useOverride
+					let useOverride["useExp"] := ar_Construct Array
+					let useExps := useOverride["useExp"]
+					let useExps[0] := capUseInc1
+					let useExps[1] := capUseInc2
+					ar_Append Recurved.SkillUseOverrides useOverride
 					let useOverride := ar_Null
-					DebugPrint "recurve: Major Skill Overage Prevention added use exp overrides for skill %g, attribute %g. MajorOveragePreventionMulti: " majorSkills[i]["code"] maxedAttrProgress[progIndex] Recurved.MajorOveragePreventionMulti
+					DebugPrint "recurve: Major Skill Overage Prevention added use exp overrides for skill %g, attribute %g. MajorOveragePreventionMulti: %g. useExp1=%.2f, useExp2=%.2f" majorSkills[i]["code"] maxedAttrProgress[progIndex] Recurved.MajorOveragePreventionMulti capUseInc1 capUseInc2
 				endif
 				let i += 1
 			loop
 			let progIndex += 1
 		loop
 		set skillsCapped to i
-		; if Eval ((ar_Find attributeCode maxedAttrProgress) > -1)
-		; 	let majorSkills := call rcvGetAttributeMajorSkills attributeCode
-		; 	while (i < ar_Size majorSkills)
-		; 		let useOverride:= ar_Construct StringMap
-		; 		let useOverride["skillCode"] := majorSkills["code"]
-		; 		let useOverride["reason"] := Recurved.SkillUseOverrideReasons["OverageProtection"]
-		; 		ar_Append Recurved.SkillUserOverrides useOverride
-		; 		let i += 1
-		; 	loop
-		; 	set skillsCapped to i
-		; 	DebugPrint "recurve: Major Skill Overage Prevention triggered for Attribute %g Skill: %g. SkillIncrease: %g, skillsCapped: %g." attributeCode skillCode skillIncrease skillsCapped
-		; endif
 	else ; 3 attributes are maxed. Unlock any capped skills
 		let tmpOverrides := ar_Construct Array
-		while (i < ar_Size Recurved.SkillUserOverrides)
-			if Eval (Recurved.SkillUserOverrides[i]["reason"] == Recurved.SkillUseOverrideReasons["OverageProtection"])
+		while (i < ar_Size Recurved.SkillUseOverrides)
+			if Eval (Recurved.SkillUseOverrides[i]["reason"] == Recurved.SkillUseOverrideReasons["OverageProtection"])
 				let capsRemoved += 1
 			else
-				ar_Append tmpOverrides Recurved.SkillUserOverrides[i]
+				ar_Append tmpOverrides Recurved.SkillUseOverrides[i]
 			endif
 			let i += 1
 		loop
 		; only swap the arrays if there's been a change
 		if capsRemoved > 0
-			let Recurved.SkillUserOverrides := ar_Null
-			let Recurved.SkillUserOverrides := tmpOverrides
+			let Recurved.SkillUseOverrides := ar_Null
+			let Recurved.SkillUseOverrides := tmpOverrides
 			let tmpOverrides := ar_Null
 			let skillsCapped -= capsRemoved
 			DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." capsRemoved
@@ -128,6 +120,6 @@ Begin _Function { skillCode skillIncrease } ; Gets array of major skills associa
 	endif
 	let maxedAttrProgress := ar_Null	
 	SetFunctionValue skillsCapped
-	;DebugPrint "recurve: Dumping array Recurved.SkillUserOverrides after processing"
-	;ar_Dump Recurved.SkillUserOverrides
+	;DebugPrint "recurve: Dumping array Recurved.SkillUseOverrides after processing"
+	;ar_Dump Recurved.SkillUseOverrides
 End

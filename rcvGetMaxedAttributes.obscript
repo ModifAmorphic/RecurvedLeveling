@@ -1,0 +1,26 @@
+scn rcvGetMaxedAttributes
+
+int i
+int x
+int attributeValue
+
+; inputs
+short isLuckIncluded   ; Whether or not luck should be checked 
+; output
+array_var attributes
+Begin _Function { isLuckIncluded }
+    set x to Recurved.PersonalityAvc
+    if (isLuckIncluded)
+        set x to Recurved.LuckAvc
+    endif
+	while (i <= x)
+        set attributeValue to player.GetBaseAV3C i
+        if (attributeValue == 100)
+            ar_Append attributes i
+        endif
+        let i += 1
+    loop
+
+    SetFunctionValue attributes
+End
+	

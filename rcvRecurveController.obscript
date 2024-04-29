@@ -39,10 +39,10 @@ begin MenuMode 1012
 	set isSleepMenuInit to 1
 	set hasUpdate to 1
 
-	if Recurved.DebugEnabled
-		call rcvDebugDumpLevel player.GetLevel
-		call rcvDebugDumpLevelCurve player.GetLevel
-	endif
+	; if Recurved.DebugEnabled
+	; 	call rcvDebugDumpLevel player.GetLevel
+	; 	call rcvDebugDumpLevelCurve player.GetLevel
+	; endif
 end
 
 ; Level Up Menu
@@ -81,6 +81,12 @@ Begin _GameMode
 	if isTutorialActive == 0 || isGameLoadedPeek
 		set isGameLoaded to isGameLoadedPeek
 	endif
+
+	; Run any debug commands that may be pending
+	if Recurved.DebugEnabled
+		call rcvDebugRunCommands
+	endif
+
 	; Exit early if new updates or game loads
 	if isGameLoaded == 0 && hasUpdate == 0
 		return
@@ -96,7 +102,6 @@ Begin _GameMode
 		endif
 		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, isTutorialActive=%g, hasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected isTutorialActive hasUpdate
 	endif
-	
 	;;; Start Tutorial Check
 	;;;; 1. If the player started a new game, wait for a valid class to be selected
 	;;;; 2. If #1 happened, then wait for the player to leave the sewers
@@ -144,25 +149,25 @@ Begin _GameMode
 
 	if isGameRestarted
 		DebugPrint "recurve: Loading..."
-		; Subscribe to Skill Up Events on restart
-		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
-		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
-		; set current and next level curves
-		let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
-		let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve (player.GetLevel + 1)
 	endif
 	
 	; Load data on game load event
 	if isGameLoaded
-		call rcvLoadData isGameLoaded isGameRestarted
+		call rcvLoadData isGameLoaded isGameRestarted		
 	endif
 	
+	if isGameRestarted
+		; Subscribe to Skill Up Events on restart
+		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
+		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber		
+	endif
+
 	; Reset Skill Use Increments Prior to reconfiguring
 	DebugPrint "recurve: Resetting Skill Use Increments"
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
 
 	; Configure attribute gains and required skill increase for the current level
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.SkillUserOverrides
+	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.SkillUseOverrides
 	
 	; Handle Player level up 
 	if (isPlayerLeveled == 1)
@@ -176,6 +181,6 @@ Begin _GameMode
 	set hasUpdate to 0
 
 	if isGameLoaded
-		PrintToConsole "Recurved Levels Loaded."
+		PrintToConsole "Recurved Levels Initialized and Active."
 	endif
 end

@@ -43,9 +43,16 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 	endif
 	set i to 0
 	
-	if Eval ((ar_size Recurved.SkillUserOverrides) == -1)
-		let Recurved.SkillUserOverrides := ar_Construct Array
-		DebugPrint "recurve: Initializing Recurved.SkillUserOverrides array."
+	if Eval ((ar_size Recurved.SkillUseOverrides) == -1)
+		let Recurved.SkillUseOverrides := ar_Construct Array
+		DebugPrint "recurve: Initializing Recurved.SkillUseOverrides array."
 	endif
+	; set current level
+	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+	DebugPrint "recurve: Loaded level data for current level."
+	; set current and next level curves
+	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
+	let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve (player.GetLevel + 1)
+	DebugPrint "recurve: Loaded level curves for current and next level."
 
 End

@@ -1,0 +1,60 @@
+scn rcvApplyHealthNormalization
+
+;float normEnd
+
+;int maxEndIncrease
+int endNormalizedInc
+int endIncrease
+float endNormalized
+int endAmount
+;int normalizeAmount
+int levelIndex
+int prevHealth
+int healthIncrease
+int totalHealth
+;short isLvlRecorded
+array_var levelData
+array_var prvLvlData
+;array_var levelCurve
+; inputs
+int level
+Begin Function { level }
+    set levelIndex to level - 1
+    
+    ; Find the endurance increase, if any, for the current level
+    set endNormalizedInc to -1
+    if Eval ((ar_Size Recurved.Levels) > levelIndex)
+        let levelData := Recurved.Levels[levelIndex]
+        if Eval ((ar_Size levelData["attributes"]) > Recurved.EnduranceAvc)
+            let endNormalizedInc := levelData["attributes"][Recurved.EnduranceAvc]["normalizedIncrease"]
+            let endIncrease := levelData["attributes"][Recurved.EnduranceAvc]["increase"]
+            let endNormalized := levelData["attributes"][Recurved.EnduranceAvc]["normalizedValue"]
+            let endAmount := levelData["attributes"][Recurved.EnduranceAvc]["value"]
+        endif
+    endif
+
+    ; Check if normalization is needed.
+    ;; Not needed in scenarios
+    ;;;  1. Could not find endurance increase data for the level
+    ;;;  2. Endurance increase is 1 or 0.
+    if (endNormalizedInc == -1)
+        DebugPrint "Unable to apply endurance health normalization for level %g. Could not find endurance increase value in level data." level
+        return
+    elseif (endNormalizedInc <= 1)
+        DebugPrint "Endurance increase for level %g was equal to or less than one. No normalization needed." level
+        return
+    endif
+
+    let prvLvlData := Recurved.Levels[levelIndex - 1]
+    if Eval ((ar_Size prvLvlData) < 1)
+        DebugPrint "Unable to apply endurance health normalization for level %g. Could not find health stat for previous level." level
+        return    
+    endif
+
+    let prevHealth := prvLvlData["health"]
+    let healthIncrease := (endNormalizedInc * 2) + (Floor endNormalized / 10)
+    let totalHealth := prevHealth + healthIncrease
+    player.SetActorValueC Recurved.HealthAvc totalHealth
+    DebugPrint "recurved: Endurance increase %g was normalized to %.2f. Health improved from %g to %g, an increase of %g. Normalized endurance is %g." endIncrease endNormalizedInc prevHealth totalHealth healthIncrease endNormalized
+    
+End

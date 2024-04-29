@@ -12,8 +12,8 @@ Begin Function { } ; Gets a skill's use increments. Indexed by skill code.
 	
 	while (skillCode < 33)
 		let useIncrements[skillCode] := ar_Construct array
-		let useIncrements[skillCode][0] := 0
-		let useIncrements[skillCode][1] := 0
+		let useIncrements[skillCode][0] := 0.0
+		let useIncrements[skillCode][1] := 0.0
 		if skillCode > 11
 			let useIncrements[skillCode][0] := GetSkillUseIncrementC skillCode 0
 			let useIncrements[skillCode][1] := GetSkillUseIncrementC skillCode 1

@@ -46,10 +46,10 @@ Begin _Function { skillCode skillIncrease isScripted }
 				let useOverride := ar_Construct StringMap
 				let useOverride["skillCode"] := i
 				let useOverride["reason"] := Recurved.SkillUseOverrideReasons["Overlevel"]
-				let useOverride["useExp"] := sv_Construct Array
+				let useOverride["useExp"] := ar_Construct Array
 				let useOverride["useExp"][0] := 0
 				let useOverride["useExp"][1] := 0
-				ar_Append Recurved.SkillUserOverrides useOverride
+				ar_Append Recurved.SkillUseOverrides useOverride
 				let i += 1
 			loop
 			let useOverride := ar_Null

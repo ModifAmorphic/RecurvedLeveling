@@ -1,14 +1,14 @@
 scn rcvDebugDumpLevelCurve
 
 int i
+int index
 
 ;input character level
 int level
-int index
 Begin Function { level } ; Dumps Recurved.LevelCurves Array
 	set index to level - 1
 
-	if Eval (index >= ar_Size Recurved.LevelCurves)
+	if Eval (index > ar_Size Recurved.LevelCurves)
 		DebugPrint "recurve: Unable to dump Recurved.LevelCurves[%g] for level %g. Level does not exist in Recurved.LevelCurves." index level
 		return
 	endif

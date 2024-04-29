@@ -1,14 +1,14 @@
 scn rcvGetRemainingAttributeProgress
 
 int i
-int c
+int m
 int p
 
 array_var currentLevel
 array_var lastAttr
-array_var currentAttr
+; array_var currentAttr
 array_var lvlMult
-int difference
+int increase
 int lastProgress
 int pointsSpent
 
@@ -25,36 +25,34 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
     set p to 0
     while (i < ar_Size lastLevel["attributes"])
         let lastAttr := lastLevel["attributes"][i]
-        let currentAttr := currentLevel["attributes"][i]
-        let difference := currentAttr["value"] - lastAttr["value"]
-        DebugPrint "recurve: rcvGetRemainingAttributeProgress Attribute: %g, Difference: %g" i difference
+        ;let currentAttr := currentLevel["attributes"][i]
+        let increase := currentLevel["attributes"][i]["increase"]   ;currentAttr["value"] - lastAttr["value"]
+        DebugPrint "recurve: rcvGetRemainingAttributeProgress Attribute: %g, Difference: %g" i increase
         ; If a attribute was increased, calculate how many attribute progress 
         ;    points were used by reading through the iLevelUpMults table
         set pointsSpent to 0
-        if difference > 0
-            DebugPrint "recurve: Found Difference=%g for Attribute %g. Calculating points spent." difference i
-            while (c < ar_Size levelCurve["iLevelUpMults"])
-                let lvlMult := levelCurve["iLevelUpMults"][c]
+        if increase > 0
+            DebugPrint "recurve: Found Increase=%g for Attribute %g. Calculating points spent." increase i
+            while (m < ar_Size levelCurve["iLevelUpMults"])
+                let lvlMult := levelCurve["iLevelUpMults"][m]
                 ; Select the lowest used value to subtract from total progress made
-                if Eval (lvlMult["value"] == difference)
-                    set pointsSpent to c + 1
+                if Eval (lvlMult["value"] == increase)
+                    set pointsSpent to m + 1
                     break
                 endif
-                let c += 1
+                let m += 1
             loop
-            set c to 0
+            set m to 0
         endif
-        ; If points were spent, see if there's any left over
-        if (pointsSpent > 0)
-            let lastProgress := lastAttr["skillProgress"]
-            DebugPrint "recurve: Calculated %g points spent for attribute %g. Checking last level's attribute for left over progress. LastSkillProgress=%g" pointsSpent i lastProgress
-            if (lastProgress > pointsSpent)
-                let remainingProgress[p] := ar_Construct StringMap
-                let remainingProgress[p]["attributeCode"] := i
-                let remainingProgress[p]["progressPoints"] := lastProgress - pointsSpent
-                DebugPrint "recurve: Calculated %g points remaining for attribute %g." remainingProgress[p]["progressPoints"] i
-                let p += 1
-            endif
+        ; Add any left over over progress points to the current level, taking in to account any points spent for attribute increases.
+        let lastProgress := lastAttr["skillProgress"]
+        DebugPrint "recurve: Calculated %g points spent for attribute %g. Checking last level's attribute for left over progress. LastSkillProgress=%g" pointsSpent i lastProgress
+        if (lastProgress > pointsSpent)
+            let remainingProgress[p] := ar_Construct StringMap
+            let remainingProgress[p]["attributeCode"] := i
+            let remainingProgress[p]["progressPoints"] := lastProgress - pointsSpent
+            DebugPrint "recurve: Calculated %g points remaining for attribute %g." remainingProgress[p]["progressPoints"] i
+            let p += 1
         endif
         let i += 1
     loop
