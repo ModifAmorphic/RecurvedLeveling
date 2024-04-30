@@ -12,7 +12,7 @@ int lvlProgress
 int newLvlProgress
 
 
-int overLvlProgress
+short overlevelPrevented
 ; params
 int skillActorValueCode
 int amount
@@ -21,10 +21,9 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
 	
     set isMajorSkill to player.IsClassSkillC skillActorValueCode
     if (isMajorSkill)
-        let overLvlProgress := call rcvPreventOverLevel amount isScripted
+        let overlevelPrevented := call rcvPreventOverLevel amount isScripted
     endif
-    if overLvlProgress
-        let Recurved.ExcessAttributeProgress += overLvlProgress
+    if overlevelPrevented
         if (Recurved.OverlevelMsgShown == 0)
             MessageBoxEx Recurved.OverlevelMessage
             set Recurved.OverlevelMsgShown to 1

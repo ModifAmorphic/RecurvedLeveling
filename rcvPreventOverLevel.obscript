@@ -7,6 +7,7 @@ int lvlProgress
 ;int overLvlProgress
 int maxLvlProgress
 int maxAttrbProgOver
+int overLvlProgress
 array_var allSkills
 
 ; inputs
@@ -14,11 +15,9 @@ int addedLevelProgress ; The amount additional progress to add to the existing p
 int isScripted         ; Whether or not the increase was caused by a scripted event.
 
 ; Outputs
-int overLvlProgress
+short overlevelPrevented
 
 Begin _Function { addedLevelProgress isScripted }
-
-	set overLvlProgress to 0
 
 	set lvlProgress to GetPCMajorSkillUps
 	if (isScripted == 0)
@@ -44,7 +43,10 @@ Begin _Function { addedLevelProgress isScripted }
 				call rcvAddSkillUseExpOverride i 0 0 Recurved.SkillUseOverrideReasons["Overlevel"]
 				let i += 1
 			loop
+			set overlevelPrevented to 1
 		endif
+		; Increment the ExcessAttributeProgress so it can be added back later
+		let Recurved.ExcessAttributeProgress += overLvlProgress
 		; Limit the level progress to the max to prevent adding to the next level
 		if (isScripted)
 			DebugPrint "recurve: Overlevel Protection - Reseting level progress to %g/%g from %g/%g. Stashed excess progress increases: %g." maxLvlProgress maxLvlProgress lvlProgress maxLvlProgress Recurved.ExcessAttributeProgress
@@ -56,6 +58,6 @@ Begin _Function { addedLevelProgress isScripted }
 	endif
 
 	DebugPrint "recurve: PreventOverlevel processed for addedLevelProgress: %g, Progress: %g/%g, maxAttrbProgOver: %g, ExcessAttributeProgress: %g, isScripted: %g, overLvlProgress: %g." addedLevelProgress lvlProgress maxLvlProgress maxAttrbProgOver Recurved.ExcessAttributeProgress isScripted overLvlProgress
-	SetFunctionValue overLvlProgress
+	SetFunctionValue overlevelPrevented
 	
 End

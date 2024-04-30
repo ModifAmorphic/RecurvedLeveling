@@ -26,6 +26,8 @@ Begin _Function {}
         let maxAttrbProgOver := (Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"]) - 1
         DebugPrint "recurve: Attempting to manually trigger overlevel protection. Level Progress=%g, maxAttrbProgOver=%g, ExcessAttributeProgress=%g" GetPCMajorSkillUps maxAttrbProgOver Recurved.ExcessAttributeProgress
         if (Recurved.ExcessAttributeProgress == maxAttrbProgOver)
+            ; Deincrement the ExcessAttributeProgress because it will be added back in rcvPreventOverLevel
+		    let Recurved.ExcessAttributeProgress -= 1
             let isOverLevel := call rcvPreventOverLevel majorSKillCode 0
         endif
         ; if rcvPreventOverLevel didn't run, or ran with nothing capped, then
