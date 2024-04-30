@@ -15,12 +15,11 @@ Begin _Function { attributeCode } ; Gets array of major skills associated to the
 	let attributeSkills := ar_Construct Array
 	while (i < ar_Size majorSkills)
 		if Eval (majorSkills[i]["attributeCode"] == attributeCode)
-			DebugPrint "recurve: rcvGetAttributeMajorSkills: Found major skill %g for attribute %g." majorSkills[i]["code"] attributeCode
 			ar_Append attributeSkills majorSkills[i]
 		endif
 		let i += 1
 	loop
+	DebugPrint "recurve: rcvGetAttributeMajorSkills: Found %g major skills for attribute %g." (ar_Size attributeSkills) attributeCode
 	let majorSkills := ar_Null
 	SetFunctionValue attributeSkills
-	
 End

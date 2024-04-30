@@ -29,7 +29,7 @@ with a new character, that's why. This is not to discourage anyone from starting
 Several changes have been made to further incentivize the selection, use and leveling of Major Skills.
 
 - Leveling a Major Skill has a larger impact on attribute increases than a Minor Skill.
-- Attributes have a secondary attribute associated to them. When a Major Skill increases in level, the secondary Attribute also has its progress increased. Example:
+- Attributes have a secondary attribute associated with them. When a Major Skill increases in level, the secondary Attribute also has its progress increased. Example:
 
   ```
   Blade is increased by 1
@@ -38,6 +38,8 @@ Several changes have been made to further incentivize the selection, use and lev
   ```
 
 - Overlevel protection has been added to help prevent overleveling a Major Skill to the detriment of other attributes.
+  - Major Skills that have advanced enough to achieve the maximum attribute gain possible for the level have their experience slowed until 2 other attributes can also be maxed.
+  - Progress of all Major Skills will be stopped completely if a character is about to level up but has not maximized bonuses for at least 3 attributes.
 - The amount of Major Skill increases required for leveling up starts higher than vanilla at lower levels and reduces to lower than vanilla at higher levels.
 - Leftover skill points that are normally discarded during level-ups are now carried forward to the new level.
 - Total Major Skill increases before leveling up are limited to the maximum for the current level plus the maximum for the next level minus one. In other words, once your character has enough skill
@@ -45,12 +47,13 @@ increases to level, they can only continue to increase major skills up right unt
 
 The largest change to Major Skills is the new overage protection system for attribute progress. When a Major Skill's Attribute reaches its maximum progress for a level, all
 Major Skills that share that same attribute have their experience demands greatly increased. This remains in place until maximum progress for 3 attributes has been reached,
-or the character levels. In addition, a system of secondary attributes has been implemented to further encourage the leveling of Major Skills and ease the management
-of progress towards attribute increases.
+or the character levels. As an additional failsafe, a character that has not achieved maximum bonuses for at least 3 attributes by the end of a level will have all Major Skill progress
+stopped. This gives the player a chance to gain additional progress through minor skills and not miss out on any potential attribute increases. This restriction is lifted once a maximum 
+bonus has been reached for 3 attributes, allowing leveling to continue.
 
-### Attribute Overage Protection Example
+### Attribute Overage Protection Examples
 
-Scenario*
+#### Scenario 1 - Slowed Progress for Maxed Attribute Bonuses
 
 ```
 Major Skills: Blunt, Blade, Heavy Armor, Block, Athletics, Acrobatics, Restoration
@@ -66,6 +69,26 @@ Required Increases /lvl: 15
 ```
 
 \* Increases to secondary attribute progress were left out to simplify the math, but they are included in the mod's calculation.
+
+
+#### Scenario 2 - Progress Stopped
+
+```
+Major Skills: Blunt, Blade, Heavy Armor, Block, Athletics, Acrobatics, Restoration
+Major Skill Increases: +3 Blade (Strength), +2 Blunt (Strength), +4 Heavy Armor (Endurance), +2 Athletics, +3 Restoration (Wisdom)
+Minor Skill Increases: +5 Armorer (Endurance)
+Attribute Progress /Skill: 2
+Required Increases /lvl: 15
+
+- +3 Blade and +2 Blunt result in 10 progress increases total, enough to receive the maximum strength bonus on level up.
+- +4 Heavy Armor and +5 Armorer result in 13 Endurance progress, enough to receive the maximum endurance bonus.
+- +2 Restoration and no increases from minor skills results in 2 attribute progress, short of the 10 required for the full speed bonus.
+- +3 Restoration and no increases from minor skills results in 6 attribute progress, short of the 10 required.
+- Major Skill increases total 14 / 15 required for level up. All Major Skills are locked and can no longer increase in level.
+- Character then levels Destruction four times.
+- 4 Destruction + 6 Restoration = 10 Wisdom Bonus. 3 Attributes are now at maximum and Major Skill leveling is unlocked again.
+
+```
 
 ## Minor Skills
 

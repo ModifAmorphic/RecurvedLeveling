@@ -32,7 +32,7 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
         let lastAttr := lastLevel["attributes"][i]
         ;let currentAttr := currentLevel["attributes"][i]
         let increase := currentLevel["attributes"][i]["increase"]   ;currentAttr["value"] - lastAttr["value"]
-        DebugPrint "recurve: rcvGetRemainingAttributeProgress Attribute: %g, Difference: %g" i increase
+        ;DebugPrint "recurve: rcvGetRemainingAttributeProgress Attribute: %g, Difference: %g" i increase
         ; If a attribute was increased, calculate how many attribute progress 
         ;    points were used by reading through the iLevelUpMults table
         set pointsSpent to 0

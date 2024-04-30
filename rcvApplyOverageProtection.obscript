@@ -2,20 +2,23 @@ scn rcvApplyOverageProtection
 
 ; Overage prevention
 int i
-int progIndex
 int attributeCode
 int secondaryAttrbCode
 int progressPoints
-float capUseInc1
-float capUseInc2
+int lvlProgress
+int addLvlProgress
+int maxLvlProgress
 short isMajorSkill
+short isProtectionApplied
 array_var maxedAttrProgress
-array_var useOverride
-array_var useExps
-array_var tmpOverrides
-array_var majorSkills
-array_var maxedAttributes
-int capsRemoved
+int maxedAttrProgressCount
+int maxedAttributes
+int unmaxedAttributes
+int maxedAttrProgressReq
+array_var failsafeSkills
+array_var protectedSkills
+array_var majors
+array_var removedProtections
 
 ; inputs
 int skillCode       ; Actor value code for the skill
@@ -25,12 +28,18 @@ int skillIncrease   ; Increase to the skill that will be applied
 int skillsCapped
 Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute progress overage and slows down Major Skills if found
 	set skillsCapped to 0
-	set isMajorSkill to player.IsClassSkillC skillCode
+	
+	; if disabled, ensure any existing protections are removed then get out of here
 	if Recurved.MajorOveragePreventionDisabled
+		let removedProtections := call rcvRemoveSkillOverageProtection
+		if Eval ((ar_Size removedProtections) > 0)
+			let skillsCapped := skillsCapped - (ar_Size removedProtections)
+		endif
 		SetFunctionValue skillsCapped
 		return
 	endif
-	
+
+	set isMajorSkill to player.IsClassSkillC skillCode
 	set attributeCode to GetSkillGoverningAttributeC skillCode
 	let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
 
@@ -60,62 +69,44 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 		let i += 1
 	loop
 	
-	DebugPrint "recurve: Found %g attributes whose progress was or will be maxed." (ar_Size maxedAttrProgress)
+	let maxedAttrProgressCount := (ar_Size maxedAttrProgress)
+	DebugPrint "recurve: Found %g attributes whose progress was or will be maxed." maxedAttrProgressCount
 
 	set i to 0
 	; If maxed out attribute progress is less than 3, then cap any major skills
 	; that will increase the attribute (secondary bonus to attributes not included).
 	; Only do the above if there are 3 or more unmaxed attributes remaining.
-	let maxedAttributes := call rcvGetMaxedAttributes 0
-	if Eval ((ar_size maxedAttrProgress) < 3 && (ar_size maxedAttributes) < 5)
-		while (progIndex < ar_Size maxedAttrProgress)
-			let majorSkills := call rcvGetAttributeMajorSkills maxedAttrProgress[progIndex]
-			DebugPrint "recurve: Found %g Major Skills for Attribute %g." (ar_Size majorSkills) maxedAttrProgress[progIndex]
-			while (i < ar_Size majorSkills)
-				let useOverride := call rcvFindSkillUseOverride majorSkills[i]["code"]
-				if Eval ((ar_Size useOverride) == -1)
-					let capUseInc1 := Recurved.DefaultSkillUseIncrements[majorSkills[i]["code"]][0]
-					let capUseInc2 := Recurved.DefaultSkillUseIncrements[majorSkills[i]["code"]][1]
-					if (Recurved.MajorOveragePreventionMulti > 0)
-						let capUseInc1 /= Recurved.MajorOveragePreventionMulti
-						let capUseInc2 /= Recurved.MajorOveragePreventionMulti
-					else
-						set capUseInc1 to 0.0
-						set capUseInc2 to 0.0
-					endif
-					let useOverride := ar_Construct StringMap
-					let useOverride["skillCode"] := majorSkills[i]["code"]
-					let useOverride["reason"] := Recurved.SkillUseOverrideReasons["OverageProtection"]
-					let useOverride["useExp"] := ar_Construct Array
-					let useExps := useOverride["useExp"]
-					let useExps[0] := capUseInc1
-					let useExps[1] := capUseInc2
-					ar_Append Recurved.SkillUseOverrides useOverride
-					let useOverride := ar_Null
-					DebugPrint "recurve: Major Skill Overage Prevention added use exp overrides for skill %g, attribute %g. MajorOveragePreventionMulti: %g. useExp1=%.2f, useExp2=%.2f" majorSkills[i]["code"] maxedAttrProgress[progIndex] Recurved.MajorOveragePreventionMulti capUseInc1 capUseInc2
-				endif
-				let i += 1
-			loop
-			let progIndex += 1
-		loop
-		set skillsCapped to i
-	else ; 3 attributes are maxed. Unlock any capped skills
-		let tmpOverrides := ar_Construct Array
-		while (i < ar_Size Recurved.SkillUseOverrides)
-			if Eval (Recurved.SkillUseOverrides[i]["reason"] == Recurved.SkillUseOverrideReasons["OverageProtection"])
-				let capsRemoved += 1
-			else
-				ar_Append tmpOverrides Recurved.SkillUseOverrides[i]
-			endif
-			let i += 1
-		loop
-		; only swap the arrays if there's been a change
-		if capsRemoved > 0
-			let Recurved.SkillUseOverrides := ar_Null
-			let Recurved.SkillUseOverrides := tmpOverrides
-			let tmpOverrides := ar_Null
-			let skillsCapped -= capsRemoved
-			DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." capsRemoved
+	let maxedAttributes := (ar_size (call rcvGetMaxedAttributes 0))
+	set unmaxedAttributes to 7 - maxedAttributes
+	set maxedAttrProgressReq to Recurved.MinimumMaxedAttributes
+	if (unmaxedAttributes < maxedAttrProgressReq)
+		DebugPrint "recurve: There are %g remaining unmaxed attributes which is lower than the %g attributes MinimumMaxedAttributes is configured for. Lowering mimimum amount to unmaxed value." unmaxedAttributes Recurved.MinimumMaxedAttributes
+		set maxedAttrProgressReq to unmaxedAttributes
+	endif
+	if Eval (maxedAttrProgressCount < maxedAttrProgressReq)
+		; Get the current level progress before skill up
+		; Add the skill increase to level progress if this is a major skill
+		if (isMajorSkill)
+			let addLvlProgress := skillIncrease
+		endif
+		; If character is about to level without reaching 3 maxed attributes, enable attribute leveling failsafe
+		let failsafeSkills := call rcvApplySkillFailsafes addLvlProgress
+		if Eval ((ar_Size failsafeSkills) > 0)
+			let skillsCapped := ar_Size failsafeSkills
+			set lvlProgress to GetPCMajorSkillUps + addLvlProgress
+        	set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
+			DebugPrint "Leveling failsafe enabled. Only %g of %g Attributes had reached max increase values for the level. Level progress %g/%g" maxedAttrProgressCount maxedAttrProgressReq lvlProgress maxLvlProgress
+		else
+			let protectedSkills := call rcvApplyOveragePreventionMulti maxedAttrProgress
+			let skillsCapped := ar_Size protectedSkills
+		endif
+		set isProtectionApplied to 1
+	endif
+	
+	if (isProtectionApplied == 0) ; If no protection applied, then unlock any capped skills
+		let removedProtections := call rcvRemoveSkillOverageProtection
+		if Eval ((ar_Size removedProtections) > 0)
+			let skillsCapped := skillsCapped - (ar_Size removedProtections)
 		endif
 	endif
 	let maxedAttrProgress := ar_Null	

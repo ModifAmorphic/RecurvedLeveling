@@ -2,7 +2,7 @@ scn rcvLoadIniDefaults
 
 Begin Function {}
 
-; Main Toggles
+; ### Main Toggles
 
 ;; Major Overage Prevention temporarily slows major skill increases for governing attributes 
 ;;; that have reached the max for the current level until 3 attributes have been maxed.
@@ -32,14 +32,7 @@ set Recurved.EnduranceHealthNormalizationDisabled to 0
 ;; Enable/Disable Debugging Logs
 set Recurved.DebugEnabled to 1
 
-; Level Scaling Settings
-
-;: Increases amount of experience required to level a minor skill past its soft cap. 
-;:     Has no effect if MinorSkillSoftCapsDisabled is set to 1.
-;;; 0  : Hard caps the skill
-;;; 1  : No effect
-;;; 2+ : Multiplies the amount of experience by the SoftCapMulti value
-set Recurved.SoftCapMulti to 5.0
+; ### Major Skills - Over leveling protection ###
 
 ;; Increases amount of experience required to level a Major skill once there are
 ;; enough attribute progress points banked for the full attribute increase. Penalty is removed
@@ -48,6 +41,27 @@ set Recurved.SoftCapMulti to 5.0
 ;;; 1  : No effect
 ;;; 2+ : Multiplies the amount of experience required by the MajorOveragePreventionMulti
 set Recurved.MajorOveragePreventionMulti to 10.0
+
+;; Guards against missed attribute increases during level ups.
+;; Will stop all major experience gains one progress point (skill level) before
+;; level up if you have not obtained the minimum amount of maxed attribute bonus points*
+;; configured with this setting.
+;; * The minimum amount will automatically be lowered to account for fully maxed (100) attributes.
+;;; 0  : Disables this feature.
+;;; 1  : Requires at least 1 maxed attribute prior to level up
+;;; 2  : Requires at least 2 maxed attributes. Use for leveling up 2 attributes and luck.
+;;; 3  : (Default) Requires 3 maxed attributes before leveling.
+;;; >3 : Not much point to these values as only 3 attributes are increased per level, but it will work.
+set Recurved.MinimumMaxedAttributes to 3
+
+; ### Level Scaling Settings ###
+
+;: Increases amount of experience required to level a minor skill past its soft cap. 
+;:     Has no effect if MinorSkillSoftCapsDisabled is set to 1.
+;;; 0  : Hard caps the skill
+;;; 1  : No effect
+;;; 2+ : Multiplies the amount of experience by the SoftCapMulti value
+set Recurved.SoftCapMulti to 5.0
 
 ;; Controls what percentage, rounded down, of each remaining attribute progress is brought over to the next level.
 ;;; Vanilla does not bring any unused points over to the next level.
@@ -94,11 +108,11 @@ set Recurved.Tier4SecondaryAttributeBonus to 2
 ;;; Has no effect if SecondaryAttributesDisabled is set.
 ;;; Strength -> Speed -> Intelligence -> Personality -> Agility -> Endurance -> Willpower -> Strength
 set Recurved.StrengthSecondary to Recurved.SpeedAvc
-set Recurved.EnduranceSecondary to Recurved.WillpowerAvc
 set Recurved.SpeedSecondary to Recurved.IntelligenceAvc
-set Recurved.AgilitySecondary to Recurved.EnduranceAvc
-set Recurved.PersonalitySecondary to Recurved.AgilityAvc
 set Recurved.IntelligenceSecondary to Recurved.PersonalityAvc
+set Recurved.PersonalitySecondary to Recurved.AgilityAvc
+set Recurved.AgilitySecondary to Recurved.EnduranceAvc
+set Recurved.EnduranceSecondary to Recurved.WillpowerAvc
 set Recurved.WillpowerSecondary to Recurved.StrengthAvc
 
 ;; Converts endurance increases to the normalized amount when calculating helath increases on level ups. This is done

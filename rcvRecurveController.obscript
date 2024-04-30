@@ -123,6 +123,7 @@ Begin _GameMode
 	if isTutorialQuestPassed == 0
 		if call rcvHasTutorialQuest
 			set isTutorialActive to 1
+			DebugPrint "recurve: Totorial quest found in character's quests."
 		else
 			DebugPrint "recurve: Tutorial quest marked complete."
 			set isTutorialActive to 0 
@@ -153,13 +154,24 @@ Begin _GameMode
 	
 	; Load data on game load event
 	if isGameLoaded
-		call rcvLoadData isGameLoaded isGameRestarted		
+		call rcvLoadData isGameLoaded isGameRestarted
+		; Ensure existing protections are removed in case this was
+		; recently disabled
+		if Recurved.MajorOveragePreventionDisabled
+			call rcvRemoveSkillOverageProtection
+		endif
 	endif
 	
 	if isGameRestarted
 		; Subscribe to Skill Up Events on restart
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
 		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber		
+	endif
+
+	if (Recurved.DelayedResetLevelProgress > 0)
+		SetPCMajorSkillUps (GetGameSetting "iLevelUpSkillCount")
+		DebugPrint "recurve: Reset level progress to level maximum."
+		set Recurved.DelayedResetLevelProgress to 0
 	endif
 
 	; Reset Skill Use Increments Prior to reconfiguring

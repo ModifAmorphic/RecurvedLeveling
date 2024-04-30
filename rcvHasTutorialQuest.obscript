@@ -12,13 +12,10 @@ Begin _Function {  } ; Checks if the player has either the MQ01 or Charactergen 
 
 	while (i < ar_Size quests)
 		let editorId := GetEditorID quests[i]
-		; DebugPrint "recurved: HasTutorialQuest: editorId=" + editorId
-		;if sv_Compare editorId "MQ01" == 0
 		if Eval (editorId == "MQ01")
 			set isAssigned to 1
 			break
 		endif
-		;if sv_Compare editorId "Charactergen" == 0
 		if Eval (editorId == "Charactergen")
 			set isAssigned to 1
 			break
@@ -26,5 +23,4 @@ Begin _Function {  } ; Checks if the player has either the MQ01 or Charactergen 
 		let i += 1
 	loop
     SetFunctionValue isAssigned
-	DebugPrint "recurved: HasTutorialQuest: isAssigned=%g" isAssigned
 End

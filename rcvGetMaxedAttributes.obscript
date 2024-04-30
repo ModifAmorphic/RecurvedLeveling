@@ -9,6 +9,7 @@ short isLuckIncluded   ; Whether or not luck should be checked
 ; output
 array_var attributes
 Begin _Function { isLuckIncluded }
+    let attributes := ar_Construct Array
     set x to Recurved.PersonalityAvc
     if (isLuckIncluded)
         set x to Recurved.LuckAvc

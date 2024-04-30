@@ -1,10 +1,5 @@
 scn rcvOnScriptedSkillUpSubscriber
 
-int levelProgress
-int iLevelUpSkillCount
-int attributeCode
-int attributeBonus
-
 ; params
 int skillActorValueCode
 int amount

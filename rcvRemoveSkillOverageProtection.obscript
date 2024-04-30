@@ -1,0 +1,32 @@
+scn rcvRemoveSkillOverageProtection
+
+; locals
+int i
+short protectionRemoved
+array_var tmpOverrides
+
+; ouput
+array_var skillCodes   ; Major skill codes for the player character's class that had overage protection removed
+Begin _Function { } ; Gets list of major skills
+
+	let tmpOverrides := ar_Construct Array
+	let skillCodes := ar_Construct Array
+	while (i < ar_Size Recurved.SkillUseOverrides)
+		if Eval (Recurved.SkillUseOverrides[i]["reason"] == Recurved.SkillUseOverrideReasons["OverageProtection"])
+			set protectionRemoved to 1
+			ar_Append skillCodes (Recurved.SkillUseOverrides[i]["skillCode"])
+		else
+			ar_Append tmpOverrides Recurved.SkillUseOverrides[i]
+		endif
+		let i += 1
+	loop
+	; only swap the arrays if there's been a change
+	if (protectionRemoved)
+		let Recurved.SkillUseOverrides := ar_Null
+		let Recurved.SkillUseOverrides := tmpOverrides
+		let tmpOverrides := ar_Null
+		DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." (ar_Size skillCodes)
+	endif
+	
+	SetFunctionValue skillCodes
+End

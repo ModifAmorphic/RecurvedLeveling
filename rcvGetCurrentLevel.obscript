@@ -9,7 +9,6 @@ array_var levelCurve
 array_var prevLevel
 
 int maxEndIncrease
-int endIncrease
 int normalizedSetting
 float normalizedIncrease
 

@@ -55,6 +55,6 @@ Begin Function { level }
     let healthIncrease := (endNormalizedInc * 2) + (Floor endNormalized / 10)
     let totalHealth := prevHealth + healthIncrease
     player.SetActorValueC Recurved.HealthAvc totalHealth
-    DebugPrint "recurved: Endurance increase %g was normalized to %.2f. Health improved from %g to %g, an increase of %g. Normalized endurance is %g." endIncrease endNormalizedInc prevHealth totalHealth healthIncrease endNormalized
+    DebugPrint "recurve: Endurance increase %g was normalized to %.2f. Health improved from %g to %g, an increase of %g. Normalized endurance is %g." endIncrease endNormalizedInc prevHealth totalHealth healthIncrease endNormalized
     
 End

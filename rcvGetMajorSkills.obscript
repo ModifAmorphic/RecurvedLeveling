@@ -1,0 +1,31 @@
+scn rcvGetMajorSkills
+
+; locals
+int i
+int skillCode
+int isClassSkill
+
+; ouput
+array_var majorSkills   ; Major skills for the player character's class
+Begin Function { } ; Gets list of major skills
+
+	let skillCode := 12
+	let majorSkills := ar_Construct Array
+	while (skillCode < 33)
+		let isClassSkill := player.IsClassSkillC skillCode
+		if (isClassSkill)
+			let majorSkills[i] := ar_Construct stringmap
+			let majorSkills[i]["name"] := ActorValueToStringC skillCode
+			let majorSkills[i]["code"] := skillCode
+			let majorSkills[i]["attributeCode"] := GetSkillGoverningAttributeC skillCode
+			let majorSkills[i]["amount"] := player.GetBaseAV3C skillCode
+			let majorSkills[i]["useIncrements"] := ar_Construct array
+			let majorSkills[i]["useIncrements"][0] := GetSkillUseIncrementC skillCode 0
+			let majorSkills[i]["useIncrements"][1] := GetSkillUseIncrementC skillCode 1
+			let i += 1
+		endif
+		let skillCode += 1
+	loop
+	
+	SetFunctionValue majorSkills
+End

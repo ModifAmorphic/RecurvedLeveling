@@ -4,7 +4,6 @@ int i
 array_var skill
 array_var lvlUpMult
 string_var levelUpMultSetting
-string_var skillName
 ;inputs
 array_var levelCurve
 array_var useOverrides
@@ -15,7 +14,7 @@ Begin _Function { levelCurve useOverrides }
 		let lvlUpMult := levelCurve["iLevelUpMults"][i]
 		let levelUpMultSetting := lvlUpMult["setting"]
 		SetNumericGameSetting $levelUpMultSetting lvlUpMult["value"]
-		DebugPrint "recurve: Set %z to %g." levelUpMultSetting lvlUpMult["value"]
+		;DebugPrint "recurve: Set %z to %g." levelUpMultSetting lvlUpMult["value"]
 		let i += 1
 	loop
 

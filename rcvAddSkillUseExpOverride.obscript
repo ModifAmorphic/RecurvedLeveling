@@ -1,0 +1,48 @@
+scn rcvAddSkillUseExpOverride
+
+; locals
+int i
+float modUseInc0
+float modUseInc1
+array_var useOverride
+short isNewOverride
+
+; input
+int skillCode        ; Actor Value Code of the skill
+float useExpMod0      ; Use experience 0 modifier to divide the existing use experience increment by.
+float useExpMod1      ; Use experience 1 modifier to divide the existing use experience increment by.
+int overrideReason	  ; Recurved.SkillUseOverrideReasons reason for the override
+
+Begin _Function { skillCode useExpMod0 useExpMod1 overrideReason } ; Adds skill use overrides to the Recurved.SkillUseOverrides array for skills goverened by each attribute in the passed attributes argument
+
+	let useOverride := call rcvFindSkillUseOverride skillCode overrideReason
+	set isNewOverride to 0
+	if Eval ((ar_Size useOverride) < 1)
+		let useOverride := ar_Construct StringMap
+		set isNewOverride to 1
+	endif
+
+	let modUseInc0 := Recurved.DefaultSkillUseIncrements[skillCode][0]
+	let modUseInc1 := Recurved.DefaultSkillUseIncrements[skillCode][1]
+	
+	if (useExpMod0 > 0)
+		let modUseInc0 /= useExpMod0
+	else
+		set modUseInc0 to 0.0
+	endif
+	if (useExpMod1 > 0)
+		let modUseInc1 /= useExpMod1
+	else
+		set modUseInc1 to 0.0
+	endif
+	let useOverride["skillCode"] := skillCode
+	let useOverride["reason"] := overrideReason
+	let useOverride["useExp"] := ar_Construct Array
+	let useOverride["useExp"][0] := modUseInc0
+	let useOverride["useExp"][1] := modUseInc1
+	if (isNewOverride)
+		ar_Append Recurved.SkillUseOverrides useOverride
+	endif
+	let i += 1
+	
+End

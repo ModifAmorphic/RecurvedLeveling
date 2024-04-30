@@ -37,17 +37,30 @@ short EnduranceHealthNormalizationDisabled
 ;; Debugging
 short DebugEnabled
 
-; Level Scaling Settings
-;; Increases amount of experience required to level a skill past the soft cap. 
-float SoftCapMulti
+; Major Skills - Over leveling protection
 
 ;; Increases amount of experience required to level a Major skill once there are
 ;; enough attribute progress points banked for the full attribute increase. Penalty is removed
 ;; when a 3rd full attribute increase is acheived or the character is leveled.
-;;; 0  : Hard caps any major skills responsible for attribute increases
+;;; 0  : Prevents experience gain of any major skills responsible for attribute increases
 ;;; 1  : No effect
 ;;; 2+ : Multiplies the amount of experience by the MajorOveragePreventionMulti
 float MajorOveragePreventionMulti
+
+;; Guards against missed attribute increases during level ups.
+;; Will stop all major experience gains one progress point (skill level) before
+;; level up if you have not obtained the minimum amount of maxed attribute bonus points*
+;; configured with this setting.
+;; * The minimum amount will automatically be lowered to account for fully maxed (100) attributes.
+;;; 0  : Disables this feature.
+;;; 1  : Requires at least 1 maxed attribute prior to level up
+;;; 2  : Requires at least 2 maxed attributes. Use for leveling up 2 attributes and luck.
+;;; 3  : (Default) Requires 3 maxed attributes before leveling.
+int MinimumMaxedAttributes
+
+; Level Scaling Settings
+;; Increases amount of experience required to level a skill past the soft cap. 
+float SoftCapMulti
 
 ;; Controls what percentage of each remaining attribute progress is brought over to the next level.
 ;; Vanilla does not bring any unused points over to the next level.
@@ -113,8 +126,10 @@ array_var LevelCurves
 ; Skils that are temporarily capped once their governing attribute has enough progress points.
 array_var SkillUseOverrides
 
-; Flag for when character has a level pending
-short LevelPending
+; ; Flag for when character has a level pending
+; short LevelPending
+; Flag for delayed rest of level progress back to the maximum
+short DelayedResetLevelProgress
 
 ; Amount of attribute progress over the max needed for the next level
 int ExcessAttributeProgress

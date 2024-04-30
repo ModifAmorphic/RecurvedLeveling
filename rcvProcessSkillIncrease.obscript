@@ -12,7 +12,7 @@ int lvlProgress
 int newLvlProgress
 
 
-short isSkillsCapped
+int overLvlProgress
 ; params
 int skillActorValueCode
 int amount
@@ -20,8 +20,11 @@ short isScripted
 Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up events and capture attribute progress if needed.
 	
     set isMajorSkill to player.IsClassSkillC skillActorValueCode
-    let isSkillsCapped := call rcvApplyOverLevelProtection skillActorValueCode amount isScripted
-    if isSkillsCapped
+    if (isMajorSkill)
+        let overLvlProgress := call rcvPreventOverLevel amount isScripted
+    endif
+    if overLvlProgress
+        let Recurved.ExcessAttributeProgress += overLvlProgress
         if (Recurved.OverlevelMsgShown == 0)
             MessageBoxEx Recurved.OverlevelMessage
             set Recurved.OverlevelMsgShown to 1

@@ -33,10 +33,12 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	; Read secondaries into array for easier access access
 	let Recurved.AttributeSecondaries := ar_Construct Array
 	let Recurved.AttributeSecondaries[0] := Recurved.StrengthSecondary
-	let Recurved.AttributeSecondaries[1] := Recurved.EnduranceSecondary
-	let Recurved.AttributeSecondaries[2] := Recurved.SpeedSecondary
+	let Recurved.AttributeSecondaries[1] := Recurved.IntelligenceSecondary
+	let Recurved.AttributeSecondaries[2] := Recurved.WillpowerSecondary
 	let Recurved.AttributeSecondaries[3] := Recurved.AgilitySecondary
-	let Recurved.AttributeSecondaries[4] := Recurved.PersonalitySecondary
-	let Recurved.AttributeSecondaries[5] := Recurved.IntelligenceSecondary
-	let Recurved.AttributeSecondaries[6] := Recurved.WillpowerSecondary
+	let Recurved.AttributeSecondaries[4] := Recurved.SpeedSecondary
+	let Recurved.AttributeSecondaries[5] := Recurved.EnduranceSecondary
+	let Recurved.AttributeSecondaries[6] := Recurved.PersonalitySecondary
+	
+	
 End
