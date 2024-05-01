@@ -23,13 +23,8 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
     if (isMajorSkill)
         let overlevelPrevented := call rcvPreventOverLevel amount isScripted
     endif
-    if overlevelPrevented
-        if (Recurved.OverlevelMsgShown == 0)
-            MessageBoxEx Recurved.OverlevelMessage
-            set Recurved.OverlevelMsgShown to 1
-        endif
-    elseif (isScripted == 0)
-        call rcvApplyOverageProtection skillActorValueCode amount
+    if (overlevelPrevented == 0 && isScripted == 0)
+        call rcvApplySkillIncreaseProtection skillActorValueCode amount
     endif
     ; Process Major Skills
 	if isMajorSkill
@@ -48,6 +43,7 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
                 let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
                 set secondaryAttrProgress to GetPCAttributeBonusC secondaryAttrbCode
                 let secondaryAttrBonus := Recurved.LevelCurves[player.GetLevel - 1]["SecondaryAttributeBonus"]
+                let Recurved.SecondaryAttribBonuses[secondaryAttrbCode] += secondaryAttrBonus
                 DebugPrint "recurve: Skill %g is a major skill and will increase it's secondary attribute %g progress %g by %g." skillActorValueCode secondaryAttrbCode secondaryAttrProgress secondaryAttrBonus
                 SetPCAttributeBonusC secondaryAttrbCode secondaryAttrProgress + secondaryAttrBonus
             endif

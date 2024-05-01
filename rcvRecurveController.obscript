@@ -14,7 +14,7 @@ short isGameLoadedPeek
 short isTutorialActive
 short isTutorialQuestPassed
 short isClassSelected
-
+short isOverLevel
 ; locals
 
 ; array_var remainingPoints
@@ -178,9 +178,17 @@ Begin _GameMode
 	DebugPrint "recurve: Resetting Skill Use Increments"
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
 
+	; Recheck overlevel / overage protection on load in case ini changed
+	if (Recurved.MajorOveragePreventionDisabled == 0 && isGameLoaded)
+		let isOverLevel := call rcvPreventOverLevel 0 0
+		if (isOverLevel == 0)
+            call rcvApplySkillIncreaseProtection 0 0
+        endif
+	endif
+	
 	; Configure attribute gains and required skill increase for the current level
 	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.SkillUseOverrides
-	
+
 	; Handle Player level up 
 	if (isPlayerLeveled == 1)
 		call rcvProcessLevelUp

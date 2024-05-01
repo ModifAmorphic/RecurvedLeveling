@@ -1,0 +1,30 @@
+scn rcvRecurveMessenger
+
+float fQuestDelayTime
+
+short ShowTutorialAttributeProtection
+short ShowTutorialOverlevel
+
+; Flags for showing tutorial messages only once
+short TutorialAttributeProtectionShown
+short TutorialOverlevelShown
+
+Begin _GameMode
+	set fQuestDelayTime to 2
+	
+	if (TutorialAttributeProtectionShown == 0)
+		if (Recurved.ExcessAttributeProgress)
+			set TutorialAttributeProtectionShown to 1
+			set ShowTutorialAttributeProtection to 0
+			MessageBoxEx Recurved.OverlevelMessage
+			return
+		endif
+	endif
+
+	if (TutorialAttributeProtectionShown == 0 && ShowTutorialAttributeProtection)
+		set TutorialAttributeProtectionShown to 1
+		set ShowTutorialAttributeProtection to 0
+		return
+	endif
+
+end

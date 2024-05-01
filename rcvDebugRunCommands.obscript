@@ -18,22 +18,14 @@ Begin _Function {}
     endif
 
     if (Recurved.ResetSkillUseOverrides)
-        let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
+        ; let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
         let Recurved.SkillUseOverrides := ar_Null
 	    let Recurved.SkillUseOverrides := ar_Construct Array
-        ; check if rcvPreventOverLevel protection has been applied, and if so
-        ; remove the attribute progress so it will trigger again.
-        let maxAttrbProgOver := (Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"]) - 1
-        DebugPrint "recurve: Attempting to manually trigger overlevel protection. Level Progress=%g, maxAttrbProgOver=%g, ExcessAttributeProgress=%g" GetPCMajorSkillUps maxAttrbProgOver Recurved.ExcessAttributeProgress
-        if (Recurved.ExcessAttributeProgress == maxAttrbProgOver)
-            ; Deincrement the ExcessAttributeProgress because it will be added back in rcvPreventOverLevel
-		    let Recurved.ExcessAttributeProgress -= 1
-            let isOverLevel := call rcvPreventOverLevel majorSKillCode 0
-        endif
+        let isOverLevel := call rcvPreventOverLevel 0 0
         ; if rcvPreventOverLevel didn't run, or ran with nothing capped, then
         ; apply attribute overage protection
         if (isOverLevel == 0)
-            call rcvApplyOverageProtection majorSKillCode 0
+            call rcvApplySkillIncreaseProtection 0 0
         endif
         set RecurvedController.hasUpdate to 1
     endif

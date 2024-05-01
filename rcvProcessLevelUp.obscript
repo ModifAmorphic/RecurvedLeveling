@@ -1,11 +1,17 @@
 scn rcvProcessLevelUp
 
+int i
 
 Begin _Function { }
 	DebugPrint "recurve: Processing level up to level %g." player.GetLevel
 	; Carry over any left over progress points from the previous level and apply.
 	if (Recurved.RemainingAttributeProgressDisabled == 0)
 		call rcvSetLevelProgress
+		; reset attribute bonus data
+		while (i < 7)
+			let Recurved.SecondaryAttribBonuses[i] := 0
+			let i += 1
+		loop
 	endif
 	; reset the over level message box
 	set Recurved.OverlevelMsgShown to 0
@@ -34,7 +40,7 @@ Begin _Function { }
 	DebugPrint "recurve: Resetting Skill Use Increments"
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
 	
-	call rcvApplyOverageProtection ((call rcvGetMajorSkills)[0]["code"]) 0
+	call rcvApplySkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
 
 	; Configure attribute gains and required skill increase for the current level
 	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.SkillUseOverrides

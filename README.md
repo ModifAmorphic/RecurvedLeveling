@@ -38,18 +38,17 @@ Several changes have been made to further incentivize the selection, use and lev
   ```
 
 - Overlevel protection has been added to help prevent overleveling a Major Skill to the detriment of other attributes.
-  - Major Skills that have advanced enough to achieve the maximum attribute gain possible for the level have their experience slowed until 2 other attributes can also be maxed.
+  - Major Skills that have advanced enough to achieve the maximum attribute gain possible for the level have their experience demands increased until 2 other attributes can also be maxed.
   - Progress of all Major Skills will be stopped completely if a character is about to level up but has not maximized bonuses for at least 3 attributes.
 - The amount of Major Skill increases required for leveling up starts higher than vanilla at lower levels and reduces to lower than vanilla at higher levels.
-- Leftover skill points that are normally discarded during level-ups are now carried forward to the new level.
+- Leftover skill points that are normally discarded during level-ups are now carried forward to the new level. *Secondary Bonus Attribute points do not carry forward.
 - Total Major Skill increases before leveling up are limited to the maximum for the current level plus the maximum for the next level minus one. In other words, once your character has enough skill
 increases to level, they can only continue to increase major skills up right until another level is gained before sleeping and leveling up.
 
-The largest change to Major Skills is the new overage protection system for attribute progress. When a Major Skill's Attribute reaches its maximum progress for a level, all
-Major Skills that share that same attribute have their experience demands greatly increased. This remains in place until maximum progress for 3 attributes has been reached,
+The largest change to Major Skills is the new overage protection system for attribute progress. The system starts checking for major skill overages after enough progress has been made in a level where at least one attribute bonus should be maxed. When a Major Skill's Attribute reaches its maximum progress for a level, all
+Major Skills that share that same attribute have their experience demands increased. The experience demands increase exponentially for any major skill increase from that point. This penalty remains in place until maximum progress for 3 attributes has been reached,
 or the character levels. As an additional failsafe, a character that has not achieved maximum bonuses for at least 3 attributes by the end of a level will have all Major Skill progress
-stopped. This gives the player a chance to gain additional progress through minor skills and not miss out on any potential attribute increases. This restriction is lifted once a maximum 
-bonus has been reached for 3 attributes, allowing leveling to continue.
+stopped. This gives the player a chance to gain additional progress through minor skills and not miss out on any potential attribute increases. This restriction is lifted once a maximum bonus has been reached for 3 attributes, allowing leveling to continue.
 
 ### Attribute Overage Protection Examples
 

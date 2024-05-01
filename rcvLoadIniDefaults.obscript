@@ -34,13 +34,13 @@ set Recurved.DebugEnabled to 1
 
 ; ### Major Skills - Over leveling protection ###
 
-;; Increases amount of experience required to level a Major skill once there are
-;; enough attribute progress points banked for the full attribute increase. Penalty is removed
-;; when a 3rd full attribute increase is acheived or the character is leveled.
-;;; 0  : Hard caps any major skills responsible for attribute increases
-;;; 1  : No effect
-;;; 2+ : Multiplies the amount of experience required by the MajorOveragePreventionMulti
-set Recurved.MajorOveragePreventionMulti to 10.0
+; ;; Increases amount of experience required to level a Major skill once there are
+; ;; enough attribute progress points banked for the full attribute increase. Penalty is removed
+; ;; when a 3rd full attribute increase is acheived or the character is leveled.
+; ;;; 0  : Hard caps any major skills responsible for attribute increases
+; ;;; 1  : No effect
+; ;;; 2+ : Multiplies the amount of experience required by the MajorOveragePreventionMulti
+; set Recurved.MajorOveragePreventionMulti to 10.0
 
 ;; Guards against missed attribute increases during level ups.
 ;; Will stop all major experience gains one progress point (skill level) before

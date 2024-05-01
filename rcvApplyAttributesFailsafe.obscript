@@ -1,4 +1,4 @@
-scn rcvApplySkillFailsafes
+scn rcvApplyAttributesFailsafe
 
 int i
 int lvlProgress

@@ -39,13 +39,21 @@ short DebugEnabled
 
 ; Major Skills - Over leveling protection
 
-;; Increases amount of experience required to level a Major skill once there are
-;; enough attribute progress points banked for the full attribute increase. Penalty is removed
-;; when a 3rd full attribute increase is acheived or the character is leveled.
-;;; 0  : Prevents experience gain of any major skills responsible for attribute increases
-;;; 1  : No effect
-;;; 2+ : Multiplies the amount of experience by the MajorOveragePreventionMulti
-float MajorOveragePreventionMulti
+; ;; Increases amount of experience required to level a Major skill once there are
+; ;; enough attribute progress points banked for the full attribute increase. Penalty is removed
+; ;; when a 3rd full attribute increase is acheived or the character is leveled.
+; ;;; 0  : Prevents experience gain of any major skills responsible for attribute increases
+; ;;; 1  : No effect
+; ;;; 2+ : Multiplies the amount of experience by the MajorOveragePreventionMulti
+; float MajorOveragePreventionMulti
+
+;; Exponent for increasing major experience requirements that have maxed their governing attribute's
+;; bonus and enough major skill ups have occured for the full attribute increase. Penalty is removed
+;; when a 3rd full attribute increase is acheived or the character is leveled. 
+int Tier1OverageProtectionExponent
+int Tier2OverageProtectionExponent
+int Tier3OverageProtectionExponent
+int Tier4OverageProtectionExponent
 
 ;; Guards against missed attribute increases during level ups.
 ;; Will stop all major experience gains one progress point (skill level) before
@@ -92,7 +100,6 @@ int Tier1SecondaryAttributeBonus
 int Tier2SecondaryAttributeBonus
 int Tier3SecondaryAttributeBonus
 int Tier4SecondaryAttributeBonus
-
 ;; Maps a skill's governing attribute to a secondary attribute to increase.
 int StrengthSecondary
 int EnduranceSecondary
@@ -109,8 +116,14 @@ int Tier2EnduranceNormalizeAmount
 int Tier3EnduranceNormalizeAmount
 int Tier4EnduranceNormalizeAmount
 
-;; Message shown when no more skill increases are allowed before a level up
+;; Tutorial Message box shown the first time no more skill increases are allowed before a level up. Only shows once.
+string_var TutorialOverlevelMessage
+;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
+string_var TutorialAttributeProtectionMessage
+;; Message shown when no more skill increases are allowed before a level up. Shown once per level.
 string_var OverlevelMessage
+;; Message shown periodically when an experienced penalized major skill is used.
+string_var AttributeProtectionMessage
 
 ; ### End Ini variables  ###
 
@@ -131,13 +144,15 @@ array_var SkillUseOverrides
 ; Flag for delayed rest of level progress back to the maximum
 short DelayedResetLevelProgress
 
+;; Level Data - Reset on Level Up
 ; Amount of attribute progress over the max needed for the next level
 int ExcessAttributeProgress
 ; Flag to track if the message about over leveling has been shown or not this level
 short OverlevelMsgShown
+; Keeps track of attribute bonuses for the level
+array_var SecondaryAttribBonuses
 
 ; Debug "Commands"
-
 int DumpLevel
 short DumpCurrentLevel
 int DumpLevelCurve

@@ -1,0 +1,49 @@
+scn rcvApplySkillIncProtectionPenalties
+
+; locals
+int i
+int attrIndex
+int skillCode
+int attribSkillCount
+int maxLvlProgress
+float progressRatio
+float expMultiplier
+array_var majorSkills
+
+
+; inputs
+array_var attributes        ; Attributes whose Major Skills should have skill use overrides added
+int lvlProgress             ; Current progress towards next level
+float skillIncsForMaxAttrib ; skill increases required for a maximized attribute bonus
+array_var levelCurve        ; Level curve data
+; output
+array_var skillsModified  ; Array of skill codes who have had the prevention multiplier applied to their use experience increments.
+Begin _Function { attributes lvlProgress skillIncsForMaxAttrib levelCurve } ; Adds skill use overrides to the Recurved.SkillUseOverrides array for skills goverened by each attribute in the passed attributes argument
+	let maxLvlProgress := levelCurve["iLevelUpSkillCount"]
+	; Calculate the ratio of level progress.
+	;; Remove the skillIncsForMaxAttrib amount since we don't start penalizing experience
+	;; until that threshold is hit.
+	;;;                  (    12         -        5           - 1) / (15 - 5)
+	;;;                  (                                       )
+	let progressRatio := (lvlProgress - skillIncsForMaxAttrib + 1) / (maxLvlProgress - skillIncsForMaxAttrib)
+	; experience multiplier calulation
+	let expMultiplier := (progressRatio + 1)^(levelCurve["OverageProtectionExponent"])
+	let skillsModified := ar_Construct Array
+	while (attrIndex < ar_Size attributes)
+		let majorSkills := call rcvGetAttributeMajorSkills attributes[attrIndex]
+		let attribSkillCount := ar_Size majorSkills
+		DebugPrint "recurve: Found %g Major Skills for Attribute %g." attribSkillCount attributes[attrIndex]
+		set i to 0
+		while (i < attribSkillCount)
+			let skillCode := majorSkills[i]["code"]
+			call rcvAddSkillUseExpOverride skillCode expMultiplier expMultiplier (Recurved.SkillUseOverrideReasons["OverageProtection"])
+			DebugPrint "recurve: Major Skill Overage Prevention added use exp overrides for skill %g, attribute %g. Experience Multiplier: %g. skillIncsForMaxAttrib: " skillCode attributes[attrIndex] expMultiplier skillIncsForMaxAttrib
+			let i += 1
+			ar_Append skillsModified skillCode
+		loop
+		let attrIndex += 1
+	loop
+
+	SetFunctionValue skillsModified
+	
+End

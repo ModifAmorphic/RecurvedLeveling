@@ -1,6 +1,8 @@
-scn rcvApplyOverageProtection
+scn rcvApplySkillIncreaseProtection
 
 ; Overage prevention
+float skillIncsForMaxAttrib ; skill increases required for a maximized attribute bonus
+
 int i
 int attributeCode
 int secondaryAttrbCode
@@ -15,9 +17,9 @@ int maxedAttrProgressCount
 int maxedAttributes
 int unmaxedAttributes
 int maxedAttrProgressReq
+array_var levelCurve
 array_var failsafeSkills
 array_var protectedSkills
-array_var majors
 array_var removedProtections
 
 ; inputs
@@ -42,6 +44,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	set isMajorSkill to player.IsClassSkillC skillCode
 	set attributeCode to GetSkillGoverningAttributeC skillCode
 	let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
+	let levelCurve := Recurved.LevelCurves[player.GetLevel - 1]
 
 	DebugPrint "recurve: Major Skill Overage Prevention processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
 	; Get a list of attributes whose progress is maxed (or will be maxed with this increase)
@@ -56,10 +59,10 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 		; include any bonus, bonus progress if enabled
 		if (isMajorSkill)
 			if (Recurved.AttributeBonusDisabled == 0 && i == attributeCode)
-				let progressPoints += Recurved.LevelCurves[player.GetLevel - 1]["MajorAttributeBonus"]
+				let progressPoints += levelCurve["MajorAttributeBonus"]
 			endif
 			if (Recurved.SecondaryAttributesDisabled == 0 && i == secondaryAttrbCode)
-				let progressPoints += Recurved.LevelCurves[player.GetLevel - 1]["SecondaryAttributeBonus"]
+				let progressPoints += levelCurve["SecondaryAttributeBonus"]
 			endif
 		endif
 		;DebugPrint "recurve: Calculated skill %g will set progress points to %g for attribute %g." skillCode progressPoints i
@@ -75,7 +78,9 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	set i to 0
 	; If maxed out attribute progress is less than 3, then cap any major skills
 	; that will increase the attribute (secondary bonus to attributes not included).
-	; Only do the above if there are 3 or more unmaxed attributes remaining.
+	
+	; If Recurved.MinimumMaxedAttributes is set to higher than the number of unmaxed attributes remaining,
+	; then lower the amount of maxed attribute progress to the remaining amount.
 	let maxedAttributes := (ar_size (call rcvGetMaxedAttributes 0))
 	set unmaxedAttributes to 7 - maxedAttributes
 	set maxedAttrProgressReq to Recurved.MinimumMaxedAttributes
@@ -83,21 +88,31 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 		DebugPrint "recurve: There are %g remaining unmaxed attributes which is lower than the %g attributes MinimumMaxedAttributes is configured for. Lowering mimimum amount to unmaxed value." unmaxedAttributes Recurved.MinimumMaxedAttributes
 		set maxedAttrProgressReq to unmaxedAttributes
 	endif
-	if Eval (maxedAttrProgressCount < maxedAttrProgressReq)
-		; Get the current level progress before skill up
-		; Add the skill increase to level progress if this is a major skill
-		if (isMajorSkill)
-			let addLvlProgress := skillIncrease
-		endif
+	; Get the current level progress before skill up
+	; Add the skill increase to level progress if this is a major skill
+	if (isMajorSkill)
+		let addLvlProgress := skillIncrease
+	endif
+	set lvlProgress to GetPCMajorSkillUps + addLvlProgress
+	
+	; calculate skill increases required to max one attribute
+	let skillIncsForMaxAttrib := 10 / (levelCurve["MajorAttributeBonus"] + 1)
+	; Perform overage protection if level progress exceeds or equals the amount of increases 
+	;; required to max one attribute and the amount of currently maxed attribute bonuses is less 
+	;; than the required amount.
+	if Eval ((lvlProgress >= (Floor skillIncsForMaxAttrib)) && (maxedAttrProgressCount < maxedAttrProgressReq))
+		
 		; If character is about to level without reaching 3 maxed attributes, enable attribute leveling failsafe
-		let failsafeSkills := call rcvApplySkillFailsafes addLvlProgress
+		let failsafeSkills := call rcvApplyAttributesFailsafe addLvlProgress
+
+        set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
 		if Eval ((ar_Size failsafeSkills) > 0)
+			; debug message for failsafes
 			let skillsCapped := ar_Size failsafeSkills
-			set lvlProgress to GetPCMajorSkillUps + addLvlProgress
-        	set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
 			DebugPrint "Leveling failsafe enabled. Only %g of %g Attributes had reached max increase values for the level. Level progress %g/%g" maxedAttrProgressCount maxedAttrProgressReq lvlProgress maxLvlProgress
 		else
-			let protectedSkills := call rcvApplyOveragePreventionMulti maxedAttrProgress
+			; If failsafe not triggered, then apply the progressive overage prevention
+			let protectedSkills := call rcvApplySkillIncProtectionPenalties maxedAttrProgress lvlProgress skillIncsForMaxAttrib levelCurve
 			let skillsCapped := ar_Size protectedSkills
 		endif
 		set isProtectionApplied to 1

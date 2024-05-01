@@ -28,7 +28,7 @@ Begin _Function { addedLevelProgress isScripted }
 	; Attribute progress needed for the level after this, minus 1
 	let maxAttrbProgOver := (Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"]) - 1
 	DebugPrint "recurve: Starting OverLevel protection processing. Calculated Level Progress: %g/%g." lvlProgress maxLvlProgress
-	if (lvlProgress > maxLvlProgress)
+	if (lvlProgress >= maxLvlProgress)
 		set overLvlProgress to lvlProgress - maxLvlProgress
 		DebugPrint "recurve: ExcessAttributeProgress=%g, maxAttrbProgOver=%g." Recurved.ExcessAttributeProgress maxAttrbProgOver
 		if (Recurved.ExcessAttributeProgress + overLvlProgress >= maxAttrbProgOver)
@@ -51,7 +51,7 @@ Begin _Function { addedLevelProgress isScripted }
 		if (isScripted)
 			DebugPrint "recurve: Overlevel Protection - Reseting level progress to %g/%g from %g/%g. Stashed excess progress increases: %g." maxLvlProgress maxLvlProgress lvlProgress maxLvlProgress Recurved.ExcessAttributeProgress
 			SetPCMajorSkillUps maxLvlProgress
-		else
+		elseif (addedLevelProgress > 0)
 			DebugPrint "recurve: Overlevel Protection - Requesting delayed reset of level progress to %g/%g from %g/%g. Stashed excess progress increases: %g." maxLvlProgress maxLvlProgress lvlProgress maxLvlProgress Recurved.ExcessAttributeProgress
 			set Recurved.DelayedResetLevelProgress to 1
 		endif
