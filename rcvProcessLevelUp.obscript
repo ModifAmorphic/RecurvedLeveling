@@ -14,11 +14,11 @@ Begin _Function { }
 		loop
 	endif
 	; clear any skill use overrides set for the previous level and reinit the array
-	let Recurved.SkillUseOverrides := ar_Construct Array
+	; let Recurved.SkillUseOverrides := ar_Construct Array
 	set Recurved.AttributeFailsafeEnabled to 0
 	; set current level
 	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
-	; set current and next level curves
+	; ; set current and next level curves
 	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
 	let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve (player.GetLevel + 1)
 
@@ -34,12 +34,4 @@ Begin _Function { }
 	endif
 	; reset excess attribute progress
 	set Recurved.ExcessAttributeProgress to 0
-
-	DebugPrint "recurve: Resetting Skill Use Increments"
-	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
-	
-	call rcvApplySkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
-
-	; Configure attribute gains and required skill increase for the current level
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.SkillUseOverrides
 End

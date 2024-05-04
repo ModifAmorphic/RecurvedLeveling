@@ -13,7 +13,7 @@ Begin Function { actor object }
 		return
 	endif
 	if (Recurved.WeaponExpNormalizedDisabled == 0)
-		set Recurved.WeaponEquipped to 1
+		; set Recurved.WeaponEquipped to 1
 		set RecurvedController.HasUpdate to 1
 	endif
 	; set actorName to GetName actor

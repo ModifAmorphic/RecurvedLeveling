@@ -177,39 +177,40 @@ Begin _GameMode
 		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
 	endif
 
+	; Handle overleveling. Reset progress back to max progress for current level
 	if (Recurved.DelayedResetLevelProgress > 0)
 		SetPCMajorSkillUps (GetGameSetting "iLevelUpSkillCount")
 		DebugPrint "recurve: Reset level progress to level maximum."
 		set Recurved.DelayedResetLevelProgress to 0
-	endif
-	; Reset Skill Use Increments Prior to reconfiguring
-	DebugPrint "recurve: Resetting Skill Use Increments"
-	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
-	
-	; Configure attribute gains and required skill increase for the current level
-	call rcvSetLevelCurve Recurved.LevelCurves[player.GetLevel] Recurved.SkillUseOverrides
-
-	; Set weapon use mod, if enabled
-	if ((isGameLoaded || Recurved.WeaponEquipped) && Recurved.WeaponExpNormalizedDisabled == 0)
-		call rcvSetWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed
-		set Recurved.WeaponEquipped to 0
-		set HasUpdate to 1
-	endif
-
-	; Recheck overlevel / overage protection on load in case ini changed
-	if (Recurved.AttributeProtectionDisabled == 0 && isGameLoaded)
-		let isOverLevel := call rcvPreventOverLevel 0 0
-		if (isOverLevel == 0)
-            if Eval ((call rcvApplySkillIncreaseProtection 0 0) > 0)
-				set HasUpdate to 1
-			endif
-        endif
 	endif
 
 	; Handle Player level up 
 	if (isPlayerLeveled == 1)
 		call rcvProcessLevelUp
 	endif
+	
+	; Reset Skill Use Increments Prior to reconfiguring
+	DebugPrint "recurve: Resetting Skill Use Increments"
+	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
+	; Reset oeverrides
+	let Recurved.SkillUseOverrides := ar_Construct Array
+	; Configure attribute gains and required skill increase for the current and next level
+	call rcvSetLevelCurve (Recurved.LevelCurves[player.GetLevel - 1]) Recurved.SkillUseOverrides
+	;  ## overrides ##
+	; Apply overlevel prvention if needed
+	if (Recurved.AttributeProtectionDisabled == 0)
+		let isOverLevel := call rcvPreventOverLevel 0 0
+	endif
+	
+	; if overlevel protection not enabled then add other overrides
+	if (isOverLevel == 0)
+		; Add weapon use mod overrides
+		call rcvSetWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed  Recurved.ExpNormalizedWeaponDamage
+		; set Recurved.WeaponEquipped to 0
+		call rcvApplySkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
+	endif
+	; Reapply level curve with potential changes
+	call rcvSetLevelCurve Recurved.LevelCurves[player.GetLevel - 1] Recurved.SkillUseOverrides
 	
 	; reset variables
 	set isSleepMenuInit to 0

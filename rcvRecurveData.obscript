@@ -77,6 +77,16 @@ int MinimumMaxedAttributes
 ;;; By default, set to the fastest weapon (daggers) - 1.4 attacks per second.
 short ExpNormalizedWeaponSpeed
 
+;;; Damage to normalize weapons against for experience gains. Higher damage weapons earn more 
+;;; exp per hit to componsate for less attacks prior to target death. Works in combination with
+;;; ExpNormalizedWeaponSpeed to calculate a base DPS in which all other weapons are normalized 
+;;; against. The lower the value, the higher the experience increase will be for higher dps weapons.
+;;; [Weapon Exp Per Hit] = (Equipped Weapon Damage x Speed) /  (ExpNormalizedWeaponDamage * ExpNormalizedWeaponSpeed) * [Normalized Weapon Skill Exp Per Use]
+;;; By default, set to the worst weapon (rusty dagger) - 3 damage.
+;;;; 0  - Disables Exp increases from damage
+;;;; 1+ - Damage to normalize exp gains against.
+short ExpNormalizedWeaponDamage
+
 ; Level Scaling Settings
 ;; Increases amount of experience required to level a skill past the soft cap. 
 float SoftCapMulti
@@ -133,10 +143,6 @@ string_var TutorialOverlevelMessage
 string_var TutorialAttributeProtectionMessage
 ;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
 string_var TutorialAttributeFailsafeMessage
-;; Message shown when no more skill increases are allowed before a level up. Shown once per level.
-; string_var OverlevelMessage
-; ;; Message shown periodically when an experienced penalized major skill is used.
-; string_var AttributeProtectionMessage
 
 ; ### End Ini variables  ###
 
@@ -166,7 +172,7 @@ short AttributeFailsafeEnabled
 ; Keeps track of attribute bonuses for the level
 array_var SecondaryAttribBonuses
 
-short WeaponEquipped
+; short WeaponEquipped
 
 ; Debug "Commands"
 int DumpLevel

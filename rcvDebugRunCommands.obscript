@@ -24,10 +24,8 @@ Begin _Function {}
         ; if rcvPreventOverLevel didn't run, or ran with nothing capped, then
         ; apply attribute overage protection
         if (isOverLevel == 0)
-            if (Recurved.WeaponExpNormalizedDisabled == 0)
-                call rcvSetWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed
-            endif
-            call rcvApplySkillIncreaseProtection 0 0
+            call rcvSetWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed Recurved.ExpNormalizedWeaponDamage
+            call rcvApplySkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
         endif
         set RecurvedController.HasUpdate to 1
     endif

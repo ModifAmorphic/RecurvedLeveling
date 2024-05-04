@@ -4,11 +4,21 @@ ref weapon
 int weaponType
 int skillCode
 float speed
+float damage
+float dps
+float normalizeToDps
 float useExpMod
 
 ; inputs
 float normalizeToSpeed
-Begin _Function { normalizeToSpeed }
+float normalizeTodamage
+Begin _Function { normalizeToSpeed normalizeTodamage }
+
+    ; Disabled, return
+    if (Recurved.WeaponExpNormalizedDisabled)
+        return
+    endif
+    
     set weapon to Player.GetEquippedObject 16
     set weaponType to GetWeaponType weapon
     ; Weapon Types
@@ -33,7 +43,15 @@ Begin _Function { normalizeToSpeed }
     endif
     
     let speed := GetWeaponSpeed weapon
-	set useExpMod to speed / normalizeToSpeed
+    	set useExpMod to speed / normalizeToSpeed
+    if (damage > 0)
+        let damage := GetAttackDamage weapon
+        set normalizeToDps to normalizeToSpeed * normalizeTodamage
+        set dps to speed * damage
+        set useExpMod to useExpMod * (normalizeToDps / dps)
+    endif
+
+
 	DebugPrint "recurve: Normalizing weapon type %g. Adding skill use override mod of %.4f for skill %g." weaponType useExpMod skillCode
     ; Remove any existing weapon use overrides
     call rcvDeleteSkillOverrides Recurved.SkillUseOverrideReasons["Weapon"]
