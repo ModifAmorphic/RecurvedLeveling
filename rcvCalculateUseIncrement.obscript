@@ -1,0 +1,19 @@
+scn rcvCalculateUseIncrement
+
+; inputs
+float useExp
+float useExpModifier
+
+; ouput
+float modifiedUseExp
+
+Begin Function { useExp useExpModifier } ; Gets all skill use overrides for a particular Recurved.SkillUseOverrideReasons overrideReason.
+
+	if (useExpModifier > 0)
+		set modifiedUseExp to useExp / useExpModifier
+	else
+		set modifiedUseExp to 0.0
+	endif
+	SetFunctionValue modifiedUseExp
+	
+End

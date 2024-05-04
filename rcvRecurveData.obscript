@@ -19,7 +19,7 @@ array_var SkillUseOverrideReasons
 ;; Major Overage Prevention temporarily caps major skill increases for governing attributes 
 ;;; that have reached the max for the current level until 3 attributes have been maxed.
 ;;; Disabling this allows Major Attributes to always increase.
-short MajorOveragePreventionDisabled
+short AttributeProtectionDisabled
 ;; Disables soft caps on minor skills
 short MinorSkillSoftCapsDisabled
 ;; Disables additional bonus progress points towards attribute increases 
@@ -34,6 +34,11 @@ short RemainingAttributeProgressDisabled
 ;;; config than typical with vanilla. The inverse is also true if the TierXMaxAttributeUp values 
 ;;; are adjusted to allow for larger attribute gains early on.
 short EnduranceHealthNormalizationDisabled
+;; Disables normalization of on hit experience for Blade and Blunt weapons.
+;;; When enabled, uses weapon speed of each weapon to calculate the 
+;;; experience per hit. Per hit experience increases as weapon speed decreases,
+;;; causing all weapons to generate the same amount of experience over time.
+short WeaponExpNormalizedDisabled
 ;; Debugging
 short DebugEnabled
 
@@ -65,6 +70,12 @@ int Tier4OverageProtectionExponent
 ;;; 2  : Requires at least 2 maxed attributes. Use for leveling up 2 attributes and luck.
 ;;; 3  : (Default) Requires 3 maxed attributes before leveling.
 int MinimumMaxedAttributes
+
+;;; Base weapon speed to normalize all other weapon speeds to in order to calculate the 
+;;; experience per hit. Per hit experience increases as weapon speed decreases,
+;;; causing all weapons to generate the same amount of experience over time.
+;;; By default, set to the fastest weapon (daggers) - 1.4 attacks per second.
+short ExpNormalizedWeaponSpeed
 
 ; Level Scaling Settings
 ;; Increases amount of experience required to level a skill past the soft cap. 
@@ -120,10 +131,12 @@ int Tier4EnduranceNormalizeAmount
 string_var TutorialOverlevelMessage
 ;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
 string_var TutorialAttributeProtectionMessage
+;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
+string_var TutorialAttributeFailsafeMessage
 ;; Message shown when no more skill increases are allowed before a level up. Shown once per level.
-string_var OverlevelMessage
-;; Message shown periodically when an experienced penalized major skill is used.
-string_var AttributeProtectionMessage
+; string_var OverlevelMessage
+; ;; Message shown periodically when an experienced penalized major skill is used.
+; string_var AttributeProtectionMessage
 
 ; ### End Ini variables  ###
 
@@ -147,10 +160,13 @@ short DelayedResetLevelProgress
 ;; Level Data - Reset on Level Up
 ; Amount of attribute progress over the max needed for the next level
 int ExcessAttributeProgress
-; Flag to track if the message about over leveling has been shown or not this level
-short OverlevelMsgShown
+
+short AttributeFailsafeEnabled
+
 ; Keeps track of attribute bonuses for the level
 array_var SecondaryAttribBonuses
+
+short WeaponEquipped
 
 ; Debug "Commands"
 int DumpLevel

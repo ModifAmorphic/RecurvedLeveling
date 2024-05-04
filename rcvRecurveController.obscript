@@ -2,11 +2,16 @@ scn rcvRecurveController
 
 float fQuestDelayTime
 
+; Ticks since the game was restarted
+int GlobalTick
+; public used vars
+short HasUpdate
+short IsIniLoadNeeded
+
 ; Flags for flow control
 short isSleepMenuInit
 short isLevelMenuInit
 short isPlayerLeveled
-short hasUpdate
 short isGameRestarted
 short isGameLoaded
 short isGameRestartedPeek
@@ -37,7 +42,7 @@ begin MenuMode 1012
 	endif
 
 	set isSleepMenuInit to 1
-	set hasUpdate to 1
+	set HasUpdate to 1
 
 	; if Recurved.DebugEnabled
 	; 	call rcvDebugDumpLevel player.GetLevel
@@ -51,7 +56,7 @@ begin MenuMode 1027
 		return
 	endif
 	
-	set hasUpdate to 1
+	set HasUpdate to 1
 	set isPlayerLeveled to 1
 	set isLevelMenuInit to 1
 	DebugPrint "recurve: Level Up Menu detected. Capturing Current level attributes and level curves."
@@ -70,6 +75,7 @@ end
 ; End
 
 Begin _GameMode
+	set GlobalTick to GlobalTick + 1
 	set isGameRestartedPeek to GetGameRestarted
 	set isGameLoadedPeek to GetGameLoaded
 
@@ -86,21 +92,22 @@ Begin _GameMode
 	if Recurved.DebugEnabled
 		call rcvDebugRunCommands
 	endif
-
 	; Exit early if new updates or game loads
-	if isGameLoaded == 0 && hasUpdate == 0
+	if isGameLoaded == 0 && HasUpdate == 0 && IsIniLoadNeeded == 0
 		return
 	endif
 
 	if isGameRestartedPeek
 		set fQuestDelayTime to .2
 	endif
-	if isGameLoadedPeek
+	if isGameLoadedPeek || IsIniLoadNeeded
+		set IsIniLoadNeeded to 0
+		set GlobalTick to 0
 		call rcvLoadIni
 		if Recurved.DebugEnabled
 			SetDebugMode 1
 		endif
-		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, isTutorialActive=%g, hasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected isTutorialActive hasUpdate
+		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, isTutorialActive=%g, HasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected isTutorialActive HasUpdate
 	endif
 	;;; Start Tutorial Check
 	;;;; 1. If the player started a new game, wait for a valid class to be selected
@@ -157,7 +164,7 @@ Begin _GameMode
 		call rcvLoadData isGameLoaded isGameRestarted
 		; Ensure existing protections are removed in case this was
 		; recently disabled
-		if Recurved.MajorOveragePreventionDisabled
+		if Recurved.AttributeProtectionDisabled
 			call rcvRemoveSkillOverageProtection
 		endif
 	endif
@@ -165,7 +172,9 @@ Begin _GameMode
 	if isGameRestarted
 		; Subscribe to Skill Up Events on restart
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
-		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber		
+		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber	
+		SetEventHandler "SaveGame" rcvSaveGameSubscriber
+		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
 	endif
 
 	if (Recurved.DelayedResetLevelProgress > 0)
@@ -173,21 +182,29 @@ Begin _GameMode
 		DebugPrint "recurve: Reset level progress to level maximum."
 		set Recurved.DelayedResetLevelProgress to 0
 	endif
-
 	; Reset Skill Use Increments Prior to reconfiguring
 	DebugPrint "recurve: Resetting Skill Use Increments"
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
-
-	; Recheck overlevel / overage protection on load in case ini changed
-	if (Recurved.MajorOveragePreventionDisabled == 0 && isGameLoaded)
-		let isOverLevel := call rcvPreventOverLevel 0 0
-		if (isOverLevel == 0)
-            call rcvApplySkillIncreaseProtection 0 0
-        endif
-	endif
 	
 	; Configure attribute gains and required skill increase for the current level
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel) Recurved.SkillUseOverrides
+	call rcvSetLevelCurve Recurved.LevelCurves[player.GetLevel] Recurved.SkillUseOverrides
+
+	; Set weapon use mod, if enabled
+	if ((isGameLoaded || Recurved.WeaponEquipped) && Recurved.WeaponExpNormalizedDisabled == 0)
+		call rcvSetWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed
+		set Recurved.WeaponEquipped to 0
+		set HasUpdate to 1
+	endif
+
+	; Recheck overlevel / overage protection on load in case ini changed
+	if (Recurved.AttributeProtectionDisabled == 0 && isGameLoaded)
+		let isOverLevel := call rcvPreventOverLevel 0 0
+		if (isOverLevel == 0)
+            if Eval ((call rcvApplySkillIncreaseProtection 0 0) > 0)
+				set HasUpdate to 1
+			endif
+        endif
+	endif
 
 	; Handle Player level up 
 	if (isPlayerLeveled == 1)
@@ -198,7 +215,8 @@ Begin _GameMode
 	set isSleepMenuInit to 0
 	set isLevelMenuInit to 0
 	set isPlayerLeveled to 0
-	set hasUpdate to 0
+	set HasUpdate to 0
+	set IsIniLoadNeeded to 0
 
 	if isGameLoaded
 		PrintToConsole "Recurved Levels Initialized and Active."

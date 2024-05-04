@@ -12,7 +12,7 @@ Begin _Function { } ; Gets list of major skills
 	let tmpOverrides := ar_Construct Array
 	let skillCodes := ar_Construct Array
 	while (i < ar_Size Recurved.SkillUseOverrides)
-		if Eval (Recurved.SkillUseOverrides[i]["reason"] == Recurved.SkillUseOverrideReasons["OverageProtection"])
+		if Eval (Recurved.SkillUseOverrides[i]["reason"] == Recurved.SkillUseOverrideReasons["AttributeProtection"])
 			set protectionRemoved to 1
 			ar_Append skillCodes (Recurved.SkillUseOverrides[i]["skillCode"])
 		else
@@ -22,9 +22,7 @@ Begin _Function { } ; Gets list of major skills
 	loop
 	; only swap the arrays if there's been a change
 	if (protectionRemoved)
-		let Recurved.SkillUseOverrides := ar_Null
 		let Recurved.SkillUseOverrides := tmpOverrides
-		let tmpOverrides := ar_Null
 		DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." (ar_Size skillCodes)
 	endif
 	

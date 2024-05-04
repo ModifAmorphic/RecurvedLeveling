@@ -1,0 +1,17 @@
+scn rcvGetIsIncreaseProtectionEnabled
+
+array_var overrideItem
+array_var override
+
+; output
+short isEnabled
+Begin _Function {}
+	foreach overrideItem <- Recurved.SkillUseOverrides
+		let override := overrideItem["value"]
+		if Eval(override["reason"] == Recurved.SkillUseOverrideReasons["AttributeProtection"])
+			set isEnabled to 1
+			break
+		endif
+	loop
+	SetFunctionValue isEnabled
+End

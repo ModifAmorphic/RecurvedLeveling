@@ -20,6 +20,5 @@ Begin _Function { attributeCode } ; Gets array of major skills associated to the
 		let i += 1
 	loop
 	DebugPrint "recurve: rcvGetAttributeMajorSkills: Found %g major skills for attribute %g." (ar_Size attributeSkills) attributeCode
-	let majorSkills := ar_Null
 	SetFunctionValue attributeSkills
 End

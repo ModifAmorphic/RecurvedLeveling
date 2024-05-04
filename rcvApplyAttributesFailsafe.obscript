@@ -66,7 +66,7 @@ Begin _Function { additionalLevelProgress }
 			endif
 		endif
 		if (skipProtection == 0)
-			call rcvAddSkillUseExpOverride skillCode 0 0 (Recurved.SkillUseOverrideReasons["OverageProtection"])
+			call rcvAddSkillUseExpOverride skillCode 0 0 (Recurved.SkillUseOverrideReasons["AttributeProtection"])
 			ar_Append protectedSkillCodes skillCode
 		endif
 		let i += 1
@@ -75,6 +75,7 @@ Begin _Function { additionalLevelProgress }
 	SetFunctionValue protectedSkillCodes
 	let protectedSkillAmt := ar_Size protectedSkillCodes
 	if (protectedSkillAmt > 0)
+		set Recurved.AttributeFailsafeEnabled to 1
 		DebugPrint "Leveling failsafe enabled for %g major skills. Level progress %g/%g." protectedSkillAmt lvlProgress maxLvlProgress
 	else
 		DebugPrint "Leveling failsafe not required. Update of any major skill will result in maxing an attribute bonus."

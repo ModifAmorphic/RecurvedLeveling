@@ -7,7 +7,7 @@ Begin Function {}
 ;; Major Overage Prevention temporarily slows major skill increases for governing attributes 
 ;;; that have reached the max for the current level until 3 attributes have been maxed.
 ;;; Disabling this allows Major Attributes to always increase.
-set Recurved.MajorOveragePreventionDisabled to 0
+set Recurved.AttributeProtectionDisabled to 0
 
 ;; Disables soft caps on minor skills
 set Recurved.MinorSkillSoftCapsDisabled to 0
@@ -29,6 +29,12 @@ set Recurved.RemainingAttributeProgressDisabled to 0
 ;;; are adjusted to allow for larger attribute gains early on.
 set Recurved.EnduranceHealthNormalizationDisabled to 0
 
+;; Disables normalization of on hit experience for Blade and Blunt weapons.
+;;; When enabled, uses weapon speed of each weapon to calculate the 
+;;; experience per hit. Per hit experience increases as weapon speed decreases,
+;;; causing all weapons to generate the same amount of experience over time.
+set Recurved.WeaponExpNormalizedDisabled to 0
+
 ;; Enable/Disable Debugging Logs
 set Recurved.DebugEnabled to 1
 
@@ -42,6 +48,14 @@ set Recurved.DebugEnabled to 1
 ; ;;; 2+ : Multiplies the amount of experience required by the MajorOveragePreventionMulti
 ; set Recurved.MajorOveragePreventionMulti to 10.0
 
+;; Exponent for increasing major experience requirements that have maxed their governing attribute's
+;; bonus and enough major skill ups have occured for the full attribute increase. Penalty is removed
+;; when a 3rd full attribute increase is acheived or the character is leveled. 
+set Recurved.Tier1OverageProtectionExponent to 6
+set Recurved.Tier2OverageProtectionExponent to 6
+set Recurved.Tier3OverageProtectionExponent to 4
+set Recurved.Tier4OverageProtectionExponent to 4
+
 ;; Guards against missed attribute increases during level ups.
 ;; Will stop all major experience gains one progress point (skill level) before
 ;; level up if you have not obtained the minimum amount of maxed attribute bonus points*
@@ -53,6 +67,12 @@ set Recurved.DebugEnabled to 1
 ;;; 3  : (Default) Requires 3 maxed attributes before leveling.
 ;;; >3 : Not much point to these values as only 3 attributes are increased per level, but it will work.
 set Recurved.MinimumMaxedAttributes to 3
+
+;;; Base weapon speed to normalize all other weapon speeds to in order to calculate the 
+;;; experience per hit. Per hit experience increases as weapon speed decreases,
+;;; causing all weapons to generate the same amount of experience over time.
+;;; By default, set to the fastest weapon (daggers) - 1.4 attacks per second.
+set Recurved.ExpNormalizedWeaponSpeed to 1.4
 
 ; ### Level Scaling Settings ###
 
@@ -66,7 +86,7 @@ set Recurved.SoftCapMulti to 5.0
 ;; Controls what percentage, rounded down, of each remaining attribute progress is brought over to the next level.
 ;;; Vanilla does not bring any unused points over to the next level.
 ;;; Set between .1 (ten percent) to 1 (all points)
-set Recurved.RemainingAttributeProgressPerc to .8
+set Recurved.RemainingAttributeProgressPerc to 1
 
 ;; This section controls when level tiers start and end.
 set Recurved.Tier1StartLevel to 1
@@ -122,7 +142,16 @@ set Recurved.Tier2EnduranceNormalizeAmount to 5
 set Recurved.Tier3EnduranceNormalizeAmount to 5
 set Recurved.Tier4EnduranceNormalizeAmount to 5
 
-;; Message shown when no more skill increases are allowed before a level up
-set Recurved.OverlevelMessage to sv_Construct "You can't possible learn anything else today. Get some rest!"
+
+;; Tutorial Message box shown the first time no more skill increases are allowed before a level up. Only shows once.
+set Recurved.TutorialOverlevelMessage to sv_Construct "Recurved: Overlevel Prevetion%rYou are {{Progress}} progress points over the current level, one shy of the next level. You will no longer receive experience for any Major and Minor Skills until you level up. In other words, go to bed."
+;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
+set Recurved.TutorialAttributeProtectionMessage to sv_Construct "Recurved: Attribute Protection%r%rMaximum bonus achieved for one or more attributes. To help prevent missing out on bonuses for other attributes, experience for any already maxed attributes' major skills have been reduced. This restriction will be lifted when the maximum bonuses for {{MinimumMaxedAttributes}} attributes is achieved."
+;; Tutorial Message box shown the first time an character is one skill increase away from leveling but has not reached the Recurved.MinimumMaxedAttributes amount (usually 3) of maxed attribute bonuses.
+set Recurved.TutorialAttributeFailsafeMessage  to sv_Construct "Recurved: Attribute Failsafe%r%rExperience for all Major Skills is being prevented. This failsafe is triggered by reaching the last Major Skill increase prior to the next level, but not achieving the maximum bonus for {{MinimumMaxedAttributes}} attributes. Increases in Minor Skills are unaffected. To disable this feature, set ini setting MinimumMaxedAttributes to 0."
+; ;; Message shown when no more skill increases are allowed before a level up. Shown once per level.
+; set Recurved.OverlevelMessage to sv_Construct "Over level no increases"
+; ;; Message shown periodically when an experienced penalized major skill is used.
+; set Recurved.AttributeProtectionMessage to sv_Construct "Learning {{AttributeName}} skills are {{Difficulty}}."
 	
 End

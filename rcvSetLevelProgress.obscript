@@ -20,6 +20,5 @@ Begin Function {  } ; Sets attribute progress points based on remaining points f
 	if (points > 0)
 	    call rcvSetAttributeProgress (call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) (Recurved.LevelCurves[player.GetLevel - 2]))
 	endif
-	let remainingPoints := ar_Null
 	
 End

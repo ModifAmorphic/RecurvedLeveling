@@ -69,5 +69,5 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
 		endif
 	endif
 	
-	set RecurvedController.hasUpdate to 1
+	set RecurvedController.HasUpdate to 1
 End

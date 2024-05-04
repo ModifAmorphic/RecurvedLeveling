@@ -57,6 +57,7 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 		loop
 		DebugPrint "recurve: Initializing Recurved.SecondaryAttribBonuses array."
 	endif
+
 	; set current level
 	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
 	DebugPrint "recurve: Loaded level data for current level."

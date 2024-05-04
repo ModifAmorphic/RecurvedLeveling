@@ -1,0 +1,25 @@
+scn rcvOnActorEquipSubscriber
+
+string_var actorName
+string_var objectName
+array_var useExp
+ref actor
+ref object 
+Begin Function { actor object }
+	if ((actor == player) == 0)
+		return
+	endif
+	if ((IsWeapon object) == 0)
+		return
+	endif
+	if (Recurved.WeaponExpNormalizedDisabled == 0)
+		set Recurved.WeaponEquipped to 1
+		set RecurvedController.HasUpdate to 1
+	endif
+	; set actorName to GetName actor
+	; set objectName to GetName object
+
+	; let useExp := call rcvGetWeaponUseExpModNormalized 1.4 object
+	; DebugPrint "Actor %z equiped weapon %z. useExp=%.4f, useExpMod=%.4f" actorName objectName (useExp["useExp"]) (useExp["useExpMod"])
+	
+End

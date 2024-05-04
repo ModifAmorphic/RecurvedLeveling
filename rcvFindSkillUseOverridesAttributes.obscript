@@ -1,0 +1,47 @@
+scn rcvFindSkillUseOverridesAttributes
+
+int i
+int a
+int attributeCode  
+int skillCode      ; Actor Value Code for the skill 
+short appendNeeded
+array_var override
+array_var attribute
+array_var skill
+
+; params
+int overrideReason ; Recurved.SkillUseOverrideReasons reason for the override
+
+; output
+array_var penalizedAttributes ; Array of attributes and their skills that have overrides
+Begin _Function { overrideReason }
+	let penalizedAttributes := ar_Construct Array
+	while (i < ar_Size Recurved.SkillUseOverrides)
+		let override := Recurved.SkillUseOverrides[i]
+		if Eval(override["reason"] == overrideReason) 
+			let skillCode := override["skillCode"]
+			set attributeCode to GetSkillGoverningAttributeC skillCode
+			set appendNeeded to 1
+			while (a < ar_Size penalizedAttributes)
+				if Eval(penalizedAttributes[a]["code"] == attributeCode)
+					let attribute := penalizedAttributes[a]
+					set appendNeeded to 0
+					break
+				endif
+				let a += 1
+			loop
+			if (appendNeeded)
+				let attribute := ar_Construct StringMap
+				let attribute["code"] := attributeCode
+				let attribute["skills"] := ar_Construct Array
+				ar_Append penalizedAttributes attribute
+			endif
+			let attribute["useExpModifier"] := override["useExpModifiers"][0]
+			let skill := ar_Copy override
+			let skill["exp"] := GetPlayerSkillUseC skillCode
+			ar_Append attribute["skills"] skill
+		endif
+		let i += 1
+	loop
+	SetFunctionValue penalizedAttributes
+End

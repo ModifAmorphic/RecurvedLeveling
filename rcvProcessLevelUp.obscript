@@ -13,11 +13,9 @@ Begin _Function { }
 			let i += 1
 		loop
 	endif
-	; reset the over level message box
-	set Recurved.OverlevelMsgShown to 0
 	; clear any skill use overrides set for the previous level and reinit the array
-	let Recurved.SkillUseOverrides := ar_Null
 	let Recurved.SkillUseOverrides := ar_Construct Array
+	set Recurved.AttributeFailsafeEnabled to 0
 	; set current level
 	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
 	; set current and next level curves

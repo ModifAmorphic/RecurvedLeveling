@@ -23,8 +23,7 @@ Begin _Function { attributes lvlProgress skillIncsForMaxAttrib levelCurve } ; Ad
 	; Calculate the ratio of level progress.
 	;; Remove the skillIncsForMaxAttrib amount since we don't start penalizing experience
 	;; until that threshold is hit.
-	;;;                  (    12         -        5           - 1) / (15 - 5)
-	;;;                  (                                       )
+	;;;                  (    12         -        5           + 1) / (15 - 5)
 	let progressRatio := (lvlProgress - skillIncsForMaxAttrib + 1) / (maxLvlProgress - skillIncsForMaxAttrib)
 	; experience multiplier calulation
 	let expMultiplier := (progressRatio + 1)^(levelCurve["OverageProtectionExponent"])
@@ -36,8 +35,8 @@ Begin _Function { attributes lvlProgress skillIncsForMaxAttrib levelCurve } ; Ad
 		set i to 0
 		while (i < attribSkillCount)
 			let skillCode := majorSkills[i]["code"]
-			call rcvAddSkillUseExpOverride skillCode expMultiplier expMultiplier (Recurved.SkillUseOverrideReasons["OverageProtection"])
-			DebugPrint "recurve: Major Skill Overage Prevention added use exp overrides for skill %g, attribute %g. Experience Multiplier: %g. skillIncsForMaxAttrib: " skillCode attributes[attrIndex] expMultiplier skillIncsForMaxAttrib
+			call rcvAddSkillUseExpOverride skillCode expMultiplier expMultiplier (Recurved.SkillUseOverrideReasons["AttributeProtection"])
+			DebugPrint "recurve: Attribute Protection added use exp overrides for skill %g, attribute %g. Experience Multiplier: %g. skillIncsForMaxAttrib: %g" skillCode attributes[attrIndex] expMultiplier skillIncsForMaxAttrib
 			let i += 1
 			ar_Append skillsModified skillCode
 		loop

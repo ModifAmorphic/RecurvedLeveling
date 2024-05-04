@@ -32,7 +32,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	set skillsCapped to 0
 	
 	; if disabled, ensure any existing protections are removed then get out of here
-	if Recurved.MajorOveragePreventionDisabled
+	if Recurved.AttributeProtectionDisabled
 		let removedProtections := call rcvRemoveSkillOverageProtection
 		if Eval ((ar_Size removedProtections) > 0)
 			let skillsCapped := skillsCapped - (ar_Size removedProtections)
@@ -46,7 +46,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
 	let levelCurve := Recurved.LevelCurves[player.GetLevel - 1]
 
-	DebugPrint "recurve: Major Skill Overage Prevention processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
+	DebugPrint "recurve: Attribute Protection processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
 	; Get a list of attributes whose progress is maxed (or will be maxed with this increase)
 	let maxedAttrProgress := ar_Construct Array
 	set i to 0
@@ -124,7 +124,6 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 			let skillsCapped := skillsCapped - (ar_Size removedProtections)
 		endif
 	endif
-	let maxedAttrProgress := ar_Null	
 	SetFunctionValue skillsCapped
 	;DebugPrint "recurve: Dumping array Recurved.SkillUseOverrides after processing"
 	;ar_Dump Recurved.SkillUseOverrides

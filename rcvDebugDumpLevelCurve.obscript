@@ -12,8 +12,7 @@ Begin Function { level } ; Dumps Recurved.LevelCurves Array
 		DebugPrint "recurve: Unable to dump Recurved.LevelCurves[%g] for level %g. Level does not exist in Recurved.LevelCurves." index level
 		return
 	endif
-
-	DebugPrint "recurve: Dumping Recurved.LevelCurves[%g]:" index
+	DebugPrint "recurve: ######## Dumping Recurved.LevelCurves[%g] #######" index
 	ar_Dump Recurved.LevelCurves[index]
 	set i to 0
 	DebugPrint "recurve: Dumping Recurved.LevelCurves[%g].iLevelUpMults:" index
@@ -30,4 +29,5 @@ Begin Function { level } ; Dumps Recurved.LevelCurves Array
 		let i += 1
 	loop
 	set i to 0
+	DebugPrint "recurve: ######## End Dumping Recurved.LevelCurves[%g] #######" index
 End

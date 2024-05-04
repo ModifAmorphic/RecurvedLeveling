@@ -17,7 +17,8 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	
 	let Recurved.SkillUseOverrideReasons := ar_Construct StringMap
 	let Recurved.SkillUseOverrideReasons["Overlevel"] := 0
-	let Recurved.SkillUseOverrideReasons["OverageProtection"] := 1
+	let Recurved.SkillUseOverrideReasons["AttributeProtection"] := 1
+	let Recurved.SkillUseOverrideReasons["Weapon"] := 2
 
 	; ### Load Default Values ###
 	call rcvLoadIniDefaults
@@ -25,7 +26,7 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	;run batch ini settings script
 	if FileExists "Data\Recurved.ini"
 		RunBatchScript "Data\Recurved.ini"
-		DebugPrint "Ini file Data\Recurved.ini loaded."
+		DebugPrint "recurve: Ini file Data\Recurved.ini loaded."
 	else
 		PrintToConsole "recurve: Data\Recurved.ini not found."
 	endif
@@ -39,6 +40,4 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	let Recurved.AttributeSecondaries[4] := Recurved.SpeedSecondary
 	let Recurved.AttributeSecondaries[5] := Recurved.EnduranceSecondary
 	let Recurved.AttributeSecondaries[6] := Recurved.PersonalitySecondary
-	
-	
 End

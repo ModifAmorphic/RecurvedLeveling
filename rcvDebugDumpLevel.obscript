@@ -11,7 +11,7 @@ Begin Function { level } ; Dumps element of the Recurved.Level Array
 		DebugPrint "recurve: Unable to dump Recurved.Levels[%g] for level %g. Level does not exist in Recurved.Levels." index level
 		return
 	endif
-	DebugPrint "recurve: Dumping Recurved.Levels[%g]:" index
+	DebugPrint "recurve: ######## Dumping Recurved.Levels[%g] #######" index
 	ar_Dump Recurved.Levels[index]
 	set i to 0
 	DebugPrint "recurve: Dumping Recurved.Levels[%g].attributes:" index
@@ -21,7 +21,8 @@ Begin Function { level } ; Dumps element of the Recurved.Level Array
 	loop
 	set i to 0
 	call rcvDebugDumpSkills (Recurved.Levels[index]["skills"])
-
+	
+	DebugPrint "recurve: ######## End Dumping Recurved.Levels[%g] #######" index
 	;; dump quests
 	; let quests := GetCurrentQuests
 	; DebugPrint "recurve: Current Quests: %g" ar_size GetCurrentQuests

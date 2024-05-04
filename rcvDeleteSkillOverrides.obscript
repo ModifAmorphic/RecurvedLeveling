@@ -1,0 +1,25 @@
+scn rcvDeleteSkillOverrides
+
+int i
+array_var tmpFiltered
+
+; inputs
+int reason
+; outputs
+int removed
+Begin _Function { reason }
+	let tmpFiltered := ar_Construct Array
+	while (i < ar_Size Recurved.SkillUseOverrides)
+		if Eval(Recurved.SkillUseOverrides[i]["reason"] != reason)
+			ar_Append tmpFiltered Recurved.SkillUseOverrides[i]
+		else
+			let removed += 1
+		endif
+		let i += 1
+	loop
+	
+	if (removed)
+		let Recurved.SkillUseOverrides := tmpFiltered
+	endif
+	SetFunctionValue removed
+End

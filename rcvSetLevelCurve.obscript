@@ -4,6 +4,12 @@ int i
 array_var skill
 array_var lvlUpMult
 string_var levelUpMultSetting
+array_var useKvp
+array_var useIncKvp
+array_var ruseOverrides
+array_var skillUseIncs
+array_var skillUseInc
+string_var useReasons
 ;inputs
 array_var levelCurve
 array_var useOverrides
@@ -30,14 +36,99 @@ Begin _Function { levelCurve useOverrides }
 	loop
 	DebugPrint "recurve: Set iLevelUpSkillCount to %g." levelCurve["iLevelUpSkillCount"]
 	SetNumericGameSetting "iLevelUpSkillCount" levelCurve["iLevelUpSkillCount"]
-	
 	set i to 0
-	while (i < ar_Size useOverrides)
-		let useOverride := useOverrides[i]
-		SetSkillUseIncrementC useOverride["useExp"][0] useOverride["skillCode"] 0
-		SetSkillUseIncrementC useOverride["useExp"][1] useOverride["skillCode"] 1
-		DebugPrint "recurve: Overrode skill %g use increments for reason %g. Set UseExp0=%.4f, UseExp1=%.4f." (useOverrides[i]["skillCode"]) (useOverrides[i]["reason"]) (useOverride["useExp"][0]) (useOverride["useExp"][1])
-		let i += 1
+
+	; set i to 0
+	; while (i < ar_Size useOverrides)
+	; 	let useOverride := useOverrides[i]
+	; 	SetSkillUseIncrementC useOverride["useExp"][0] useOverride["skillCode"] 0
+	; 	SetSkillUseIncrementC useOverride["useExp"][1] useOverride["skillCode"] 1
+	; 	DebugPrint "recurve: Overrode skill %g use increments for reason %g. Set UseExp0=%.4f, UseExp1=%.4f." (useOverrides[i]["skillCode"]) (useOverrides[i]["reason"]) (useOverride["useExp"][0]) (useOverride["useExp"][1])
+	; 	let i += 1
+	; loop
+	; set i to 0
+	; ###  Skill Use Overrides Processing  ###
+	;; Skill Use is processed in manual order. If more SkillUseOverrideReasons are added in the future, this should probably be reworked
+	;; to a function to avoid copy/pasting these entire loops over and over
+	let skillUseIncs := ar_Construct Array
+	; Add any weapon overrides first
+	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides (Recurved.SkillUseOverrideReasons["Weapon"])
+	foreach (useKvp <- ruseOverrides)
+		let useOverride := useKvp["value"]
+		let skillUseInc := ar_Construct StringMap
+		let skillUseInc["skillCode"] := useOverride["skillCode"]
+		let skillUseInc["useExps"] := ar_Construct Array
+		let skillUseInc["useExps"][0] := useOverride["useExp"][0]
+		let skillUseInc["useExps"][1] := useOverride["useExp"][1]
+		let skillUseInc["reasons"] := ar_Construct Array
+		let skillUseInc["reasons"][0] := Recurved.SkillUseOverrideReasons["Weapon"]
+		ar_Append skillUseIncs skillUseInc
+	loop
+	; modify 
+	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides Recurved.SkillUseOverrideReasons["AttributeProtection"]
+	foreach (useKvp <- ruseOverrides)
+		let useOverride := useKvp["value"]
+		let skillUseInc := ar_Construct StringMap
+		foreach (useIncKvp <- skillUseIncs)
+			if Eval(useIncKvp["value"]["skillCode"] == useOverride["skillCode"])
+				let skillUseInc := useIncKvp["value"]
+			endif
+		loop
+		if Eval((ar_Size skillUseInc) < 1)
+			; If use increment was not added in an earlier foreach, then add it now with the current calculated use experience values for Attribute Protection
+			let skillUseInc["skillCode"] := useOverride["skillCode"]
+			let skillUseInc["useExps"] := ar_Construct Array
+			let skillUseInc["useExps"][0] := useOverride["useExp"][0]
+			let skillUseInc["useExps"][1] := useOverride["useExp"][1]
+			let skillUseInc["reasons"] := ar_Construct Array
+			let skillUseInc["reasons"][0] := Recurved.SkillUseOverrideReasons["AttributeProtection"]
+			ar_Append skillUseIncs skillUseInc
+		else
+			; If use increment was added in an earlier foreach, then apply the Attribute Protection use modifiers to the existing modified use experience amounts
+			let skillUseInc["useExps"][0] := call rcvCalculateUseIncrement (skillUseInc["useExps"][0]) (useOverride["useExpModifiers"][0])
+			let skillUseInc["useExps"][1] := call rcvCalculateUseIncrement (skillUseInc["useExps"][1]) (useOverride["useExpModifiers"][1])
+			ar_Append (skillUseInc["reasons"]) (Recurved.SkillUseOverrideReasons["AttributeProtection"])
+		endif
+		
+	loop
+
+	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides Recurved.SkillUseOverrideReasons["Overlevel"]
+	foreach (useKvp <- ruseOverrides)
+		let useOverride := useKvp["value"]
+		let skillUseInc := ar_Construct StringMap
+		foreach (useIncKvp <- skillUseIncs)
+			if Eval(useIncKvp["value"]["skillCode"] == useOverride["skillCode"])
+				let skillUseInc := useIncKvp["value"]
+			endif
+		loop
+		if Eval((ar_Size skillUseInc) < 1)
+			; If use increment was not added in an earlier foreach, then add it now.
+			let skillUseInc["skillCode"] := useOverride["skillCode"]
+			ar_Append skillUseIncs skillUseInc
+		endif
+		; regardless of whether or not the skill was already added, overwrite previous modifications with overlevel mods
+		let skillUseInc["useExps"] := ar_Construct Array
+		let skillUseInc["reasons"] := ar_Construct Array
+		let skillUseInc["useExps"][0] := useOverride["useExp"][0]
+		let skillUseInc["useExps"][1] := useOverride["useExp"][1]
+		let skillUseInc["reasons"][0] := Recurved.SkillUseOverrideReasons["Overlevel"]
+	loop
+
+	; Finally apply the calculated experience use increments
+	foreach (useKvp <- skillUseIncs)
+		let skillUseInc := useKvp["value"]
+		SetSkillUseIncrementC skillUseInc["useExps"][0] skillUseInc["skillCode"] 0
+		SetSkillUseIncrementC skillUseInc["useExps"][1] skillUseInc["skillCode"] 1
+		set i to 0
+		while (i < ar_Size skillUseInc["reasons"])
+			if (i == 0)
+				let useReasons := sv_Construct "%g" (skillUseInc["reasons"][i])
+			else
+				let useReasons := sv_Construct "%z, %g" useReasons (skillUseInc["reasons"][i])
+			endif
+			let i += 1
+		loop
+		DebugPrint "recurve: Overrode skill %g use increments for reason(s) %z. Set UseExp0=%.4f, UseExp1=%.4f." (skillUseInc["skillCode"]) useReasons (skillUseInc["useExps"][0]) (skillUseInc["useExps"][1])
 	loop
 	set i to 0
 End

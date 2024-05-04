@@ -1,0 +1,15 @@
+scn rcvSaveGameSubscriber
+
+; input params
+string_var filename
+Begin Function { filename }
+	; Clear all strings from Recurved.Data
+	sv_Destruct Recurved.TutorialOverlevelMessage
+	sv_Destruct Recurved.TutorialAttributeProtectionMessage
+	sv_Destruct Recurved.TutorialAttributeFailsafeMessage
+	; let RecurvedMessenger.prevPenalizedAttributes := ar_Construct Array
+
+	; sv_Destruct Recurved.OverlevelMessage
+	; sv_Destruct Recurved.AttributeProtectionMessage
+	set RecurvedController.IsIniLoadNeeded to 1
+End

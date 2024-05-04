@@ -1,11 +1,11 @@
 # Recurved Leveling
 
-An Oblivion Leveling Overhaul Mod
+An Oblivion Leveling Overhaul Mod.
 
 ## Problem Statement
 
-One of, if not the strongest ways to build a character in Oblivion is to choose skills you don't plan on using as Major Skills, and the skills 
-you do want to use as your minor skills. This results in players focusing on leveling Minor Skills over Major Skills, limiting 
+One of, if not the strongest ways to build a character in Oblivion is to choose skills you don't plan on using as Major Skills, and the skills
+you do want to use as your minor skills. This results in players focusing on leveling Minor Skills over Major Skills, limiting
 the rate at which you level up. Who wants to play an RPG where you try not to gain levels? Not me.
 
 ## Goals

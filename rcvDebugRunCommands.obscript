@@ -19,15 +19,17 @@ Begin _Function {}
 
     if (Recurved.ResetSkillUseOverrides)
         ; let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
-        let Recurved.SkillUseOverrides := ar_Null
 	    let Recurved.SkillUseOverrides := ar_Construct Array
         let isOverLevel := call rcvPreventOverLevel 0 0
         ; if rcvPreventOverLevel didn't run, or ran with nothing capped, then
         ; apply attribute overage protection
         if (isOverLevel == 0)
+            if (Recurved.WeaponExpNormalizedDisabled == 0)
+                call rcvSetWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed
+            endif
             call rcvApplySkillIncreaseProtection 0 0
         endif
-        set RecurvedController.hasUpdate to 1
+        set RecurvedController.HasUpdate to 1
     endif
 
     set Recurved.DumpLevel to 0

@@ -1,0 +1,12 @@
+scn rcvShowOverlevelPreventionMessageBox
+
+string_var progressReplacer
+string_var message
+;input params
+int excessProgress
+Begin _Function { excessProgress }
+	let message := sv_Construct "%z" Recurved.TutorialOverlevelMessage
+	let progressReplacer := sv_Construct "{{Progress}}|%g" excessProgress
+	sv_Replace $progressReplacer message
+	MessageBoxEx message
+End
