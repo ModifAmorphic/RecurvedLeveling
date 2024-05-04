@@ -24,7 +24,7 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
         let overlevelPrevented := call rcvPreventOverLevel amount isScripted
     endif
     if (overlevelPrevented == 0 && isScripted == 0)
-        call rcvApplySkillIncreaseProtection skillActorValueCode amount
+        call rcvAddSkillIncreaseProtection skillActorValueCode amount
     endif
     ; Process Major Skills
 	if isMajorSkill

@@ -205,9 +205,9 @@ Begin _GameMode
 	; if overlevel protection not enabled then add other overrides
 	if (isOverLevel == 0)
 		; Add weapon use mod overrides
-		call rcvSetWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed  Recurved.ExpNormalizedWeaponDamage
+		call rcvAddWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed  Recurved.ExpNormalizedWeaponDamage
 		; set Recurved.WeaponEquipped to 0
-		call rcvApplySkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
+		call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
 	endif
 	; Reapply level curve with potential changes
 	call rcvSetLevelCurve Recurved.LevelCurves[player.GetLevel - 1] Recurved.SkillUseOverrides

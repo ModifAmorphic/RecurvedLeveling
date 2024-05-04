@@ -1,4 +1,4 @@
-scn rcvApplySkillIncProtectionPenalties
+scn rcvAddSkillIncProtectionPenalties
 
 ; locals
 int i

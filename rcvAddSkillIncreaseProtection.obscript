@@ -1,4 +1,4 @@
-scn rcvApplySkillIncreaseProtection
+scn rcvAddSkillIncreaseProtection
 
 ; Overage prevention
 float skillIncsForMaxAttrib ; skill increases required for a maximized attribute bonus
@@ -103,7 +103,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	if Eval ((lvlProgress >= (Floor skillIncsForMaxAttrib)) && (maxedAttrProgressCount < maxedAttrProgressReq))
 		
 		; If character is about to level without reaching 3 maxed attributes, enable attribute leveling failsafe
-		let failsafeSkills := call rcvApplyAttributesFailsafe addLvlProgress
+		let failsafeSkills := call rcvAddAttributesFailsafe addLvlProgress
 
         set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
 		if Eval ((ar_Size failsafeSkills) > 0)
@@ -112,7 +112,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 			DebugPrint "Leveling failsafe enabled. Only %g of %g Attributes had reached max increase values for the level. Level progress %g/%g" maxedAttrProgressCount maxedAttrProgressReq lvlProgress maxLvlProgress
 		else
 			; If failsafe not triggered, then apply the progressive overage prevention
-			let protectedSkills := call rcvApplySkillIncProtectionPenalties maxedAttrProgress lvlProgress skillIncsForMaxAttrib levelCurve
+			let protectedSkills := call rcvAddSkillIncProtectionPenalties maxedAttrProgress lvlProgress skillIncsForMaxAttrib levelCurve
 			let skillsCapped := ar_Size protectedSkills
 		endif
 		set isProtectionApplied to 1
