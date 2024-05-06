@@ -5,15 +5,14 @@ int attributeCode
 string_var attributeName
 string_var attributeNames
 string_var attributeReplacer
-string_var difficultyReplacer
 string_var message
-float useExpMod
+float useIncMod
 array_var penalizedAttributes
 
 Begin _Function { penalizedAttributes }
 	while (i < ar_Size penalizedAttributes)
 		let attributeCode := penalizedAttributes[i]["code"]
-		let useExpMod := penalizedAttributes[i]["useExpModifier"]
+		let useIncMod := penalizedAttributes[i]["useIncModifier"]
 		let attributeName := ActorValueToStringC attributeCode
 		if (i == 0)
 			let attributeNames := sv_Construct "%z" attributeName
@@ -26,15 +25,15 @@ Begin _Function { penalizedAttributes }
 	let attributeReplacer := sv_Construct "{{AttributeName}}|%z" attributeNames
 	;let message := sv_Construct "%z" Recurved.AttributeProtectionMessage
 	sv_Replace $attributeReplacer message
-	if (useExpMod == 0)
+	if (useIncMod == 0)
 		let message := sv_Construct "Experience gains are disabled for %z skills." attributeNames
-	elseif (useExpMod < 2)
+	elseif (useIncMod < 2)
 		let message := sv_Construct "Training %z skills are slightly more difficult than normal." attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|slightly more difficult than normal"
-	elseif (useExpMod < 4)
+	elseif (useIncMod < 4)
 		let message := sv_Construct "Training %z skills are considerably more difficult than normal." attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|considerably more difficult than normal"
-	elseif (useExpMod < 8)
+	elseif (useIncMod < 8)
 		let message := sv_Construct "Training %z skills are drastically more difficult than normal." attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|significantly more difficult than normal"
 	else

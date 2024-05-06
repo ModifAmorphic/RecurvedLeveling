@@ -28,7 +28,7 @@ array_var levelCurve
 ; input params
 int level
 Begin _Function { level }
-	let levelCurve := ar_Construct StringMap
+	let levelCurve := ar_Construct "StringMap"
 	
 	; Subtract one from starting levels because we want to display and calculate towards the
 	; next level
@@ -90,10 +90,10 @@ Begin _Function { level }
 	let inc2 := call rcvSubtractOrMin inc3 1 2
 	let inc1 := call rcvSubtractOrMin (maxAttributeUp / 2) 1 2
 
-	let levelCurve["iLevelUpMults"] := ar_Construct Array
+	let levelCurve["iLevelUpMults"] := ar_Construct "Array"
 	let i := 0
 	while (i < 9)
-		let levelCurve["iLevelUpMults"][i] := ar_Construct StringMap
+		let levelCurve["iLevelUpMults"][i] := ar_Construct "StringMap"
 		let levelCurve["iLevelUpMults"][i]["setting"] := sv_Construct "iLevelUp0%gMult" (i + 1)
 		if i < 3 ; iLevelUpMults 1-3
 			let levelCurve["iLevelUpMults"][i]["value"] := inc1
@@ -105,7 +105,7 @@ Begin _Function { level }
 		let i += 1
 	loop
 	; Finally, set iLevelUp10Mult to the max
-	let levelCurve["iLevelUpMults"][9] := ar_Construct StringMap
+	let levelCurve["iLevelUpMults"][9] := ar_Construct "StringMap"
 	let levelCurve["iLevelUpMults"][9]["setting"] := "iLevelUp10Mult"
 	let levelCurve["iLevelUpMults"][9]["value"] := maxAttributeUp
 	
@@ -116,7 +116,7 @@ Begin _Function { level }
 	;; We divide the experience gained per skill use by the Recurved.SoftCapMulti to multiply 
 	;; the amount of experience needed per skill level.
 	let skills := call rcvGetSkills
-	let levelCurve["skills"] := ar_Construct Array
+	let levelCurve["skills"] := ar_Construct "Array"
 	let i := 0
 	while (i < ar_size skills["minor"])
 		let skillCode := skills["minor"][i]["code"]
@@ -133,17 +133,17 @@ Begin _Function { level }
 				set capUseInc2 to 0
 			endif
 		endif
-		let levelCurve["skills"][i] := ar_Construct StringMap
+		let levelCurve["skills"][i] := ar_Construct "StringMap"
 		let levelCurve["skills"][i]["skillCode"] := skillCode
 		let levelCurve["skills"][i]["softCapLvl"] := softCap
 		let levelCurve["skills"][i]["softCapMulti"] := Recurved.SoftCapMulti
-		let levelCurve["skills"][i]["useExp"] := ar_Construct Array
-		let levelCurve["skills"][i]["useExp"][0] := Recurved.DefaultSkillUseIncrements[skillCode][0]
-		let levelCurve["skills"][i]["useExp"][1] := Recurved.DefaultSkillUseIncrements[skillCode][0]
+		let levelCurve["skills"][i]["useInc"] := ar_Construct "Array"
+		let levelCurve["skills"][i]["useInc"][0] := Recurved.DefaultSkillUseIncrements[skillCode][0]
+		let levelCurve["skills"][i]["useInc"][1] := Recurved.DefaultSkillUseIncrements[skillCode][0]
 		let levelCurve["skills"][i]["softCapEnabled"] := Recurved.MinorSkillSoftCapsDisabled == 0 && skillAmount >= softCap
-		let levelCurve["skills"][i]["softCapUseExp"] := ar_Construct Array
-		let levelCurve["skills"][i]["softCapUseExp"][0] := capUseInc1
-		let levelCurve["skills"][i]["softCapUseExp"][1] := capUseInc2
+		let levelCurve["skills"][i]["softCapUseInc"] := ar_Construct "Array"
+		let levelCurve["skills"][i]["softCapUseInc"][0] := capUseInc1
+		let levelCurve["skills"][i]["softCapUseInc"][1] := capUseInc2
 
 		let i += 1
 		set capUseInc1 to 0

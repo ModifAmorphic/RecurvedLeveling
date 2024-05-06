@@ -12,7 +12,7 @@ array_var reasonUseOverrides
 
 Begin Function { userOverrides overrideReason } ; Gets all skill use overrides for a particular Recurved.SkillUseOverrideReasons overrideReason.
 
-	let reasonUseOverrides := ar_Construct Array
+	let reasonUseOverrides := ar_Construct "Array"
 	
 	foreach useKvp <- userOverrides
 		let useOverride := useKvp["value"]

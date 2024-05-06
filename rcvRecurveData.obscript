@@ -75,7 +75,7 @@ int MinimumMaxedAttributes
 ;;; experience per hit. Per hit experience increases as weapon speed decreases,
 ;;; causing all weapons to generate the same amount of experience over time.
 ;;; By default, set to the fastest weapon (daggers) - 1.4 attacks per second.
-short ExpNormalizedWeaponSpeed
+float ExpNormalizedWeaponSpeed
 
 ;;; Damage to normalize weapons against for experience gains. Higher damage weapons earn more 
 ;;; exp per hit to componsate for less attacks prior to target death. Works in combination with
@@ -85,7 +85,13 @@ short ExpNormalizedWeaponSpeed
 ;;; By default, set to the worst weapon (rusty dagger) - 3 damage.
 ;;;; 0  - Disables Exp increases from damage
 ;;;; 1+ - Damage to normalize exp gains against.
-short ExpNormalizedWeaponDamage
+float ExpNormalizedWeaponDamage
+
+;;; Similar to ExpNormalizedWeaponDamage but for bows. Only uses damage in the comparison, as all
+;;; bows have the same speed. Bows with higher damage will grant more exp per hit.
+;;;; 0  - Disables Exp increases from damage
+;;;; 1+ - Damage to normalize exp gains against.
+float ExpNormalizedBowDamage
 
 ; Level Scaling Settings
 ;; Increases amount of experience required to level a skill past the soft cap. 

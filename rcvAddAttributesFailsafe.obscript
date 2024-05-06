@@ -31,7 +31,7 @@ Begin _Function { additionalLevelProgress }
 		return
 	endif
 	
-	let protectedSkillCodes := ar_Construct Array
+	let protectedSkillCodes := ar_Construct "Array"
 	; remove existing overage protections
 	call rcvRemoveSkillOverageProtection
 	; get list of character's majors
@@ -66,7 +66,7 @@ Begin _Function { additionalLevelProgress }
 			endif
 		endif
 		if (skipProtection == 0)
-			call rcvAddSkillUseExpOverride skillCode 0 0 (Recurved.SkillUseOverrideReasons["AttributeProtection"])
+			call rcvAddSkillUseIncOverride skillCode 0 0 (Recurved.SkillUseOverrideReasons["AttributeProtection"])
 			ar_Append protectedSkillCodes skillCode
 		endif
 		let i += 1

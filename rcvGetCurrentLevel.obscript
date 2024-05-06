@@ -15,8 +15,8 @@ float normalizedIncrease
 ; Output
 array_var level
 Begin _Function {  }
-    let level := ar_Construct StringMap
-    let level["attributes"] := ar_Construct Array
+    let level := ar_Construct "StringMap"
+    let level["attributes"] := ar_Construct "Array"
     let level["characterLevel"] := player.GetLevel
     let level["health"] := player.GetBaseAV3C Recurved.HealthAvc
     let level["magicka"] := player.GetBaseAV3C Recurved.MagickaAvc
@@ -31,7 +31,7 @@ Begin _Function {  }
     endif
     set i to 0
     while (i < 8)
-        let level["attributes"][i] := ar_Construct StringMap
+        let level["attributes"][i] := ar_Construct "StringMap"
         let attribute := level["attributes"][i]
         let attribute["code"] := i
         let attribute["value"] := player.GetBaseAV3C i
@@ -47,7 +47,7 @@ Begin _Function {  }
         if (i == Recurved.EnduranceAvc)
             if Eval (isAttrbIncreaseSet && attribute["increase"] > 0)
                 ; get level curve for the prior level, which was the curve used to reach this level
-                let levelCurve := call rcvGetLevelCurve (player.GetLevel - 1)
+                let levelCurve := Recurved.LevelCurves[player.GetLevel - 2]
                 let maxEndIncrease := levelCurve["iLevelUpMults"][9]["value"]
                 let normalizedSetting := levelCurve["EnduranceNormalizeAmount"]
                 let normalizedIncrease := (attribute["increase"] / maxEndIncrease) * normalizedSetting

@@ -7,10 +7,10 @@ array_var minimums
 ; params
 Begin _Function {  } ; Gets array of skills, indexed by skill code, and their minimum values
 	;PrintToConsole "RecurvedGetSkills: Major Skills:"
-	let minimums := ar_Construct Array
+	let minimums := ar_Construct "Array"
 
 	while (skillCode < 33)
-		let minimums[skillCode] := ar_Construct StringMap
+		let minimums[skillCode] := ar_Construct "StringMap"
 		let minimums[skillCode]["base"] := 0
 		let minimums[skillCode]["racial"] := 0
 		let minimums[skillCode]["specialized"] := 0

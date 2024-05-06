@@ -1,18 +1,18 @@
 scn rcvGetHighestSkillUse
 
 
-float useExp1
+float useInc1
 
 ;input
 int skillCode
 
 ;output
-float skillUseExp
+float skilluseInc
 Begin _Function { skillCode }
-	set skillUseExp to GetSkillUseIncrementC skillCode 0
-	set useExp1 to GetSkillUseIncrementC skillCode 1
-	if (useExp1 > skillUseExp)
-		set skillUseExp to useExp1
+	set skilluseInc to GetSkillUseIncrementC skillCode 0
+	set useInc1 to GetSkillUseIncrementC skillCode 1
+	if (useInc1 > skilluseInc)
+		set skilluseInc to useInc1
 	endif
-	SetFunctionValue skillUseExp
+	SetFunctionValue skilluseInc
 End

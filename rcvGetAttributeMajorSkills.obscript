@@ -12,7 +12,7 @@ Begin _Function { attributeCode } ; Gets array of major skills associated to the
 
 	let majorSkills := (call rcvGetSkills)["major"]
 
-	let attributeSkills := ar_Construct Array
+	let attributeSkills := ar_Construct "Array"
 	while (i < ar_Size majorSkills)
 		if Eval (majorSkills[i]["attributeCode"] == attributeCode)
 			ar_Append attributeSkills majorSkills[i]

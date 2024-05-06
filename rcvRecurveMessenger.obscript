@@ -23,7 +23,10 @@ Begin _GameMode
 		let lastProtectionMessageTick := 0
 		return
 	endif
-
+	; don't start checking for messages until tutorial is over
+	if (RecurvedController.IsTutorialActive)
+		return
+	endif
 	if (TutorialOverlevelShown == 0)
 		if Eval((Recurved.ExcessAttributeProgress + 1) == Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"])
 			set TutorialOverlevelShown to 1
@@ -56,23 +59,17 @@ Begin _GameMode
 	if Eval (RecurvedController.GlobalTick - lastProtectionMessageTick > 150 || lastProtectionMessageTick == 0)
 		if Eval((ar_Size latestPenalizedAttributes) > 0)
 			if Eval ((ar_size prevPenalizedAttributes) < 1)
-				let prevPenalizedAttributes := ar_Construct Array
+				let prevPenalizedAttributes := ar_Construct "Array"
 			endif
-			DebugPrint "#### Messenger Dump Array Before - prevPenalizedAttributes"
-			ar_Dump prevPenalizedAttributes
-			DebugPrint "#### End Messenger Dump Before - prevPenalizedAttributes"
 			let updatedPenalizedAttributes := call rcvFindUpdatedAttributeSkills prevPenalizedAttributes latestPenalizedAttributes
 			if Eval ((ar_Size updatedPenalizedAttributes) > 0)
 				set lastProtectionMessageTick to RecurvedController.GlobalTick
 				call rcvShowAttributeProtectionMessage updatedPenalizedAttributes
 			endif
-			let updatedPenalizedAttributes := ar_Construct Array
+			let updatedPenalizedAttributes := ar_Construct "Array"
 			let prevPenalizedAttributes := latestPenalizedAttributes
-			DebugPrint "#### Messenger Dump Array After - prevPenalizedAttributes"
-			ar_Dump prevPenalizedAttributes
-			DebugPrint "#### End Messenger Dump After - prevPenalizedAttributes"
 		endif
 	endif
 	let prevPenalizedAttributes := latestPenalizedAttributes
-	let latestPenalizedAttributes := ar_Construct Array
+	let latestPenalizedAttributes := ar_Construct "Array"
 end

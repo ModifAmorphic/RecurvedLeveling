@@ -23,48 +23,38 @@ array_var latestAttributeSkills		; Array containing a list of skills and their e
 array_var updatedAttribs			; Array of any attributes who have new skills added or whose skill's experience differs between the two input arrays.
 Begin _Function { prevAttributeSkills latestAttributeSkills } ; Compares the two arrays, finding any experience differences or now skill additions in latestAttributeSkills compared to prevAttributeSkills
 
-	DebugPrint "####### FindUpdatedAttributeSkills Dump Array prevAttributeSkills"
-	ar_Dump prevAttributeSkills
-	DebugPrint "####### End FindUpdatedAttributeSkills Dump Array prevAttributeSkills"
-	DebugPrint "####### FindUpdatedAttributeSkills Dump Array latestAttributeSkills"
-	ar_Dump latestAttributeSkills
-	DebugPrint "####### End FindUpdatedAttributeSkills Dump Array latestAttributeSkills"
-	let updatedAttribs := ar_Construct Array
+	let updatedAttribs := ar_Construct "Array"
 	ForEach latestItem <- latestAttributeSkills
 	    let latest := latestItem["value"]
 		set isPrevAttribFound to 0
 		set p to 0
-		DebugPrint "recurve: Searching for attribute %g in prevAttributeSkills." latest["code"]
+		;DebugPrint "recurve: Searching for attribute %g in prevAttributeSkills." latest["code"]
 		ForEach previousItem <- prevAttributeSkills
-		;DebugPrint "recurve: prevAttributeSkills size: %g" (ar_Size prevAttributeSkills)
 		;while (p < ar_Size prevAttributeSkills)
-			DebugPrint "recurve: prevAttributeSkills %g, p=%g" (ar_Size prevAttributeSkills) p
 			let previous := previousItem["value"]
 			;let previous := prevAttributeSkills[p]
-			DebugPrint "recurve: prevAttributeSkills 1"
 			if Eval(previous["code"] == latest["code"])
 				set isPrevAttribFound to 1
-				DebugPrint "recurve: prevAttributeSkills 2"
 				break
 			endif
 			;let p += 1
 		Loop
 		
-		DebugPrint "recurve: Searching attribute %g skill matches between latest and previous skill lists." latest["code"]
-		let updatedSkills := ar_Construct Array
+		; DebugPrint "recurve: Searching attribute %g skill matches between latest and previous skill lists." latest["code"]
+		let updatedSkills := ar_Construct "Array"
 		ForEach latestSkillItem <- latest["skills"]
 			let latestSkill := latestSkillItem["value"]
 			set isPrevSkillFound to 0
 			; if previous attribute was found, check if any skill match between the pervious and current			
 			if (isPrevAttribFound)
-				DebugPrint "recurve: Searching for skill %g in previous['skills']." latestSkill["skillCode"]
+				;DebugPrint "recurve: Searching for skill %g in previous['skills']." latestSkill["skillCode"]
 				ForEach previousSkillItem <- previous["skills"]
 					let previousSkill := previousSkillItem["value"]
 					if Eval (previousSkill["skillCode"] == latestSkill["skillCode"])
 						; if skill was found then set the isPrevSkillFound flag so we know not to add the
 						; latest skill later
 						set isPrevSkillFound to 1
-						DebugPrint "recurve: Found skill %g in in previous['skills']." previousSkill["skillCode"]
+						; DebugPrint "recurve: Found skill %g in in previous['skills']." previousSkill["skillCode"]
 						; if the experience has changed, then append to updatedSkills
 						if Eval (latestSkill["exp"] > previousSkill["exp"])
 							DebugPrint "recurve: latestSkill['exp'] > previousSkill['exp'] (%.2f > $.2f)." latestSkill["exp"] previousSkill["exp"]
@@ -81,7 +71,7 @@ Begin _Function { prevAttributeSkills latestAttributeSkills } ; Compares the two
 			if (isPrevSkillFound == 0)
 				let updatedSkill := ar_Copy latestSkill
 				let updatedSkill["expDiff"] := latestSkill["exp"]
-				DebugPrint "recurve: Appending skill %g to updatedSkills." latestSkill["skillCode"]
+				; DebugPrint "recurve: Appending skill %g to updatedSkills." latestSkill["skillCode"]
 				ar_Append updatedSkills updatedSkill
 			endif
 		Loop
@@ -90,7 +80,7 @@ Begin _Function { prevAttributeSkills latestAttributeSkills } ; Compares the two
 		if Eval ((ar_Size updatedSkills) > 0)
 			let updatedAttrib := ar_Copy latest
 			let updatedAttrib["skills"] := updatedSkills
-			DebugPrint "recurve: Appending latest attribute array to updatedAttribs."
+			; DebugPrint "recurve: Appending latest attribute array to updatedAttribs."
 			ar_Append updatedAttribs updatedAttrib
 		endif
 	Loop

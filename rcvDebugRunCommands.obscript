@@ -1,7 +1,5 @@
 scn rcvDebugRunCommands
 
-int majorSKillCode
-int maxAttrbProgOver
 short isOverLevel
 
 Begin _Function {}
@@ -19,12 +17,12 @@ Begin _Function {}
 
     if (Recurved.ResetSkillUseOverrides)
         ; let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
-	    let Recurved.SkillUseOverrides := ar_Construct Array
+	    let Recurved.SkillUseOverrides := ar_Construct "Array"
         let isOverLevel := call rcvPreventOverLevel 0 0
         ; if rcvPreventOverLevel didn't run, or ran with nothing capped, then
         ; apply attribute overage protection
         if (isOverLevel == 0)
-            call rcvAddWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed Recurved.ExpNormalizedWeaponDamage
+            call rcvAddWeaponUseIncMod
             call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
         endif
         set RecurvedController.HasUpdate to 1

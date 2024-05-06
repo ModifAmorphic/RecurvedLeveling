@@ -1,26 +1,23 @@
 scn rcvApplyHealthNormalization
 
-;float normEnd
-
-;int maxEndIncrease
 int endNormalizedInc
 int endIncrease
 float endNormalized
 int endAmount
-;int normalizeAmount
 int levelIndex
+float endMultiplier
 int prevHealth
 int healthIncrease
 int totalHealth
-;short isLvlRecorded
+int setHealth
 array_var levelData
 array_var prvLvlData
-;array_var levelCurve
+
 ; inputs
 int level
 Begin Function { level }
     set levelIndex to level - 1
-    
+
     ; Find the endurance increase, if any, for the current level
     set endNormalizedInc to -1
     if Eval ((ar_Size Recurved.Levels) > levelIndex)
@@ -50,11 +47,13 @@ Begin Function { level }
         DebugPrint "Unable to apply endurance health normalization for level %g. Could not find health stat for previous level." level
         return    
     endif
-
+    set endMultiplier to GetGameSetting "fPCBaseHealthMult"
     let prevHealth := prvLvlData["health"]
-    let healthIncrease := (endNormalizedInc * 2) + (Floor endNormalized / 10)
+    let healthIncrease := (Floor endNormalizedInc * endMultiplier) + (Floor endNormalized / 10)
     let totalHealth := prevHealth + healthIncrease
-    player.SetActorValueC Recurved.HealthAvc totalHealth
-    DebugPrint "recurve: Endurance increase %g was normalized to %.2f. Health improved from %g to %g, an increase of %g. Normalized endurance is %g." endIncrease endNormalizedInc prevHealth totalHealth healthIncrease endNormalized
+    ; remove the 2 x Endurance, as that gets added to the game automatically
+    let setHealth := totalHealth - (Floor endAmount * endMultiplier)
+    player.SetActorValueC Recurved.HealthAvc setHealth
+    DebugPrint "recurve: Endurance increase %g was normalized to %.2f. Health improved from %g to %g, an increase of %g. Normalized endurance is %g. Set health to %g (adjusted to account for game adding %.2f x Endurance automatically)." endIncrease endNormalizedInc prevHealth totalHealth healthIncrease endNormalized setHealth endMultiplier
     
 End

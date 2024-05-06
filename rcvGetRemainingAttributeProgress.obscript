@@ -23,7 +23,7 @@ array_var levelCurve
 array_var remainingProgress
 Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining that would not have been used entirely by the attribute increase on level up.
     let currentLevel := call rcvGetCurrentLevel
-    let remainingProgress := ar_Construct Array
+    let remainingProgress := ar_Construct "Array"
     set i to 0
     set p to 0
     while (i < ar_Size lastLevel["attributes"])
@@ -56,7 +56,7 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
         DebugPrint "recurve: Calculated %g points spent for attribute %g. Checking last level's attribute for left over progress. LastSkillProgress=%g" pointsSpent i lastProgress
         if (lastProgress > pointsSpent)
             let bonusPoints := Recurved.SecondaryAttribBonuses[i]
-            let remainingProgress[p] := ar_Construct StringMap
+            let remainingProgress[p] := ar_Construct "StringMap"
             let remainingProgress[p]["attributeCode"] := i
             set rawPointsRemain to (lastProgress - pointsSpent)
             ; Bonus points don't carry forward, so remove them
@@ -67,7 +67,7 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
             ; Apply the RemainingAttributeProgressPerc value
             let pointsRemain := Floor (pointsRemain * Recurved.RemainingAttributeProgressPerc)
             let remainingProgress[p]["progressPoints"] := pointsRemain
-            DebugPrint "recurve: Calculated %g points remaining for attribute %g after removing %g secondary bonus points from %g and adjusting the result by RemainingAttributeProgressPerc %.2f." remainingProgress[p]["progressPoints"] i pointsRemain bonusPoints rawPointsRemain Recurved.RemainingAttributeProgressPerc
+            DebugPrint "recurve: Calculated %g points remaining for attribute %g after removing %g secondary bonus points from %g and adjusting the result by RemainingAttributeProgressPerc %.2f." (remainingProgress[p]["progressPoints"]) i bonusPoints rawPointsRemain Recurved.RemainingAttributeProgressPerc
             let p += 1
         endif
         let i += 1

@@ -7,7 +7,7 @@ Begin Function { filename }
 	sv_Destruct Recurved.TutorialOverlevelMessage
 	sv_Destruct Recurved.TutorialAttributeProtectionMessage
 	sv_Destruct Recurved.TutorialAttributeFailsafeMessage
-	; let RecurvedMessenger.prevPenalizedAttributes := ar_Construct Array
+	; let RecurvedMessenger.prevPenalizedAttributes := ar_Construct "Array"
 
 	; sv_Destruct Recurved.OverlevelMessage
 	; sv_Destruct Recurved.AttributeProtectionMessage

@@ -8,7 +8,7 @@ int reason
 ; outputs
 int removed
 Begin _Function { reason }
-	let tmpFiltered := ar_Construct Array
+	let tmpFiltered := ar_Construct "Array"
 	while (i < ar_Size Recurved.SkillUseOverrides)
 		if Eval(Recurved.SkillUseOverrides[i]["reason"] != reason)
 			ar_Append tmpFiltered Recurved.SkillUseOverrides[i]

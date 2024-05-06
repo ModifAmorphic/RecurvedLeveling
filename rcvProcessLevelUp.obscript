@@ -14,7 +14,7 @@ Begin _Function { }
 		loop
 	endif
 	; clear any skill use overrides set for the previous level and reinit the array
-	; let Recurved.SkillUseOverrides := ar_Construct Array
+	; let Recurved.SkillUseOverrides := ar_Construct "Array"
 	set Recurved.AttributeFailsafeEnabled to 0
 	; set current level
 	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel

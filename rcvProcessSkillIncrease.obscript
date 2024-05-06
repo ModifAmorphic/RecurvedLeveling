@@ -57,10 +57,10 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
         set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
 
 		; Snapshot current level before levelup happens
-		if (newLvlProgress == maxLvlProgress) || (isScripted && lvlProgress < maxLvlProgress && newLvlProgress >= maxLvlProgress)
+		if (newLvlProgress == maxLvlProgress && Recurved.ExcessAttributeProgress == 0) || (isScripted && lvlProgress < maxLvlProgress && newLvlProgress >= maxLvlProgress && Recurved.ExcessAttributeProgress == 0)
 			let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
 			let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
-            DebugPrint "recurve: Skill %g increase will cause level up. Snapshotted level and level curve." skillActorValueCode
+            DebugPrint "recurve: Skill %g increase will cause level up. Snapshotted level and level curve. Progress (before skill increase): %g/%g" skillActorValueCode lvlProgress maxLvlProgress
             ; Manually add skill progress because Scripted Skill Up events are
             ; invoked before the skill is modified
             if (isScripted)

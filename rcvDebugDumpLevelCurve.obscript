@@ -24,8 +24,8 @@ Begin Function { level } ; Dumps Recurved.LevelCurves Array
 	DebugPrint "recurve: Dumping Recurved.LevelCurves[%g].skills:" index
 	while (i < ar_size Recurved.LevelCurves[index]["skills"])
 		ar_Dump Recurved.LevelCurves[index]["skills"][i]
-		DebugPrint "recurve: useExp:"
-		ar_Dump Recurved.LevelCurves[index]["skills"][i]["useExp"]
+		DebugPrint "recurve: useInc:"
+		ar_Dump Recurved.LevelCurves[index]["skills"][i]["useInc"]
 		let i += 1
 	loop
 	set i to 0

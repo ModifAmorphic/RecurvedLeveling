@@ -16,7 +16,7 @@ short isGameRestarted
 short isGameLoaded
 short isGameRestartedPeek
 short isGameLoadedPeek
-short isTutorialActive
+short IsTutorialActive
 short isTutorialQuestPassed
 short isClassSelected
 short isOverLevel
@@ -81,10 +81,10 @@ Begin _GameMode
 
 	; Preserve load and restart statuses for later
 	; if the tutorial is active
-	if isTutorialActive == 0 || isGameRestartedPeek
+	if IsTutorialActive == 0 || isGameRestartedPeek
 		set isGameRestarted to isGameRestartedPeek
 	endif
-	if isTutorialActive == 0 || isGameLoadedPeek
+	if IsTutorialActive == 0 || isGameLoadedPeek
 		set isGameLoaded to isGameLoadedPeek
 	endif
 
@@ -107,7 +107,18 @@ Begin _GameMode
 		if Recurved.DebugEnabled
 			SetDebugMode 1
 		endif
-		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, isTutorialActive=%g, HasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected isTutorialActive HasUpdate
+		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, IsTutorialActive=%g, HasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected IsTutorialActive HasUpdate
+		
+		; ; one time fix
+		; DebugPrint "Fixing Health Values"
+		; let Recurved.Levels[player.getlevel - 4]["health"] := 110
+		; DebugPrint "Fixed Level 1 Health: %g" (Recurved.Levels[player.getlevel - 4]["health"])
+		; let Recurved.Levels[player.getlevel - 3]["health"] := 126
+		; DebugPrint "Fixed Level 2 Health: %g" (Recurved.Levels[player.getlevel - 3]["health"])
+		; let Recurved.Levels[player.getlevel - 2]["health"] := 142
+		; DebugPrint "Fixed Level 3 Health: %g" (Recurved.Levels[player.getlevel - 2]["health"])
+		; let Recurved.Levels[player.getlevel - 1]["health"] := 159
+		; DebugPrint "Fixed Level 4 Health: %g" (Recurved.Levels[player.getlevel - 1]["health"])
 	endif
 	;;; Start Tutorial Check
 	;;;; 1. If the player started a new game, wait for a valid class to be selected
@@ -116,9 +127,9 @@ Begin _GameMode
 	; Wait for a class to be selected
 	if isClassSelected == 0
 		if call rcvHasTutorialClass
-			set isTutorialActive to 1
+			set IsTutorialActive to 1
 			if isGameLoadedPeek
-				DebugPrint "recurve: Character's class is CharactergenClass. Setting isTutorialActive to 1."
+				DebugPrint "recurve: Character's class is CharactergenClass. Setting IsTutorialActive to 1."
 			endif
 			return
 		else
@@ -129,19 +140,19 @@ Begin _GameMode
 	; Catch active tutorial for existing saves still in tutorial before this mod was added
 	if isTutorialQuestPassed == 0
 		if call rcvHasTutorialQuest
-			set isTutorialActive to 1
+			set IsTutorialActive to 1
 			DebugPrint "recurve: Totorial quest found in character's quests."
 		else
 			DebugPrint "recurve: Tutorial quest marked complete."
-			set isTutorialActive to 0 
+			set IsTutorialActive to 0 
 			set isTutorialQuestPassed to 1
 		endif
 	endif
 
 	; If Tutorial was active, wait until player is outside sewers
-	if isTutorialActive 
+	if IsTutorialActive 
 		if Player.IsInInterior == 0
-			set isTutorialActive to 0
+			set IsTutorialActive to 0
 			set isTutorialQuestPassed to 1
 			set isGameRestarted to 1
 			set isGameLoaded to 1
@@ -173,7 +184,9 @@ Begin _GameMode
 		; Subscribe to Skill Up Events on restart
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
 		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber	
-		SetEventHandler "SaveGame" rcvSaveGameSubscriber
+		;; Seems to cause crashes. Doesn't seem worth it to avoid a few
+		;; strings in save files.
+		; SetEventHandler "SaveGame" rcvSaveGameSubscriber
 		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
 	endif
 
@@ -193,8 +206,9 @@ Begin _GameMode
 	DebugPrint "recurve: Resetting Skill Use Increments"
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
 	; Reset oeverrides
-	let Recurved.SkillUseOverrides := ar_Construct Array
+	let Recurved.SkillUseOverrides := ar_Construct "Array"
 	; Configure attribute gains and required skill increase for the current and next level
+	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
 	call rcvSetLevelCurve (Recurved.LevelCurves[player.GetLevel - 1]) Recurved.SkillUseOverrides
 	;  ## overrides ##
 	; Apply overlevel prvention if needed
@@ -205,7 +219,7 @@ Begin _GameMode
 	; if overlevel protection not enabled then add other overrides
 	if (isOverLevel == 0)
 		; Add weapon use mod overrides
-		call rcvAddWeaponUseExpMod Recurved.ExpNormalizedWeaponSpeed  Recurved.ExpNormalizedWeaponDamage
+		call rcvAddWeaponUseIncMod
 		; set Recurved.WeaponEquipped to 0
 		call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
 	endif

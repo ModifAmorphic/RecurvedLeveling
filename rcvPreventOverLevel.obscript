@@ -27,20 +27,20 @@ Begin _Function { addedLevelProgress isScripted }
 	let maxLvlProgress := (Recurved.LevelCurves[player.GetLevel - 1]["iLevelUpSkillCount"])
 	; Attribute progress needed for the level after this, minus 1
 	let maxAttrbProgOver := (Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"]) - 1
-	DebugPrint "recurve: Starting OverLevel protection processing. Calculated Level Progress: %g/%g." lvlProgress maxLvlProgress
-	if (lvlProgress >= maxLvlProgress)
+	DebugPrint "recurve: Starting OverLevel protection processing. Calculated Level Progress: %g/%g. ExcessAttributeProgress: " lvlProgress maxLvlProgress Recurved.ExcessAttributeProgress
+	if (lvlProgress > maxLvlProgress || Recurved.ExcessAttributeProgress > 0)
 		set overLvlProgress to lvlProgress - maxLvlProgress
 		DebugPrint "recurve: ExcessAttributeProgress=%g, maxAttrbProgOver=%g." Recurved.ExcessAttributeProgress maxAttrbProgOver
 		if (Recurved.ExcessAttributeProgress + overLvlProgress >= maxAttrbProgOver)
 			DebugPrint "recurve: Maximum attribute progress over the next level reached. Hardcapping all skill progress until next rest."
 			; reset Recurved.SkillUseOverrides since we're about to block every skill from gaining progress
-			let Recurved.SkillUseOverrides := ar_Construct Array
+			let Recurved.SkillUseOverrides := ar_Construct "Array"
 			; Hardcap all skills
-			let allSkills := ar_Construct Array
+			let allSkills := ar_Construct "Array"
 			set i to 12
 			while (i < 33)
 				ar_Append allSkills i
-				call rcvAddSkillUseExpOverride i 0 0 Recurved.SkillUseOverrideReasons["Overlevel"]
+				call rcvAddSkillUseIncOverride i 0 0 Recurved.SkillUseOverrideReasons["Overlevel"]
 				let i += 1
 			loop
 			set overlevelPrevented to 1

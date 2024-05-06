@@ -15,7 +15,7 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	set Recurved.MagickaAvc to 9
 	set Recurved.FatigueAvc to 9
 	
-	let Recurved.SkillUseOverrideReasons := ar_Construct StringMap
+	let Recurved.SkillUseOverrideReasons := ar_Construct "StringMap"
 	let Recurved.SkillUseOverrideReasons["Overlevel"] := 0
 	let Recurved.SkillUseOverrideReasons["AttributeProtection"] := 1
 	let Recurved.SkillUseOverrideReasons["Weapon"] := 2
@@ -32,7 +32,7 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	endif
 	
 	; Read secondaries into array for easier access access
-	let Recurved.AttributeSecondaries := ar_Construct Array
+	let Recurved.AttributeSecondaries := ar_Construct "Array"
 	let Recurved.AttributeSecondaries[0] := Recurved.StrengthSecondary
 	let Recurved.AttributeSecondaries[1] := Recurved.IntelligenceSecondary
 	let Recurved.AttributeSecondaries[2] := Recurved.WillpowerSecondary

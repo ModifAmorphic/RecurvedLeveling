@@ -15,7 +15,7 @@ int overrideReason ; Recurved.SkillUseOverrideReasons reason for the override
 ; output
 array_var penalizedAttributes ; Array of attributes and their skills that have overrides
 Begin _Function { overrideReason }
-	let penalizedAttributes := ar_Construct Array
+	let penalizedAttributes := ar_Construct "Array"
 	while (i < ar_Size Recurved.SkillUseOverrides)
 		let override := Recurved.SkillUseOverrides[i]
 		if Eval(override["reason"] == overrideReason) 
@@ -31,12 +31,12 @@ Begin _Function { overrideReason }
 				let a += 1
 			loop
 			if (appendNeeded)
-				let attribute := ar_Construct StringMap
+				let attribute := ar_Construct "StringMap"
 				let attribute["code"] := attributeCode
-				let attribute["skills"] := ar_Construct Array
+				let attribute["skills"] := ar_Construct "Array"
 				ar_Append penalizedAttributes attribute
 			endif
-			let attribute["useExpModifier"] := override["useExpModifiers"][0]
+			let attribute["useIncModifier"] := override["useIncModifiers"][0]
 			let skill := ar_Copy override
 			let skill["exp"] := GetPlayerSkillUseC skillCode
 			ar_Append attribute["skills"] skill
