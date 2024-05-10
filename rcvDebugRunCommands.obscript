@@ -1,6 +1,10 @@
 scn rcvDebugRunCommands
 
 short isOverLevel
+ref abilitySpell
+ref abilityDrainEffect
+int effectIndex
+string_var effectName
 
 Begin _Function {}
 	if (Recurved.DumpLevel > 0)
@@ -28,9 +32,25 @@ Begin _Function {}
         set RecurvedController.HasUpdate to 1
     endif
 
+    if (Recurved.SlowAttributeSkills > -1)
+        ; player.AddSpell 0001CE5C
+        let effectName := ActorValueToStringC Recurved.SlowAttributeSkills
+        let effectName := effectName + " Skill Progress Slowed"
+        let abilityDrainEffect := DRAT
+        SetName effectName, abilityDrainEffect
+
+        let abilitySpell := rcvAttributeProtection
+        ;RemoveAllEffectItems abilitySpell
+        set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
+        SetNthEffectItemActorValueC Recurved.SlowAttributeSkills abilitySpell effectIndex
+        SetName effectName abilitySpell
+        player.AddSpell abilitySpell
+        DebugPrint "recurve: Added spell %n with effect %n." abilitySpell abilityDrainEffect
+    endif
     set Recurved.DumpLevel to 0
     set Recurved.DumpCurrentLevel to 0
     set Recurved.DumpLevelCurve to 0
     set Recurved.ResetSkillUseOverrides to 0
-
+    set Recurved.SlowAttributeSkills to -1
+    sv_Destruct effectName
 End

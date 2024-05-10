@@ -1,0 +1,22 @@
+scn rcvGetChangedDefEquipExp
+
+int i
+int skillCode
+float prevExp
+float currentExp
+
+; outputs
+array_var equipSkillCodes
+Begin Function {}
+	let equipSkillCodes := ar_Construct "Array"
+	while (i < ar_Size Recurved.DefenseEquipExp)
+		let skillCode :=  Recurved.DefenseEquipExp[i]["skillCode"]
+		let currentExp := GetPlayerSkillUseC skillCode
+		let prevExp := Recurved.DefenseEquipExp[i]["exp"]
+		if (currentExp != prevExp)
+			ar_Append equipSkillCodes skillCode
+		endif
+		let i += 1
+	loop
+	SetFunctionValue equipSkillCodes
+End

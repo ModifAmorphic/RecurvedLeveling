@@ -3,6 +3,7 @@ scn rcvLoadIni
 ; params
 Begin _Function { } ; Loads ini file, setting default values first.
 	; Set constants
+	;; attributes
 	set Recurved.StrengthAvc to 0
 	set Recurved.IntelligenceAvc to 1
 	set Recurved.WillpowerAvc to 2
@@ -14,7 +15,14 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	set Recurved.HealthAvc to 8
 	set Recurved.MagickaAvc to 9
 	set Recurved.FatigueAvc to 9
-	
+	;; equip exp tracking
+	set Recurved.BlockAvc to 15
+	set Recurved.HeavyArmorAvc to 18
+	set Recurved.LightArmorAvc to 27
+	set Recurved.BlockIndex to 0
+	set Recurved.HeavyArmorIndex to 1
+	set Recurved.LightArmorIndex to 2
+	;; override reasons
 	let Recurved.SkillUseOverrideReasons := ar_Construct "StringMap"
 	let Recurved.SkillUseOverrideReasons["Overlevel"] := 0
 	let Recurved.SkillUseOverrideReasons["AttributeProtection"] := 1

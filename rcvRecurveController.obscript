@@ -20,19 +20,6 @@ short IsTutorialActive
 short isTutorialQuestPassed
 short isClassSelected
 short isOverLevel
-; locals
-
-; array_var remainingPoints
-; debugging
-; array_var levelCurve
-; ref class
-; int i
-; array_var skills
-; array_var quests
-; string_var questId
-; float delay
-; short showQuests
-;array_var skills
 
 ; Sleep Menu
 begin MenuMode 1012
@@ -44,10 +31,6 @@ begin MenuMode 1012
 	set isSleepMenuInit to 1
 	set HasUpdate to 1
 
-	; if Recurved.DebugEnabled
-	; 	call rcvDebugDumpLevel player.GetLevel
-	; 	call rcvDebugDumpLevelCurve player.GetLevel
-	; endif
 end
 
 ; Level Up Menu
@@ -90,6 +73,9 @@ Begin _GameMode
 
 	; Run any debug commands that may be pending
 	if Recurved.DebugEnabled
+		if (isGameLoadedPeek)
+			set Recurved.SlowAttributeSkills to -1
+		endif
 		call rcvDebugRunCommands
 	endif
 	; Exit early if new updates or game loads
@@ -109,16 +95,11 @@ Begin _GameMode
 		endif
 		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, IsTutorialActive=%g, HasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected IsTutorialActive HasUpdate
 		
-		; ; one time fix
+		; ; ; one time fix
 		; DebugPrint "Fixing Health Values"
-		; let Recurved.Levels[player.getlevel - 4]["health"] := 110
-		; DebugPrint "Fixed Level 1 Health: %g" (Recurved.Levels[player.getlevel - 4]["health"])
-		; let Recurved.Levels[player.getlevel - 3]["health"] := 126
-		; DebugPrint "Fixed Level 2 Health: %g" (Recurved.Levels[player.getlevel - 3]["health"])
-		; let Recurved.Levels[player.getlevel - 2]["health"] := 142
-		; DebugPrint "Fixed Level 3 Health: %g" (Recurved.Levels[player.getlevel - 2]["health"])
-		; let Recurved.Levels[player.getlevel - 1]["health"] := 159
-		; DebugPrint "Fixed Level 4 Health: %g" (Recurved.Levels[player.getlevel - 1]["health"])
+		; let Recurved.Levels[player.getlevel - 1]["health"] := 320
+		; let Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedValue"] := 100
+		; DebugPrint "Fixed Current Level Health: %g" (Recurved.Levels[player.getlevel - 1]["health"])
 	endif
 	;;; Start Tutorial Check
 	;;;; 1. If the player started a new game, wait for a valid class to be selected
@@ -183,11 +164,16 @@ Begin _GameMode
 	if isGameRestarted
 		; Subscribe to Skill Up Events on restart
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
-		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber	
+		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
+		SetEventHandler "OnMagicApply" rcvOnMagicApplySubscriber "second"::PlayerRef
 		;; Seems to cause crashes. Doesn't seem worth it to avoid a few
 		;; strings in save files.
 		; SetEventHandler "SaveGame" rcvSaveGameSubscriber
 		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
+		;SetEventHandler "OnHit" rcvOnHitSubscriber "first"::PlayerRef
+		SetEventHandler "OnHealthDamage" rcvOnHealthDamageSubscriber ;"object"::PlayerRef
+		
+		DebugPrint "recurve: Subscribed event handlers."
 	endif
 
 	; Handle overleveling. Reset progress back to max progress for current level
@@ -205,11 +191,10 @@ Begin _GameMode
 	; Reset Skill Use Increments Prior to reconfiguring
 	DebugPrint "recurve: Resetting Skill Use Increments"
 	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
-	; Reset oeverrides
+	; Reset overrides
 	let Recurved.SkillUseOverrides := ar_Construct "Array"
-	; Configure attribute gains and required skill increase for the current and next level
-	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
-	call rcvSetLevelCurve (Recurved.LevelCurves[player.GetLevel - 1]) Recurved.SkillUseOverrides
+	; Configure attribute gains and required skill increase for the current level
+	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 1) Recurved.SkillUseOverrides
 	;  ## overrides ##
 	; Apply overlevel prvention if needed
 	if (Recurved.AttributeProtectionDisabled == 0)
@@ -224,7 +209,7 @@ Begin _GameMode
 		call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
 	endif
 	; Reapply level curve with potential changes
-	call rcvSetLevelCurve Recurved.LevelCurves[player.GetLevel - 1] Recurved.SkillUseOverrides
+	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 0) Recurved.SkillUseOverrides
 	
 	; reset variables
 	set isSleepMenuInit to 0

@@ -1,155 +1,33 @@
 scn rcvGetLevelCurve
 
-; locals
-int startLevel1
-int startLevel2
-int startLevel3
-int startLevel4
-int maxAttributeUp
-int skillsForLevelUp
-
-; softcap variables
+int lvlIndex
 int i
-int skillCode
-int skillAmount
-int softCap
+array_var newCurve
 
-int inc1
-int inc2
-int inc3
-
-float capUseInc1
-float capUseInc2
-
-array_var skills
-
-array_var levelCurve
-
-; input params
+; inputs
 int level
-Begin _Function { level }
-	let levelCurve := ar_Construct "StringMap"
-	
-	; Subtract one from starting levels because we want to display and calculate towards the
-	; next level
-	let startLevel1 := call rcvSubtractOrMin Recurved.Tier1StartLevel 1 1
-	let startLevel2 := call rcvSubtractOrMin Recurved.Tier2StartLevel 1 (Recurved.Tier1StartLevel + 1)
-	let startLevel3 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier2StartLevel + 1)
-	let startLevel4 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier3StartLevel + 1)
-	
-	;DebugPrint "Start1: %g, Start2: %g, Start3: %g, level: %g" startLevel1 startLevel2 startLevel3 level
-	if (level >= startLevel1) && (level < startLevel2)
-		set maxAttributeUp to Recurved.Tier1MaxAttributeUp
-		set skillsForLevelUp to Recurved.Tier1LevelUpSkillIncs
-		let levelCurve["MajorAttributeBonus"] := Recurved.Tier1MajorAttributeBonus
-		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier1SecondaryAttributeBonus
-		let levelCurve["startLvl"] := Recurved.Tier1StartLevel
-		let levelCurve["endLvl"] := startLevel2
-		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier1EnduranceNormalizeAmount
-		let levelCurve["OverageProtectionExponent"] := Recurved.Tier1OverageProtectionExponent
-	elseif (level >= startLevel2) && (level < startLevel3)
-		set maxAttributeUp to Recurved.Tier2MaxAttributeUp
-		set skillsForLevelUp to Recurved.Tier2LevelUpSkillIncs
-		let levelCurve["MajorAttributeBonus"] := Recurved.Tier2MajorAttributeBonus
-		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier2SecondaryAttributeBonus
-		let levelCurve["startLvl"] := Recurved.Tier2StartLevel
-		let levelCurve["endLvl"] := startLevel3
-		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier2EnduranceNormalizeAmount
-		let levelCurve["OverageProtectionExponent"] := Recurved.Tier2OverageProtectionExponent
-	elseif (level >= startLevel3) && (level < startLevel4)
-		set maxAttributeUp to Recurved.Tier3MaxAttributeUp
-		set skillsForLevelUp to Recurved.Tier3LevelUpSkillIncs
-		let levelCurve["MajorAttributeBonus"] := Recurved.Tier3MajorAttributeBonus
-		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier3SecondaryAttributeBonus
-		let levelCurve["startLvl"] := Recurved.Tier3StartLevel
-		let levelCurve["endLvl"] := startLevel4
-		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier3EnduranceNormalizeAmount
-		let levelCurve["OverageProtectionExponent"] := Recurved.Tier3OverageProtectionExponent
-	elseif (level >= startLevel4)
-		set maxAttributeUp to Recurved.Tier4MaxAttributeUp
-		set skillsForLevelUp to Recurved.Tier4LevelUpSkillIncs
-		let levelCurve["MajorAttributeBonus"] := Recurved.Tier4MajorAttributeBonus
-		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier4SecondaryAttributeBonus
-		let levelCurve["startLvl"] := Recurved.Tier4StartLevel
-		let levelCurve["endLvl"] := 999
-		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier4EnduranceNormalizeAmount
-		let levelCurve["OverageProtectionExponent"] := Recurved.Tier4OverageProtectionExponent
-	else
-		set maxAttributeUp to 5
-		set skillsForLevelUp to 10
-		let levelCurve["MajorAttributeBonus"] := 0
-		let levelCurve["SecondaryAttributeBonus"] := 0
-		let levelCurve["startLvl"] := level
-		let levelCurve["endLvl"] := 999
-		let levelCurve["EnduranceNormalizeAmount"] := 5
-		let levelCurve["OverageProtectionExponent"] := 1
+short forceRefresh
+; out
+array_var curve
+Begin Function { level forceRefresh }
+	set lvlIndex to level - 1
+
+	if Eval((ar_Size Recurved.LevelCurves) < level)
+		let i := (ar_Size Recurved.LevelCurves)
+		if (i < 0)
+			set i to 0
+		endif
+		; add any missing level curves as nulls to keep the index lined up
+		while (i < lvlIndex)
+			let Recurved.LevelCurves[i] := ar_Null
+			let i += 1
+		loop
+		; add the missing level curve
+		let newCurve := call rcvBuildLevelCurve level
+		ar_Append Recurved.LevelCurves newCurve
+	elseif (forceRefresh)
+		let Recurved.LevelCurves[lvlIndex] := call rcvBuildLevelCurve level
 	endif
-
-	DebugPrint "recurve: Calculating iLevelUpXXMult attribute gains with a max of %g for player level %g. %g skills are required for level up" maxAttributeUp level skillsForLevelUp
-	let inc3 := call rcvSubtractOrMin maxAttributeUp 1 2
-	let inc2 := call rcvSubtractOrMin inc3 1 2
-	let inc1 := call rcvSubtractOrMin (maxAttributeUp / 2) 1 2
-
-	let levelCurve["iLevelUpMults"] := ar_Construct "Array"
-	let i := 0
-	while (i < 9)
-		let levelCurve["iLevelUpMults"][i] := ar_Construct "StringMap"
-		let levelCurve["iLevelUpMults"][i]["setting"] := sv_Construct "iLevelUp0%gMult" (i + 1)
-		if i < 3 ; iLevelUpMults 1-3
-			let levelCurve["iLevelUpMults"][i]["value"] := inc1
-		elseif i < 6 ; iLevelUpMults 4-6
-			let levelCurve["iLevelUpMults"][i]["value"] := inc2
-		elseif i < 9 ; iLevelUpMults 7-9
-			let levelCurve["iLevelUpMults"][i]["value"] := inc3
-		endif
-		let i += 1
-	loop
-	; Finally, set iLevelUp10Mult to the max
-	let levelCurve["iLevelUpMults"][9] := ar_Construct "StringMap"
-	let levelCurve["iLevelUpMults"][9]["setting"] := "iLevelUp10Mult"
-	let levelCurve["iLevelUpMults"][9]["value"] := maxAttributeUp
-	
-	; Major skill increases required for new level
-	let levelCurve["iLevelUpSkillCount"] := skillsForLevelUp
-	
-	; Configure Current Skill Softcaps
-	;; We divide the experience gained per skill use by the Recurved.SoftCapMulti to multiply 
-	;; the amount of experience needed per skill level.
-	let skills := call rcvGetSkills
-	let levelCurve["skills"] := ar_Construct "Array"
-	let i := 0
-	while (i < ar_size skills["minor"])
-		let skillCode := skills["minor"][i]["code"]
-		let softCap := skills["minor"][i]["softCap"]
-		let skillAmount := skills["minor"][i]["amount"]
-		let capUseInc1 := Recurved.DefaultSkillUseIncrements[skillCode][0]
-		let capUseInc2 := Recurved.DefaultSkillUseIncrements[skillCode][1]
-		if Recurved.MinorSkillSoftCapsDisabled == 0
-			if (Recurved.SoftCapMulti > 0)
-				let capUseInc1 /= Recurved.SoftCapMulti
-				let capUseInc2 /= Recurved.SoftCapMulti
-			else
-				set capUseInc1 to 0
-				set capUseInc2 to 0
-			endif
-		endif
-		let levelCurve["skills"][i] := ar_Construct "StringMap"
-		let levelCurve["skills"][i]["skillCode"] := skillCode
-		let levelCurve["skills"][i]["softCapLvl"] := softCap
-		let levelCurve["skills"][i]["softCapMulti"] := Recurved.SoftCapMulti
-		let levelCurve["skills"][i]["useInc"] := ar_Construct "Array"
-		let levelCurve["skills"][i]["useInc"][0] := Recurved.DefaultSkillUseIncrements[skillCode][0]
-		let levelCurve["skills"][i]["useInc"][1] := Recurved.DefaultSkillUseIncrements[skillCode][0]
-		let levelCurve["skills"][i]["softCapEnabled"] := Recurved.MinorSkillSoftCapsDisabled == 0 && skillAmount >= softCap
-		let levelCurve["skills"][i]["softCapUseInc"] := ar_Construct "Array"
-		let levelCurve["skills"][i]["softCapUseInc"][0] := capUseInc1
-		let levelCurve["skills"][i]["softCapUseInc"][1] := capUseInc2
-
-		let i += 1
-		set capUseInc1 to 0
-		set capUseInc2 to 0
-	Loop
-	set i to 0
-
-	SetFunctionValue levelCurve
+	let curve := Recurved.LevelCurves[lvlIndex]
+	SetFunctionValue curve
 End

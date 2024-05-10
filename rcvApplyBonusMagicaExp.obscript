@@ -1,0 +1,79 @@
+scn rcvApplyBonusMagicaExp
+
+int spellType
+int spellMasteryLevel
+int skillMasteryLevel
+int school
+int magickaCost
+int skillCode
+int skillLevel
+int casterLevel
+
+float masteryReduction
+int intelMagicka
+;float expRequired
+float baseExpReq
+float defaultUseIncrement
+float useIncrement
+float useModifier
+float maxMagickaExp
+float bonusExp
+float bonusUses
+; inputs
+ref caster
+ref spellCast 
+Begin Function { spellCast caster }
+	
+	if (Recurved.SpellExpFromMagickaDisabled)
+		;DebugPrint "recurve: Spell experience from magicka is disabled. SpellExpFromMagickaDisabled=%g" Recurved.SpellExpFromMagickaDisabled
+		return
+	endif
+
+	set spellType to GetMagicItemType spellCast
+
+	; ignore anything but spells
+	if (spellType != 1)
+		;DebugPrint "recurve: MagicItem is not a spell. SpellType=%g" spellType
+		return
+	endif
+
+	set spellMasteryLevel to GetSpellMasteryLevel spellCast
+	set school to GetSpellSchool spellCast
+	set skillCode to school + 20
+	set skillLevel to caster.GetBaseAV3C skillCode
+	set skillMasteryLevel to caster.GetAVSkillMasteryLevelC skillCode
+	; reduce bonus for spells in lower masteries by 1/2 for every mastery under
+	let masteryReduction := .5^(skillMasteryLevel - spellMasteryLevel)
+	; no bonus for casting spells over the current mastery level
+	if (masteryReduction > 1)
+		set masteryReduction to 1
+	endif
+	; get base magicka cost for calculating bonus exp
+	set magickaCost to GetSpellMagickaCost spellCast
+	set casterLevel to caster.GetLevel
+
+	let baseExpReq := Recurved.Levels[casterLevel - 1]["skills"]["all"][skillCode - 12]["baseExpReq"]
+	let defaultUseIncrement := Recurved.DefaultSkillUseIncrements[skillCode][1]
+	set useIncrement to GetSkillUseIncrementC skillCode 1
+	; Calculate how the use increment has been modified in case any softcaps or overrides are applied
+	let useModifier := useIncrement / defaultUseIncrement
+	; calculate the max bonus exp from magicka
+	set maxMagickaExp to baseExpReq / (skillLevel / Recurved.SpellExpFromMagickaModifier)
+	; calculate magicka from intel
+	let intelMagicka := Recurved.Levels[casterLevel - 1]["attributes"][1]["value"] * 2
+	; calculate bonusExp by applying the ratio of Magicka Spell cost to total Magicka from Int. Reduce it by masteryReduction 
+	;; (if spell is below current mastery), then apply the useModifier in case a softcap or other exp penalty is set
+	set bonusExp to maxMagickaExp * (magickaCost / intelMagicka) * masteryReduction * useModifier
+	; Caclulate how many "use increments" need to be added to equal the bonus experience from magicka use
+	set bonusUses to bonusExp / useIncrement
+	; Increment player skill uses by the amount calculated above
+	IncrementPlayerSkillUseC skillCode 1 bonusUses
+	if (Recurved.DebugEnabled)
+		DebugPrint "recurve: Caster %n cast spell %n using skill %g spending %g magicka and gained %.2f bonus experience by applying %.2f use increments." caster spellCast skillCode magickaCost bonusExp bonusUses
+		DebugPrint "recurve:   Formula: maxMagickaExp = baseExpReq / (skillLevel / Recurved.SpellExpFromMagickaModifier)"
+		DebugPrint "recurve:         -> maxMagickaExp = %.2f / (%g / %.2f)" baseExpReq skillLevel Recurved.SpellExpFromMagickaModifier
+		DebugPrint "recurve:   Formula: bonusExp =  maxMagickaExp * (magickaCost / intelMagicka) * masteryReduction * useModifier"
+		DebugPrint "recurve:         -> bonusExp = %.2f * (%g / %g) * %.2f * %.2f" maxMagickaExp magickaCost  intelMagicka  masteryReduction useModifier
+	endif
+	
+End

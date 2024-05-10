@@ -1,0 +1,80 @@
+scn rcvApplyBonusArmorExp
+
+array_var skills
+int i
+int armorSkill
+float damage
+ref attackerWeapon
+float damageRatio
+float bonusExp
+float defaultUseIncrement
+float useIncrement
+float useExpMod
+float bonusUses
+string_var skillName
+; inputs
+ref attacker
+float healthDamage
+Begin Function { healthDamage attacker }
+
+	if (Recurved.ExpNormalizedReceivedDamage <= 0)
+        return
+	endif
+
+	; Determine attack damage
+	if (attacker.CreatureUsesWeaponAndShield)
+		set attackerWeapon to attacker.GetEquippedObject 16
+		if (attackerWeapon)
+			set damage to GetAttackDamage attackerWeapon
+		endif
+	endif
+	if (damage == 0)
+		set damage to attacker.GetAttackDamage
+	endif
+	if (damage == 0 )
+		DebugPrint "recurve: Could not determine attacker's attack damage. Using health damage received (%.2f) instead." healthDamage
+		set damage to healthDamage
+	endif
+	if (damage <= Recurved.ExpNormalizedReceivedDamage)
+		DebugPrint "recurve: Attack damage (%.2f) is less than ExpNormalizedReceivedDamage (%.2f). No bonus exp awarded." damage Recurved.ExpNormalizedReceivedDamage
+		return
+	endif
+
+	; Determine which type of armor was hit by looking for experience increases to their skills
+	let skills := call rcvGetChangedDefEquipExp
+	if Eval((ar_Size skills) > 0)
+		set i to 0
+		while (i < ar_Size skills)
+			let armorSkill := skills[i]		
+			
+			; Calculate ratio of damage received to ExpNormalizedReceivedDamage, then divide by 10
+			set damageRatio to (damage / Recurved.ExpNormalizedReceivedDamage) / 10
+			; More exp for block since blocking should happen less frequently
+			if (armorSkill == Recurved.BlockAvc)
+				set damageRatio to (damage / Recurved.ExpNormalizedReceivedDamage) / 5
+			endif
+			let defaultUseIncrement := Recurved.DefaultSkillUseIncrements[armorSkill][0]
+			set useIncrement to GetSkillUseIncrementC armorSkill 0
+			; Calculate how the use increment has been modified in case any softcaps or overrides are applied
+			set useExpMod to 1.0
+			if (useIncrement > 0 && defaultUseIncrement > 0)
+				set useExpMod to useIncrement / defaultUseIncrement
+			endif
+			; ; Calculate bonus Exp
+			set bonusExp to useIncrement * damageRatio * useExpMod
+			; Caclulate how many "use increments" need to be added to equal the bonus experience from magicka use
+			set bonusUses to bonusExp / useIncrement
+			; Increment player skill uses by the amount calculated above
+			IncrementPlayerSkillUseC armorSkill 1 bonusUses
+
+			if (Recurved.DebugEnabled)
+				let skillName := ActorValueToStringC armorSkill
+				DebugPrint "recurve: Attacker %n attacked with %g damage resulting in %.2f bonus experience by applying %.2f use increments to skill %z. skillCode=%g, useIncrement=%.2f, defaultUseIncrement=%.2f, damageRatio=%.2f, useExpMod=%.2f" attacker damage bonusExp bonusUses skillName armorSkill useIncrement defaultUseIncrement damageRatio useExpMod
+				sv_Destruct skillName
+			endif
+			let i += 1
+		loop
+	else
+		DebugPrint "recurve: No experience change detected for light or heavy armor. No bonus exp awarded."
+	endif
+End

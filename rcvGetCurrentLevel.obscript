@@ -47,23 +47,32 @@ Begin _Function {  }
         if (i == Recurved.EnduranceAvc)
             if Eval (isAttrbIncreaseSet && attribute["increase"] > 0)
                 ; get level curve for the prior level, which was the curve used to reach this level
-                let levelCurve := Recurved.LevelCurves[player.GetLevel - 2]
+                let levelCurve := call rcvGetLevelCurve (player.GetLevel - 1) 0
                 let maxEndIncrease := levelCurve["iLevelUpMults"][9]["value"]
                 let normalizedSetting := levelCurve["EnduranceNormalizeAmount"]
                 let normalizedIncrease := (attribute["increase"] / maxEndIncrease) * normalizedSetting
                 let attribute["normalizedIncrease"] := normalizedIncrease
                 let attribute["normalizedValue"] := prevLevel["attributes"][i]["normalizedValue"] + normalizedIncrease
+                ; Handle scenario where normalized endurance is ahead of raw endurance to avoid giving extra health
+                if Eval(attribute["normalizedValue"] > 100)
+                    let attribute["normalizedIncrease"] := attribute["normalizedValue"] - 100
+                    let attribute["normalizedValue"] := 100
+                endif
             else
-                ; if no normalization occured, then set to the raw values to make
-                ;; future calculations easier
-                let attribute["normalizedIncrease"] := attribute["increase"]
-                let attribute["normalizedValue"] := attribute["value"]
+                let attribute["normalizedIncrease"] := 0
+                ; When no normalization occured, then set to the previous normalized value if one exists
+                ;; otherwise set to raw value
+                if Eval ((ar_Size prevLevel["attributes"]) > i && isPrevLvlRecorded)
+                    let attribute["normalizedValue"] := prevLevel["attributes"][i]["normalizedValue"]
+                else
+                    let attribute["normalizedValue"] := attribute["value"]
+                endif                
             endif
         endif
 		let i += 1
     loop
 
-    let level["skills"] := call rcvGetSkills
+    let level["skills"] := call rcvGetSkills 1
 
     SetFunctionValue level
 End

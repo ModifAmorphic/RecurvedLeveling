@@ -29,6 +29,9 @@ set Recurved.RemainingAttributeProgressDisabled to 0
 ;;; are adjusted to allow for larger attribute gains early on.
 set Recurved.EnduranceHealthNormalizationDisabled to 0
 
+;; Disables bonus experience on damage recieved for Light and Heavy Armor skills.
+set Recurved.ArmorExpFromDamageDisabled to 0
+
 ;; Disables normalization of on hit experience for Blade and Blunt weapons.
 ;;; When enabled, uses weapon speed of each weapon to calculate the 
 ;;; experience per hit as well as overall weapon dps. Per hit experience increases as 
@@ -36,18 +39,13 @@ set Recurved.EnduranceHealthNormalizationDisabled to 0
 ;;; causing all weapons to generate the same amount of experience over time.
 set Recurved.WeaponExpNormalizedDisabled to 0
 
+;; Disables extra experience gained from Magicka spent.
+set Recurved.SpellExpFromMagickaDisabled to 0
+
 ;; Enable/Disable Debugging Logs
 set Recurved.DebugEnabled to 1
 
 ; ### Major Skills - Over leveling protection ###
-
-; ;; Increases amount of experience required to level a Major skill once there are
-; ;; enough attribute progress points banked for the full attribute increase. Penalty is removed
-; ;; when a 3rd full attribute increase is acheived or the character is leveled.
-; ;;; 0  : Hard caps any major skills responsible for attribute increases
-; ;;; 1  : No effect
-; ;;; 2+ : Multiplies the amount of experience required by the MajorOveragePreventionMulti
-; set Recurved.MajorOveragePreventionMulti to 10.0
 
 ;; Exponent for increasing major experience requirements that have maxed their governing attribute's
 ;; bonus and enough major skill ups have occured for the full attribute increase. Penalty is removed
@@ -68,6 +66,15 @@ set Recurved.Tier4OverageProtectionExponent to 4
 ;;; 3  : (Default) Requires 3 maxed attributes before leveling.
 ;;; >3 : Not much point to these values as only 3 attributes are increased per level, but it will work.
 set Recurved.MinimumMaxedAttributes to 3
+
+;;; The "Anti-rat" experience setting. Bonus Experience for armor and block skills is calculated by on comparing the damage from 
+;;; an attack to the value of ExpNormalizedReceivedDamage and multiplying the difference times the baseline experience per 
+;;; hit amount (1.25 for heavy armor and block, 1.5 for light armor). Any attack higher than the ExpNormalizedReceivedDamage value will 
+;;; grant additional bonus experience. Lower damage attacks will grant no extra experience. 
+;;; To summarize, a lower (but higher than zero) ExpNormalizedReceivedDamage value will grant more experience overall.
+;;; 0  - Disables Exp increases from damage received
+;;; 1+ - Increases experience for attacks higher than this value
+set Recurved.ExpNormalizedReceivedDamage to 3
 
 ;;; Base weapon speed to normalize all other weapon speeds to in order to calculate the 
 ;;; experience per hit. Per hit experience increases as weapon speed decreases,
@@ -91,6 +98,17 @@ set Recurved.ExpNormalizedWeaponDamage to 3.0
 ;;;; 0  - Disables Exp increases from damage
 ;;;; 1+ - Damage to normalize exp gains against.
 set Recurved.ExpNormalizedBowDamage to 8.0
+
+;;; A dial for turning up or down spell experience from magicka spent. Doubles the experience
+;;;; every time the amount doubles. Example: Setting to 10 doubles the experience bonus from 5.
+;;;; Formula:
+;;;; [Max Bonus Exp] = [Base Exp Req] / ([Skill Level] / SpellExpFromMagickaModifier)
+set Recurved.SpellExpFromMagickaModifier to 5.0
+
+;;; Multiplies experience gain for every skill in the game by this amount.
+;;; Originaly added this to QA my mod, as leveling a character through 50 levels multiple times
+;;; at the normal pace get's old.
+set Recurved.AllExperienceMultiplier to 1.0
 
 ; ### Level Scaling Settings ###
 
@@ -159,12 +177,5 @@ set Recurved.Tier1EnduranceNormalizeAmount to 5
 set Recurved.Tier2EnduranceNormalizeAmount to 5
 set Recurved.Tier3EnduranceNormalizeAmount to 5
 set Recurved.Tier4EnduranceNormalizeAmount to 5
-
-;; Tutorial Message box shown the first time no more skill increases are allowed before a level up. Only shows once.
-set Recurved.TutorialOverlevelMessage to sv_Construct "Recurved: Overlevel Prevetion%rYou are {{Progress}} progress points over the current level, one shy of the next level. You will no longer receive experience for any Major and Minor Skills until you level up. In other words, go to bed."
-;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
-set Recurved.TutorialAttributeProtectionMessage to sv_Construct "Recurved: Attribute Protection%r%rMaximum bonus achieved for one or more attributes. To help prevent missing out on bonuses for other attributes, experience for any already maxed attributes' major skills have been reduced. This restriction will be lifted when the maximum bonuses for {{MinimumMaxedAttributes}} attributes is achieved."
-;; Tutorial Message box shown the first time an character is one skill increase away from leveling but has not reached the Recurved.MinimumMaxedAttributes amount (usually 3) of maxed attribute bonuses.
-set Recurved.TutorialAttributeFailsafeMessage  to sv_Construct "Recurved: Attribute Failsafe%r%rExperience for all Major Skills is being prevented. This failsafe is triggered by reaching the last Major Skill increase prior to the next level, but not achieving the maximum bonus for {{MinimumMaxedAttributes}} attributes. Increases in Minor Skills are unaffected. To disable this feature, set ini setting MinimumMaxedAttributes to 0."
 
 End

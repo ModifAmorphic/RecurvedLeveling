@@ -1,0 +1,23 @@
+scn rcvCaptureDefenseEquipExp
+
+
+Begin _Function { }
+	
+	if Eval((ar_Size Recurved.DefenseEquipExp) != 3)
+		let Recurved.DefenseEquipExp := ar_Construct "Array"
+	endif
+
+	; block
+	let Recurved.DefenseEquipExp[Recurved.BlockIndex] := ar_Construct "StringMap"
+	let Recurved.DefenseEquipExp[Recurved.BlockIndex]["exp"] := GetPlayerSkillUseC Recurved.BlockAvc
+	let Recurved.DefenseEquipExp[Recurved.BlockIndex]["skillCode"] := Recurved.BlockAvc
+	; heavy armor
+	let Recurved.DefenseEquipExp[Recurved.HeavyArmorIndex] := ar_Construct "StringMap"
+	let Recurved.DefenseEquipExp[Recurved.HeavyArmorIndex]["exp"] := GetPlayerSkillUseC Recurved.HeavyArmorAvc
+	let Recurved.DefenseEquipExp[Recurved.HeavyArmorIndex]["skillCode"] := Recurved.HeavyArmorAvc
+	; light armor
+	let Recurved.DefenseEquipExp[Recurved.LightArmorIndex] := ar_Construct "StringMap"
+	let Recurved.DefenseEquipExp[Recurved.LightArmorIndex]["exp"] := GetPlayerSkillUseC Recurved.LightArmorAvc
+	let Recurved.DefenseEquipExp[Recurved.LightArmorIndex]["skillCode"] := Recurved.LightArmorAvc
+	
+End

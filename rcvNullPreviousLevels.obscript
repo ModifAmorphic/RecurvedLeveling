@@ -1,0 +1,27 @@
+scn rcvNullPreviousLevels
+
+int currentIndex
+int saveIndex
+int i
+Begin Function {}
+
+	let currentIndex := player.GetLevel - 1
+	set saveIndex to currentIndex - 1
+	DebugPrint "recurve: Nulling previous Recurved.Levels lower than %g" saveIndex
+	while (i < ar_Size Recurved.Levels)
+		if (i < saveIndex)
+			let Recurved.Levels[i] := ar_Null
+		endif
+		let i += 1
+	loop
+
+	set i to 0
+	set saveIndex to currentIndex
+	DebugPrint "recurve: Nulling previous Recurved.LevelCurves lower than %g" saveIndex
+	while (i < ar_Size Recurved.LevelCurves)
+		if (i < saveIndex)
+			let Recurved.LevelCurves[i] := ar_Null
+		endif
+		let i += 1
+	loop
+End

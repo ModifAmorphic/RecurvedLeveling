@@ -13,6 +13,14 @@ int HealthAvc
 int MagickaAvc
 int FatigueAvc
 
+; skill constants
+int BlockAvc
+int HeavyArmorAvc
+int LightArmorAvc
+int BlockIndex
+int HeavyArmorIndex
+int LightArmorIndex
+
 array_var SkillUseOverrideReasons
 
 ; ### Ini variables  ###
@@ -34,23 +42,19 @@ short RemainingAttributeProgressDisabled
 ;;; config than typical with vanilla. The inverse is also true if the TierXMaxAttributeUp values 
 ;;; are adjusted to allow for larger attribute gains early on.
 short EnduranceHealthNormalizationDisabled
+;; Disables bonus experience on damage recieved for Light and Heavy Armor skills.
+short ArmorExpFromDamageDisabled
 ;; Disables normalization of on hit experience for Blade and Blunt weapons.
 ;;; When enabled, uses weapon speed of each weapon to calculate the 
 ;;; experience per hit. Per hit experience increases as weapon speed decreases,
 ;;; causing all weapons to generate the same amount of experience over time.
 short WeaponExpNormalizedDisabled
+;; Disables extra experience gained from Magicka spent.
+short SpellExpFromMagickaDisabled
 ;; Debugging
 short DebugEnabled
 
 ; Major Skills - Over leveling protection
-
-; ;; Increases amount of experience required to level a Major skill once there are
-; ;; enough attribute progress points banked for the full attribute increase. Penalty is removed
-; ;; when a 3rd full attribute increase is acheived or the character is leveled.
-; ;;; 0  : Prevents experience gain of any major skills responsible for attribute increases
-; ;;; 1  : No effect
-; ;;; 2+ : Multiplies the amount of experience by the MajorOveragePreventionMulti
-; float MajorOveragePreventionMulti
 
 ;; Exponent for increasing major experience requirements that have maxed their governing attribute's
 ;; bonus and enough major skill ups have occured for the full attribute increase. Penalty is removed
@@ -70,6 +74,15 @@ int Tier4OverageProtectionExponent
 ;;; 2  : Requires at least 2 maxed attributes. Use for leveling up 2 attributes and luck.
 ;;; 3  : (Default) Requires 3 maxed attributes before leveling.
 int MinimumMaxedAttributes
+
+;;; The "Anti-rat" experience setting. Bonus Experience for armor and block skills is calculated by on comparing the damage from 
+;;; an attack to the value of ExpNormalizedReceivedDamage and multiplying the difference times the baseline experience per 
+;;; hit amount (1.25 for heavy armor and block, 1.5 for light armor). Any attack higher than the ExpNormalizedReceivedDamage value will 
+;;; grant additional bonus experience. Lower damage attacks will grant no extra experience. 
+;;; To summarize, a lower (but higher than zero) ExpNormalizedReceivedDamage value will grant more experience overall.
+;;; 0  - Disables Exp increases from damage received
+;;; 1+ - Increases experience for attacks higher than this value
+float ExpNormalizedReceivedDamage
 
 ;;; Base weapon speed to normalize all other weapon speeds to in order to calculate the 
 ;;; experience per hit. Per hit experience increases as weapon speed decreases,
@@ -92,6 +105,17 @@ float ExpNormalizedWeaponDamage
 ;;;; 0  - Disables Exp increases from damage
 ;;;; 1+ - Damage to normalize exp gains against.
 float ExpNormalizedBowDamage
+
+;;; A dial for turning up or down spell experience from magicka spent. Doubles the experience
+;;;; every time the amount doubles. Example: Setting to 10 doubles the experience bonus from 5.
+;;;; Formula:
+;;;; [Max Bonus Exp] = [Base Exp Req] / ([Skill Level] / SpellExpFromMagickaModifier)
+float SpellExpFromMagickaModifier
+
+;;; Multiplies experience gain for every skill in the game by this amount.
+;;; Originaly added this to QA my mod, as leveling a character through 50 levels multiple times
+;;; at the normal pace get's old.
+float AllExperienceMultiplier
 
 ; Level Scaling Settings
 ;; Increases amount of experience required to level a skill past the soft cap. 
@@ -137,18 +161,11 @@ int IntelligenceSecondary
 int WillpowerSecondary
 
 ;; Converts endurance increases to the normalized amount when calculating health increases on level ups. This is done
-;; to compensate the lower attribute inceases in lower levels.
+;; to compensate for the lower attribute inceases in lower levels.
 int Tier1EnduranceNormalizeAmount
 int Tier2EnduranceNormalizeAmount
 int Tier3EnduranceNormalizeAmount
 int Tier4EnduranceNormalizeAmount
-
-;; Tutorial Message box shown the first time no more skill increases are allowed before a level up. Only shows once.
-string_var TutorialOverlevelMessage
-;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
-string_var TutorialAttributeProtectionMessage
-;; Tutorial Message box shown the first time an attribute's major skill(s) have their experience penalized.
-string_var TutorialAttributeFailsafeMessage
 
 ; ### End Ini variables  ###
 
@@ -173,10 +190,17 @@ short DelayedResetLevelProgress
 ; Amount of attribute progress over the max needed for the next level
 int ExcessAttributeProgress
 
+;; Flag for when attribute failsafe is enable. Used for messaging
 short AttributeFailsafeEnabled
 
 ; Keeps track of attribute bonuses for the level
 array_var SecondaryAttribBonuses
+
+; Used for tracking last known experience values to add bonus armor skill experience
+array_var DefenseEquipExp
+
+int LastCastTick
+ref LastSpellCast
 
 ; short WeaponEquipped
 
@@ -185,3 +209,4 @@ int DumpLevel
 short DumpCurrentLevel
 int DumpLevelCurve
 short ResetSkillUseOverrides
+int SlowAttributeSkills

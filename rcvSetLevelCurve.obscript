@@ -19,11 +19,25 @@ Begin _Function { levelCurve useOverrides }
 	DebugPrint "recurve: Setting iLevelUpMults from %g to %g." levelCurve["iLevelUpMults"][0]["value"] levelCurve["iLevelUpMults"][9]["value"]
 	while (i < ar_Size levelCurve["iLevelUpMults"])
 		let lvlUpMult := levelCurve["iLevelUpMults"][i]
-		let levelUpMultSetting := lvlUpMult["setting"]
+		if (i < 9)
+			let levelUpMultSetting := sv_Construct "iLevelUp0%gMult" (i + 1)
+		else
+			let levelUpMultSetting := "iLevelUp10Mult"
+		endif
 		SetNumericGameSetting $levelUpMultSetting lvlUpMult["value"]
 		;DebugPrint "recurve: Set %z to %g." levelUpMultSetting lvlUpMult["value"]
 		let i += 1
 	loop
+	sv_Destruct levelUpMultSetting
+	if (Recurved.AllExperienceMultiplier != 1)
+		DebugPrint "recurve: Recurved.AllExperienceMultiplier is set to a value other than 1. Multiplying all skill use increments by %g." Recurved.AllExperienceMultiplier
+		set i to 12
+		while (i < 33)
+			SetSkillUseIncrementC (Recurved.DefaultSkillUseIncrements[i][0] * Recurved.AllExperienceMultiplier) i 0
+			SetSkillUseIncrementC (Recurved.DefaultSkillUseIncrements[i][1] * Recurved.AllExperienceMultiplier) i 1
+			let i += 1
+		loop
+	endif
 	set i to 0
 	while (i < ar_Size levelCurve["skills"])
 		let skill := levelCurve["skills"][i]
@@ -42,15 +56,7 @@ Begin _Function { levelCurve useOverrides }
 		DebugPrint "No Use Exp Overrides currently configured."
 		return
 	endif
-	; set i to 0
-	; while (i < ar_Size useOverrides)
-	; 	let useOverride := useOverrides[i]
-	; 	SetSkillUseIncrementC useOverride["useInc"][0] useOverride["skillCode"] 0
-	; 	SetSkillUseIncrementC useOverride["useInc"][1] useOverride["skillCode"] 1
-	; 	DebugPrint "recurve: Overrode skill %g use increments for reason %g. Set useInc0=%.4f, useInc1=%.4f." (useOverrides[i]["skillCode"]) (useOverrides[i]["reason"]) (useOverride["useInc"][0]) (useOverride["useInc"][1])
-	; 	let i += 1
-	; loop
-	; set i to 0
+
 	; ###  Skill Use Overrides Processing  ###
 	;; Skill Use is processed in manual order. If more SkillUseOverrideReasons are added in the future, this should probably be reworked
 	;; to a function to avoid copy/pasting these entire loops over and over
@@ -157,6 +163,7 @@ Begin _Function { levelCurve useOverrides }
 		loop
 		let o += 1
 		DebugPrint "recurve: Overrode skill %g use increments for reason(s) %z. Set useInc0=%.4f, useInc1=%.4f." (skillUseInc["skillCode"]) useReasons (skillUseInc["useIncs"][0]) (skillUseInc["useIncs"][1])
+		sv_Destruct useReasons
 	loop
 	set o to 0
 	set i to 0

@@ -1,12 +1,14 @@
 # Recurved Leveling
 
-An Oblivion Leveling Overhaul Mod.
+An Oblivion Leveling Enhancement Mod.
 
 ## Problem Statement
 
 One of, if not the strongest ways to build a character in Oblivion is to choose skills you don't plan on using as Major Skills, and the skills
 you do want to use as your minor skills. This results in players focusing on leveling Minor Skills over Major Skills, limiting
-the rate at which you level up. Who wants to play an RPG where you try not to gain levels? Not me.
+the rate at which you level up. Who wants to play an RPG where you try not to gain levels?
+
+There are quite a few other mods out there with introductions similar to this one and you're probably wondering "Why bother"?  Well, I find the core system of leveling skills to level your character quite engaging and wanted to see what I could do to preserve that while remedying the pitfalls of the current system. What I hope I achieved is a "Vanilla Plus" or "Vanilla QoL" version, maintaining the original "soul" of the leveling system while making the tedious parts far less so.
 
 ## Goals
 
@@ -14,10 +16,12 @@ This is yet another mod made in an attempt to improve upon the unintuitive proce
 I had one main goal in mind, the elimination of the minor skill metagame, as I found it tedious and unfun. As I worked on the mod, a few other
 goals started to take shape.
 
+1. No matter what changes I make, the skill-based leveling system should remain intact at the end of the day.
 1. The Major Skills you pick should be the Skills you use. Major Skills should be what define your character.
-2. Minor Skills should still be useful to your character, but leveling only minor skills as your core skills should be heavily discouraged.
-3. Leveling should be something to look forward to, not something to avoid.
-4. Leveling should be a more organic process and not require excessive micro-management to maximize attribute increases.
+1. Minor Skills should still be useful to your character, but leveling only minor skills as your core skills should be heavily discouraged.
+1. Leveling should be something to look forward to, not something to avoid.
+1. Increasing attributes should be a more organic process and not require excessive micro-management to maximize attribute increases.
+1. The tedium of leveling certain skills should be reduced with experience scaling.
 
 ## Tutorial
 
@@ -174,6 +178,35 @@ The below are the "out of the box" settings for the mod, but are fully configura
 - Leveling a Major Skill increases its Secondary Attribute skill points by 2.
 ```
 
+## Weapon Skill Experience
+
+I always found it odd that in a game so reliant on scaling the world around you, there was no scaling for experience gains. Weapon speed and damage are now part of experience calculations for weapon skills. A slower-swinging, high-damage weapon will grant more experience per hit than a fast-swinging lower-damage weapon. All weapons have their experience normalized to the 1.4 speed of a dagger (setting `Recurved.ExpNormalizedWeaponSpeed`). As a result, a hit with a warhammer (.7 speed) will grant double the experience of a dagger hit.
+
+Weapon damage per second also contributes to experience per hit. The DPS of an equipped weapon is compared to a Rusty Dagger's DPS (settings `Recurved.ExpNormalizedWeaponSpeed x Recurved.ExpNormalizedWeaponDamage`) to calculate the increase. This is done to compensate for higher DPS weapons needing far fewer swings to kill an enemy.
+
+Bows have also had their experience adjusted based on damage (speed of bows is always the same). A higher damage bow grants more experience (setting `Recurved.ExpNormalizedBowDamage`).
+
+## Spell Experience
+
+Spells now grant additional experience per successful cast based on the amount of Magicka spent and the tier of the spell. The gist of it is - more magicka spent equals more experience. Casting spells from lower tiers reduces bonus experience.  The formula is a little contrived. Most of the complexity is to avoid penalizing high Magicka characters
+
+Bonus Experience Formula
+```
+; Set up values needed in calulating the bonus
+Base Experience = "Base" column on https://en.uesp.net/wiki/Oblivion:Increasing_Skills#Experience_Points_Needed
+Base Magicka = Base Intelligence x 2
+Magicka Modifier = [Spell Magicka Cost] / [Base Magicka]
+Mastery Modifier = .5 ^ ([Character's Mastery Level] - [Spell's Mastery Level])
+
+; Start calculating the actual exp bonus
+;; Maximum Magica Bonus that can be awareded per cast
+Max Magicka Exp = [Base Experience] / ([Skill Level] / 5)
+;; Reduce the maximum by the ratio of magicka spent to total base magicka. Reduce by another 
+;; half per mastery level under the character's current mastery level.
+Magicka Bonus = [Max Magicka Exp] * [Magicka Modifier] * [Mastery Modifier]
+
+```
+
 ## Load Order / Compatibility
 
-This mod does everything with scripts.
+This mod should work with other simple experience-adjusting mods without any issues, provided it is later in the load order. Mods that adjust experience via scripts should also work provided they only adjust them once, when the game is loaded. If they attempt to adjust experience dynamically while playing, like this mod does, then there's bound to be trouble.

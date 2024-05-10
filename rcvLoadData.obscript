@@ -58,14 +58,18 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 		DebugPrint "recurve: Initializing Recurved.SecondaryAttribBonuses array."
 	endif
 
+	; Null and previous level and level curve array values that are no longer needed
+	;; reduce save bloat
+	call rcvNullPreviousLevels
+
 	; set current level if not already added
-	if Eval(player.GetLevel - 1 > (ar_Size Recurved.Levels))
+	if Eval(player.GetLevel > (ar_Size Recurved.Levels))
 		let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
 		DebugPrint "recurve: Loaded level data for current level."
 	endif
-	; set current and next level curves
-	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
-	let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve (player.GetLevel + 1)
-	DebugPrint "recurve: Loaded level curves for current and next level."
+
+	call rcvCaptureDefenseEquipExp
+	set Recurved.LastCastTick to 0
+	set Recurved.LastSpellCast to 0
 
 End

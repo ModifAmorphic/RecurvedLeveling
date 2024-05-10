@@ -37,7 +37,7 @@ Begin _Function { additionalLevelProgress }
 	; get list of character's majors
 	let majors := call rcvGetMajorSkills
 	; get loaded level curves
-	let curve := Recurved.LevelCurves[player.GetLevel - 1]
+	let curve := call rcvGetLevelCurve player.GetLevel 0
 	; calculate the attribute progress increase per major increase
 	let attribProgIncrement := curve["MajorAttributeBonus"] + 1
 	

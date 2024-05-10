@@ -1,0 +1,51 @@
+scn rcvFindUpdatedSkills
+
+short isPrevSkillFound
+
+array_var prevSkillKvp
+array_var prevSkill
+array_var latestSkillKvp
+array_var latestSkill
+array_var updatedSkill
+
+; inputs
+array_var prevSkills       ; Array containing a list of skills and their experience
+array_var latestSkills		; Array containing a list of skills and their experience that potentially differs from prevSkills
+; outputs
+array_var updatedSkills			; Array of skills where the skill's experience differs between the two input arrays or the skill was only preset in the latestSkills Array.
+Begin _Function { prevSkills latestSkills } ; Compares the two arrays, finding any experience differences or new skill additions in latestSkills compared to prevSkills
+
+	let updatedSkills := ar_Construct "Array"
+
+	ForEach latestSkillKvp <- latestSkills
+		let latestSkill := latestSkillKvp["value"]
+		set isPrevSkillFound to 0
+		;DebugPrint "recurve: Searching for skill %g in prevSkills." latestSkill["skillCode"]
+		ForEach prevSkillKvp <- prevSkills
+			let prevSkill := prevSkillKvp["value"]
+			if Eval (prevSkill["skillCode"] == latestSkill["skillCode"])
+				; if skill was found then set the isPrevSkillFound flag so we know not to add the
+				; latest skill later
+				set isPrevSkillFound to 1
+				;DebugPrint "recurve: Found skill %g in in prevSkills. Previous Exp=%.2f, Latest Exp=%.2f" prevSkill["skillCode"] prevSkill["exp"] latestSkill["exp"]
+				; if the experience has changed, then append to updatedSkills
+				if Eval (latestSkill["exp"] > prevSkill["exp"])
+					DebugPrint "recurve: latestSkill['exp'] > prevSkill['exp'] (%.2f > %.2f)." latestSkill["exp"] prevSkill["exp"]
+					let updatedSkill := ar_Copy latestSkill
+					let updatedSkill["expDiff"] := latestSkill["exp"] - prevSkill["exp"]
+					ar_Append updatedSkills updatedSkill
+				endif
+				break
+			endif
+		Loop
+		; if no match was found between previous and latest skills, then add the latest skill
+		; to updatedSkills since this is the first time we've seen it
+		if (isPrevSkillFound == 0)
+			let updatedSkill := ar_Copy latestSkill
+			let updatedSkill["expDiff"] := latestSkill["exp"]
+			;DebugPrint "recurve: Appending skill %g to updatedSkills." latestSkill["skillCode"]
+			ar_Append updatedSkills updatedSkill
+		endif
+	Loop
+	SetFunctionValue updatedSkills
+End

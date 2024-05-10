@@ -1,0 +1,30 @@
+scn rcvOnHealthDamageSubscriber
+
+
+ref target
+
+; inputs
+float damage
+ref attacker
+Begin Function { damage attacker }
+	set target to GetSelf
+	;DebugPrint "Target is %n" target
+	if (target != player)
+		return
+	endif
+	if (attacker == 0)
+		return
+	endif
+	if (Recurved.ArmorExpFromDamageDisabled)
+		return
+	endif
+
+	call rcvApplyBonusArmorExp damage attacker 
+	call rcvCaptureDefenseEquipExp
+
+	; if target.getSoundPlaying "*Block*"
+    ;     DebugPrint "%n blocked an attack from %n." target attacker
+    ; else
+    ;     DebugPrint "Attack from %n not blocked." attacker target
+    ; endif
+End

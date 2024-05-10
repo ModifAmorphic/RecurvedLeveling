@@ -15,7 +15,6 @@ Begin Function { } ; Gets list of major skills
 		let isClassSkill := player.IsClassSkillC skillCode
 		if (isClassSkill)
 			let majorSkills[i] := ar_Construct "StringMap"
-			let majorSkills[i]["name"] := ActorValueToStringC skillCode
 			let majorSkills[i]["code"] := skillCode
 			let majorSkills[i]["attributeCode"] := GetSkillGoverningAttributeC skillCode
 			let majorSkills[i]["amount"] := player.GetBaseAV3C skillCode

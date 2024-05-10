@@ -28,16 +28,16 @@ Begin _Function { penalizedAttributes }
 	if (useIncMod == 0)
 		let message := sv_Construct "Experience gains are disabled for %z skills." attributeNames
 	elseif (useIncMod < 2)
-		let message := sv_Construct "Training %z skills are slightly more difficult than normal." attributeNames
+		let message := sv_Construct "Training %z major skills are slightly more difficult than normal." attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|slightly more difficult than normal"
 	elseif (useIncMod < 4)
-		let message := sv_Construct "Training %z skills are considerably more difficult than normal." attributeNames
+		let message := sv_Construct "Training %z major skills are considerably more difficult than normal." attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|considerably more difficult than normal"
 	elseif (useIncMod < 8)
-		let message := sv_Construct "Training %z skills are drastically more difficult than normal." attributeNames
+		let message := sv_Construct "Training %z major skills are drastically more difficult than normal." attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|significantly more difficult than normal"
 	else
-		let message := sv_Construct "Training %z skills are impossible at this point." attributeNames
+		let message := sv_Construct "Training %z major skills are impossible at this point." attributeNames
 		;let difficultyReplacer := sv_Construct "{{Difficulty}}|impossible"
 	endif
 	; sv_Replace $difficultyReplacer message

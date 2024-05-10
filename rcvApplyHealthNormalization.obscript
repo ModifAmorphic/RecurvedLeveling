@@ -31,14 +31,11 @@ Begin Function { level }
     endif
 
     ; Check if normalization is needed.
-    ;; Not needed in scenarios
-    ;;;  1. Could not find endurance increase data for the level
-    ;;;  2. Endurance increase is 1 or 0.
-    if (endNormalizedInc == -1)
-        DebugPrint "Unable to apply endurance health normalization for level %g. Could not find endurance increase value in level data." level
+    if (endAmount >= 100)
+        DebugPrint "Endurance is maxed."
         return
-    elseif (endNormalizedInc <= 1)
-        DebugPrint "Endurance increase for level %g was equal to or less than one. No normalization needed." level
+    elseif (endNormalizedInc == -1)
+        DebugPrint "Unable to apply endurance health normalization for level %g. Could not find endurance increase value in level data." level
         return
     endif
 

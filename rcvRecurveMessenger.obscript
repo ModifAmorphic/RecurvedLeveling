@@ -1,7 +1,6 @@
 scn rcvRecurveMessenger
 
 float fQuestDelayTime
-int lastProtectionMessageTick
 short isGameLoaded
 
 ; Flags for showing tutorial messages only once
@@ -9,10 +8,13 @@ short TutorialAttributeProtectionShown
 short TutorialAttributeFailsafeShown
 short TutorialOverlevelShown
 
-array_var prevPenalizedAttributes
-array_var latestPenalizedAttributes
-array_var updatedPenalizedAttributes
-; array_var ProtectedSkillsUse
+; Vars for tracking pervious protection messages
+int LastProtectionMessageTick
+array_var PrevPenalizedAttributes
+
+; Vars for tracking pervious softcap messages
+int LastSoftCapTick
+array_var PrevSoftcapped
 
 Begin _GameMode
 	set fQuestDelayTime to 2
@@ -20,56 +22,18 @@ Begin _GameMode
 	set isGameLoaded to GetGameLoaded
 	; Allow other quests to start before checking on messaging
 	if (isGameLoaded)
-		let lastProtectionMessageTick := 0
+		set LastProtectionMessageTick to 0
+		set LastSoftCapTick to 0
+		let PrevPenalizedAttributes := ar_Construct "Array"
+		let PrevSoftcapped := ar_Construct "Array"
 		return
 	endif
+
 	; don't start checking for messages until tutorial is over
 	if (RecurvedController.IsTutorialActive)
 		return
 	endif
-	if (TutorialOverlevelShown == 0)
-		if Eval((Recurved.ExcessAttributeProgress + 1) == Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"])
-			set TutorialOverlevelShown to 1
-			call rcvShowOverlevelPreventionMessageBox Recurved.ExcessAttributeProgress
-			return
-		endif
-	endif
 
-	if (TutorialAttributeProtectionShown == 0)
-		if (Recurved.AttributeFailsafeEnabled == 0)
-			if Eval (call rcvGetIsIncreaseProtectionEnabled)
-				set TutorialAttributeProtectionShown to 1
-				call rcvShowAttributeProtectionMessageBox Recurved.TutorialAttributeProtectionMessage Recurved.MinimumMaxedAttributes
-				return
-			endif
-		endif
-	endif
+	call rcvProcessMessages
 
-	if (TutorialAttributeFailsafeShown == 0)
-		if (Recurved.AttributeFailsafeEnabled)
-			set TutorialAttributeFailsafeShown to 1
-			call rcvShowAttributeProtectionMessageBox Recurved.TutorialAttributeFailsafeMessage Recurved.MinimumMaxedAttributes
-			return
-		endif
-	endif
-
-	let latestPenalizedAttributes := call rcvFindSkillUseOverridesAttributes (Recurved.SkillUseOverrideReasons["AttributeProtection"])
-	; If it's been 30 seconds of game time (.2 ticks * 150 = 30) since the last tick, or this is the first time
-	; then show the protected skill message
-	if Eval (RecurvedController.GlobalTick - lastProtectionMessageTick > 150 || lastProtectionMessageTick == 0)
-		if Eval((ar_Size latestPenalizedAttributes) > 0)
-			if Eval ((ar_size prevPenalizedAttributes) < 1)
-				let prevPenalizedAttributes := ar_Construct "Array"
-			endif
-			let updatedPenalizedAttributes := call rcvFindUpdatedAttributeSkills prevPenalizedAttributes latestPenalizedAttributes
-			if Eval ((ar_Size updatedPenalizedAttributes) > 0)
-				set lastProtectionMessageTick to RecurvedController.GlobalTick
-				call rcvShowAttributeProtectionMessage updatedPenalizedAttributes
-			endif
-			let updatedPenalizedAttributes := ar_Construct "Array"
-			let prevPenalizedAttributes := latestPenalizedAttributes
-		endif
-	endif
-	let prevPenalizedAttributes := latestPenalizedAttributes
-	let latestPenalizedAttributes := ar_Construct "Array"
 end

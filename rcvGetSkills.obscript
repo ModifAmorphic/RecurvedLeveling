@@ -8,14 +8,26 @@ int iMinor
 int skillCode
 short isClassSkill
 
+int skillLevel
+float fSkillUseMinorMult
+float fSkillUseFactor
+float fSkillUseExp
+float allExpMultiplier
+; inputs
+short useAllExpMultiplier
 ; ouput
 array_var skills
-Begin Function { } ; Gets list of current skills split in to major and minor lists
+Begin Function { useAllExpMultiplier } ; Gets list of current skills split in to major and minor lists
 
 	let skills := ar_Construct "StringMap"
 	let skills["major"] := ar_Construct "Array"
 	let skills["minor"] := ar_Construct "Array"
-
+	let skills["all"] := ar_Construct "Array"
+	if (useAllExpMultiplier)
+		set allExpMultiplier to Recurved.AllExperienceMultiplier
+	else
+		set allExpMultiplier to 1
+	endif
 	let skillCode := 12
 	while (skillCode < 33)
 		let isClassSkill := player.IsClassSkillC skillCode
@@ -31,19 +43,24 @@ Begin Function { } ; Gets list of current skills split in to major and minor lis
 		
 		; DebugPrint "recurve: skillCode=%g, isClassSkill=%g, skillType=%z" skillCode isClassSkill skillType
 
-		let skills[skillType][i] := ar_Construct "StringMap"
-		let skills[skillType][i]["name"] := ActorValueToStringC skillCode
+		let skills[skillType][i] := ar_Construct "StringMap"		
 		let skills[skillType][i]["code"] := skillCode
+		let skills[skillType][i]["isMajorSkill"] := isClassSkill
 		let skills[skillType][i]["attributeCode"] := GetSkillGoverningAttributeC skillCode
-		let skills[skillType][i]["amount"] := player.GetBaseAV3C skillCode
+		set skillLevel to player.GetBaseAV3C skillCode
+		let skills[skillType][i]["amount"] := skillLevel
+		set fSkillUseMinorMult to GetGameSetting "fSkillUseMinorMult"
+		set fSkillUseFactor to GetGameSetting "fSkillUseFactor"
+		set fSkillUseExp to GetGameSetting "fSkillUseExp"
+		let skills[skillType][i]["baseExpReq"] := fSkillUseMinorMult * (fSkillUseFactor * skillLevel) ^ fSkillUseExp
 		let skills[skillType][i]["useIncrements"] := ar_Construct "Array"
-		let skills[skillType][i]["useIncrements"][0] := GetSkillUseIncrementC skillCode 0
-		let skills[skillType][i]["useIncrements"][1] := GetSkillUseIncrementC skillCode 1
+		let skills[skillType][i]["useIncrements"][0] := GetSkillUseIncrementC skillCode 0 * 1
+		let skills[skillType][i]["useIncrements"][1] := GetSkillUseIncrementC skillCode 1 * 1
 
 		if isClassSkill == 0
 			let skills[skillType][i]["softCap"] := call rcvGetSkillSoftCap skillCode
 		endif
-		
+		let skills["all"][skillCode - 12] := skills[skillType][i]
 		let skillCode := skillCode + 1
 	loop
 	

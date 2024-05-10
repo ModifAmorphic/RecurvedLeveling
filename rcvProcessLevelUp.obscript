@@ -4,6 +4,13 @@ int i
 
 Begin _Function { }
 	DebugPrint "recurve: Processing level up to level %g." player.GetLevel
+	; Apply any attribute progress overages to the new level
+	if (Recurved.ExcessAttributeProgress > 0)
+		DebugPrint "recurve: Setting level progress to previous level excess of %g." Recurved.ExcessAttributeProgress
+		SetPCMajorSkillUps Recurved.ExcessAttributeProgress
+	endif
+	; reset excess attribute progress
+	set Recurved.ExcessAttributeProgress to 0
 	; Carry over any left over progress points from the previous level and apply.
 	if (Recurved.RemainingAttributeProgressDisabled == 0)
 		call rcvSetLevelProgress
@@ -18,20 +25,15 @@ Begin _Function { }
 	set Recurved.AttributeFailsafeEnabled to 0
 	; set current level
 	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
-	; ; set current and next level curves
-	let Recurved.LevelCurves[player.GetLevel - 1] := call rcvGetLevelCurve player.GetLevel
-	let Recurved.LevelCurves[player.GetLevel] := call rcvGetLevelCurve (player.GetLevel + 1)
 
 	DebugPrint "recurve: Loaded level data for current level, level curves for current and next level."
 	; Normalize health for the level
 	if (Recurved.EnduranceHealthNormalizationDisabled == 0)
 		call rcvApplyHealthNormalization player.GetLevel
 	endif
-	; Apply any attribute progress overages to the new level
-	if (Recurved.ExcessAttributeProgress > 0)
-		DebugPrint "recurve: Setting level progress to previous level excess of %g." Recurved.ExcessAttributeProgress
-		SetPCMajorSkillUps Recurved.ExcessAttributeProgress
-	endif
-	; reset excess attribute progress
-	set Recurved.ExcessAttributeProgress to 0
+
+	; refresh with health normalization changes
+	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+
+	call rcvNullPreviousLevels
 End
