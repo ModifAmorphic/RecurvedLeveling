@@ -27,6 +27,9 @@ Begin _Function { forceRefresh }
 	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastEffectCheckTick
 	if (shouldContinue == 0)
 		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastEffectCheckTick
+		if (shouldContinue == 0)
+			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeProtection RecurvedMessenger.LastMsgCheckTick
+		endif
 	endif
 	set RecurvedMessenger.LastEffectCheckTick to RecurvedController.GlobalTick
 	if (shouldContinue == 0 && forceRefresh == 0)
@@ -35,8 +38,10 @@ Begin _Function { forceRefresh }
 
 	; Add effect when attribute protection is first enabled (experience requirements for an attribute's major skills is increased exponentially)
 	if (Recurved.AttributeProtectionDisabled == 0)
-
-		let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.OverrideReasonAttributeProtection
+		let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.OverrideReasonOverlevel
+		if ((ar_Size overrides) < 1)
+			let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.OverrideReasonAttributeProtection
+		endif
 		set i to 0
 		if Eval ((ar_Size overrides) > 0)
 			let skillCodes := ar_Construct "Array"

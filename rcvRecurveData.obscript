@@ -26,12 +26,18 @@ int OverrideReasonOverlevel
 int OverrideReasonAttributeProtection
 int OverrideReasonWeapon
 
+;; Penalty Reasons
+int PenaltyTypeSoftcap
+int PenaltyTypeAttributeProtection
+int PenaltyTypeOverleveled
+
 ; Event Types
 int EventTypeGameRestarted
 int EventTypeGameLoaded
 int EventTypeGlobalTickReset
 int EventTypeLevelUp
 int EventTypeSkillChange
+int EventTypeAttributeProtection
 
 ; ### Ini variables  ###
 ;; Major Overage Prevention temporarily caps major skill increases for governing attributes 
@@ -255,6 +261,7 @@ int EventExpirationTicks
 int DumpLevel
 short DumpCurrentLevel
 int DumpLevelCurve
+short DumpActiveEffects
 short ResetSkillUseOverrides
 short GetNormalizedEndurance
 int SetNormalizedEndurance

@@ -10,6 +10,9 @@ Begin _Function {}
 	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastMsgCheckTick
 	if (shouldContinue == 0)
 		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastMsgCheckTick
+		if (shouldContinue == 0)
+			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeProtection RecurvedMessenger.LastMsgCheckTick
+		endif
 	endif
 	set RecurvedMessenger.LastMsgCheckTick to RecurvedController.GlobalTick
 	if (shouldContinue == 0)

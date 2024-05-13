@@ -12,7 +12,7 @@ Begin _Function { penalizedSkills }
 		let useIncMod := penalizedSkills[i]["useIncModifier"]
 		let skillName := ActorValueToStringC penalizedSkills[i]["skillCode"]
 		if (useIncMod == 0)
-			let dispMessage := "Experience is disabled for " + skillName
+			let dispMessage := sv_Construct "Experience is disabled for %z" skillName
 		elseif (useIncMod < 2)
 			let dispMessage := sv_Construct "Additional progress in %z is slightly difficult" skillName
 		elseif (useIncMod < 4)
@@ -23,6 +23,7 @@ Begin _Function { penalizedSkills }
 			let dispMessage := sv_Construct "Additional progress in %z is insurmountable" skillName
 		endif
 		Message $dispMessage
+		let i += 1
 	loop
 	sv_Destruct skillName
 	sv_Destruct dispMessage

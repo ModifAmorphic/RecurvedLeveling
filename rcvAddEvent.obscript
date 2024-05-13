@@ -22,6 +22,8 @@ Begin _Function { eventType data }
         DebugPrint "recurve: New Event added { eventType=%g (LevelUp), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
     elseif(eventType == Recurved.EventTypeSkillChange)
         DebugPrint "recurve: New Event added { eventType=%g (SkillChange), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    elseif(eventType == Recurved.EventTypeAttributeProtection)
+        DebugPrint "recurve: New Event added { eventType=%g (AttributeProtection), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
     else
         DebugPrint "recurve: New Event added { eventType=%g (Unknown), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
     endif

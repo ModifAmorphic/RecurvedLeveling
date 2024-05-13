@@ -116,6 +116,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 			let skillsCapped := ar_Size protectedSkills
 		endif
 		set isProtectionApplied to 1
+		call rcvAddEvent Recurved.EventTypeAttributeProtection skillsCapped
 	endif
 	
 	if (isProtectionApplied == 0) ; If no protection applied, then unlock any capped skills

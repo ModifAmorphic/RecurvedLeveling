@@ -25,12 +25,17 @@ Begin Function {} ; Set constants
     set Recurved.OverrideReasonOverlevel to 0
     set Recurved.OverrideReasonAttributeProtection to 1
     set Recurved.OverrideReasonWeapon to 2
+	;; Penalty Reasons
+	set Recurved.PenaltyTypeSoftcap to 0
+	set Recurved.PenaltyTypeAttributeProtection to 1
+	set Recurved.PenaltyTypeOverleveled to 2
 	;; Events
 	set Recurved.EventTypeGameRestarted to 0
 	set Recurved.EventTypeGameLoaded to 1
 	set Recurved.EventTypeGlobalTickReset to 2
 	set Recurved.EventTypeLevelUp to 3
 	set Recurved.EventTypeSkillChange to 4
+	set Recurved.EventTypeAttributeProtection to 5
     ;; Messenger constants
     set RecurvedMessenger.EffectFailsafe to 0
 	set RecurvedMessenger.EffectAttributeProtection to 1
