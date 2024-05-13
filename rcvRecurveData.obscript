@@ -252,4 +252,6 @@ int DumpLevel
 short DumpCurrentLevel
 int DumpLevelCurve
 short ResetSkillUseOverrides
-int SlowAttributeSkills
+short GetNormalizedEndurance
+int SetNormalizedEndurance
+int SetHealth

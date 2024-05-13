@@ -1,11 +1,13 @@
 scn rcvDebugRunCommands
 
 short isOverLevel
-ref abilitySpell
-ref abilityDrainEffect
-int effectIndex
+int setHealth
 string_var effectName
 string_var formId
+
+; ref abilitySpell
+; ref abilityDrainEffect
+; int effectIndex
 
 Begin _Function {}
 	if (Recurved.DumpLevel > 0)
@@ -33,47 +35,68 @@ Begin _Function {}
         set RecurvedController.HasUpdate to 1
     endif
 
-    if (Recurved.SlowAttributeSkills > -1)
-        ; ; player.AddSpell 0001CE5C
-        ; let abilityDrainEffect := DRAT
-        ; ;SetName effectName, abilityDrainEffect 
-        ; let abilitySpell := rcvAttributeProtection
-        ; ;RemoveAllEffectItems abilitySpell
-        ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
-        ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills rcvAttributeProtection effectIndex
-        ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
-        ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) rcvAttributeProtection effectIndex
+    ; if (Recurved.SlowAttributeSkills > -1)
+    ;     ; ; player.AddSpell 0001CE5C
+    ;     ; let abilityDrainEffect := DRAT
+    ;     ; ;SetName effectName, abilityDrainEffect 
+    ;     ; let abilitySpell := rcvAttributeProtection
+    ;     ; ;RemoveAllEffectItems abilitySpell
+    ;     ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
+    ;     ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills rcvAttributeProtection effectIndex
+    ;     ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
+    ;     ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) rcvAttributeProtection effectIndex
         
-        ; player.AddSpell abilitySpell
-        ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
+    ;     ; player.AddSpell abilitySpell
+    ;     ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
         
-        ;; cloning
-        ; let effectName := ActorValueToStringC Recurved.SlowAttributeSkills
-        ; let effectName := effectName + " Skill Progress Slowed"
-        ; let abilityDrainEffect := DRAT
-        ; let abilitySpell := CloneForm rcvAttributeProtection
-        ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
-        ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills abilitySpell effectIndex
-        ; SetName effectName abilitySpell
-        ; player.AddSpell abilitySpell
-        ; let formId := GetFormIDString abilitySpell
-        ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
-        ; ;second effect
-        ; let effectName := ActorValueToStringC (Recurved.SlowAttributeSkills + 1)
-        ; let effectName := effectName + " Skill Progress Slowed"
-        ; let abilityDrainEffect := DRAT
-        ; let abilitySpell := CloneForm rcvAttributeProtection
-        ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
-        ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) abilitySpell effectIndex
-        ; SetName effectName abilitySpell
-        ; player.AddSpell abilitySpell
-        ; let formId := GetFormIDString abilitySpell
-        ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
+    ;     ;; cloning
+    ;     ; let effectName := ActorValueToStringC Recurved.SlowAttributeSkills
+    ;     ; let effectName := effectName + " Skill Progress Slowed"
+    ;     ; let abilityDrainEffect := DRAT
+    ;     ; let abilitySpell := CloneForm rcvAttributeProtection
+    ;     ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
+    ;     ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills abilitySpell effectIndex
+    ;     ; SetName effectName abilitySpell
+    ;     ; player.AddSpell abilitySpell
+    ;     ; let formId := GetFormIDString abilitySpell
+    ;     ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
+    ;     ; ;second effect
+    ;     ; let effectName := ActorValueToStringC (Recurved.SlowAttributeSkills + 1)
+    ;     ; let effectName := effectName + " Skill Progress Slowed"
+    ;     ; let abilityDrainEffect := DRAT
+    ;     ; let abilitySpell := CloneForm rcvAttributeProtection
+    ;     ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
+    ;     ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) abilitySpell effectIndex
+    ;     ; SetName effectName abilitySpell
+    ;     ; player.AddSpell abilitySpell
+    ;     ; let formId := GetFormIDString abilitySpell
+    ;     ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
+    ; endif
+    if (Recurved.GetNormalizedEndurance)
+        PrintToConsole "recurve: Normalized Endurance: %.4f" Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedValue"]
+        PrintToConsole "recurve: Normalized Increase: %g" Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedIncrease"]
+        PrintToConsole "recurve: Recorded Health: %g" Recurved.Levels[player.getlevel - 1]["health"]
     endif
+    if (Recurved.SetNormalizedEndurance)
+		let Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedValue"] := Recurved.SetNormalizedEndurance
+        PrintToConsole "recurve: Recorded normalizedValue %.2f." Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedValue"]
+    endif
+    if (Recurved.SetHealth)
+        let Recurved.Levels[player.getlevel - 1]["health"] := Recurved.SetHealth
+        let setHealth := Recurved.SetHealth - (Floor Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["value"] *  (GetGameSetting "fPCBaseHealthMult"))
+        player.SetActorValueC Recurved.HealthAvc setHealth
+        PrintToConsole "recurve: Recorded health value %g." Recurved.Levels[player.getlevel - 1]["health"]
+        PrintToConsole "recurve: Executed %qplayer.SetActorValueC %g %g%q." Recurved.HealthAvc setHealth
+    endif
+
     set Recurved.DumpLevel to 0
     set Recurved.DumpCurrentLevel to 0
     set Recurved.DumpLevelCurve to 0
     set Recurved.ResetSkillUseOverrides to 0
-    set Recurved.SlowAttributeSkills to -1
+    ;set Recurved.SlowAttributeSkills to -1
+    set Recurved.GetNormalizedEndurance to 0
+    set Recurved.SetNormalizedEndurance to 0
+    set Recurved.SetHealth to 0
     sv_Destruct effectName
+    sv_Destruct formId
 End

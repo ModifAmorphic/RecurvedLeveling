@@ -86,9 +86,6 @@ Begin _GameMode
 
 	; Run any debug commands that may be pending
 	if Recurved.DebugEnabled
-		if (isGameLoadedPeek)
-			set Recurved.SlowAttributeSkills to -1
-		endif
 		call rcvDebugRunCommands
 	endif
 

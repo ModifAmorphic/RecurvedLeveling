@@ -7,7 +7,7 @@ Begin Function {}
 	call rcvPruneEvents 0
 	; update the remaining event ticks to keep their tick offset (giving them negative values)
 	while (i < ar_Size Recurved.EventHistory)
-		let Recurved.EventHistory["tick"] := 0 - Recurved.EventHistory["tick"]
+		let Recurved.EventHistory[i]["tick"] := 0 - Recurved.EventHistory[i]["tick"]
 		let i += 1
 	loop
 	

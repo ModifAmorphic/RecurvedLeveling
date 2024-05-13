@@ -27,7 +27,7 @@ Begin _Function{ skillCode effectType }
 			set spellExists to 1
 			let recurvedSpell := recurvedEffect["spell"]
 			let recurvedEffect["active"] := 1
-			DebugPrint "recurve: Adding existing spell %n to player." recurvedEffect["spell"]
+			;DebugPrint "recurve: Adding existing spell %n to player." recurvedEffect["spell"]
 			break
 		endif
 		let i += 1
@@ -69,7 +69,6 @@ Begin _Function{ skillCode effectType }
 		SetNthEffectItemActorValueC attributeCode recurvedSpell 0
 	endif
 	let formId := GetFormIDString recurvedSpell
-	DebugPrint "recurve: Adding spell %n (%z) with effect %n for skillCode %g and effect type %g." recurvedSpell formId magicEffect skillCode effectType
 	; finally, add the spell
 	;; If a forced refresh, then silently add the spell
 	if (RecurvedMessenger.ForceEffectsRefresh)
@@ -77,5 +76,8 @@ Begin _Function{ skillCode effectType }
 	else
 		player.AddSpell recurvedSpell
 	endif
+	DebugPrint "recurve: Added spell %n (%z) with effect %n for skillCode %g and effect type %g to player." recurvedSpell formId magicEffect skillCode effectType
+	sv_Destruct formId
+	sv_Destruct spellName
 	SetFunctionValue recurvedSpell
 End

@@ -3,11 +3,15 @@ scn rcvShowAttributeProtectionMessageBox
 string_var replacer
 string_var formattedMessage
 ;input params
-string_var message
+string_var dispMessage
 int minimumMaxedAttributes
-Begin _Function { message minimumMaxedAttributes }
-	let formattedMessage := sv_Construct "%z" message
+Begin _Function { dispMessage minimumMaxedAttributes }
+	let formattedMessage := sv_Construct "%z" dispMessage
 	let replacer := sv_Construct "{{MinimumMaxedAttributes}}|%g" minimumMaxedAttributes
 	sv_Replace $replacer formattedMessage
 	MessageBoxEx formattedMessage
+
+	sv_Destruct replacer
+	sv_Destruct formattedMessage
+	sv_Destruct dispMessage
 End

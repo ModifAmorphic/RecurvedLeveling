@@ -5,7 +5,7 @@ int attributeCode
 string_var attributeName
 string_var attributeNames
 string_var attributeReplacer
-string_var message
+string_var dispMessage
 float useIncMod
 array_var penalizedAttributes
 
@@ -23,23 +23,27 @@ Begin _Function { penalizedAttributes }
 		let i += 1
 	loop
 	let attributeReplacer := sv_Construct "{{AttributeName}}|%z" attributeNames
-	;let message := sv_Construct "%z" Recurved.AttributeProtectionMessage
-	sv_Replace $attributeReplacer message
+	;let dispMessage := sv_Construct "%z" Recurved.AttributeProtectionMessage
+	sv_Replace $attributeReplacer dispMessage
 	if (useIncMod == 0)
-		let message := sv_Construct "Experience gains are disabled for %z major skills" attributeNames
+		let dispMessage := sv_Construct "Experience gains are disabled for %z major skills" attributeNames
 	elseif (useIncMod < 2)
-		let message := sv_Construct "Learning %z major skills is slightly difficult" attributeNames
+		let dispMessage := sv_Construct "Learning %z major skills is slightly difficult" attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|slightly more difficult than normal"
 	elseif (useIncMod < 4)
-		let message := sv_Construct "Learning %z major skills is challenging" attributeNames
+		let dispMessage := sv_Construct "Learning %z major skills is challenging" attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|considerably more difficult than normal"
 	elseif (useIncMod < 8)
-		let message := sv_Construct "Training %z major skills is extremely challenging" attributeNames
+		let dispMessage := sv_Construct "Training %z major skills is extremely challenging" attributeNames
 		; let difficultyReplacer := sv_Construct "{{Difficulty}}|significantly more difficult than normal"
 	else
-		let message := sv_Construct "Learning %z major skills is insurmountable" attributeNames
+		let dispMessage := sv_Construct "Learning %z major skills is insurmountable" attributeNames
 		;let difficultyReplacer := sv_Construct "{{Difficulty}}|impossible"
 	endif
-	; sv_Replace $difficultyReplacer message
-	Message $message
+	; sv_Replace $difficultyReplacer dispMessage
+	Message $dispMessage
+	sv_Destruct attributeName
+	sv_Destruct attributeNames
+	sv_Destruct attributeReplacer
+	sv_Destruct dispMessage
 End

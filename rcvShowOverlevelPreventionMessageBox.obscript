@@ -1,12 +1,14 @@
 scn rcvShowOverlevelPreventionMessageBox
 
 string_var progressReplacer
-string_var message
+string_var dispMessage
 ;input params
 int excessProgress
 Begin _Function { excessProgress }
-	let message := "Recurved: Overlevel Prevention%rYou are {{Progress}} progress points over the current level, one shy of the next level. You will no longer receive experience for any Major and Minor Skills until you level up. In other words, go to bed."
+	let dispMessage := "Recurved: Overlevel Prevention%rYou are {{Progress}} progress points over the current level, one shy of the next level. You will no longer receive experience for any Major and Minor Skills until you level up. In other words, go to bed."
 	let progressReplacer := sv_Construct "{{Progress}}|%g" excessProgress
-	sv_Replace $progressReplacer message
-	MessageBoxEx message
+	sv_Replace $progressReplacer dispMessage
+	MessageBoxEx dispMessage
+	sv_Destruct progressReplacer
+	sv_Destruct dispMessage
 End

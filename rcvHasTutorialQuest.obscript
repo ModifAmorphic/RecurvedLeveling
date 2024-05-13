@@ -23,4 +23,5 @@ Begin _Function {  } ; Checks if the player has either the MQ01 or Charactergen 
 		let i += 1
 	loop
     SetFunctionValue isAssigned
+	sv_Destruct editorId
 End
