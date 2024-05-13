@@ -7,7 +7,6 @@ int ticks
 Begin _Function { seconds }
 	if (RecurvedController.fQuestDelayTime > 0)
 		set ticks to seconds / RecurvedController.fQuestDelayTime
-		DebugPrint "recurve: Converted %g seconds to %g ticks using a RecurvedController.fQuestDelayTime of %.2f" seconds ticks RecurvedController.fQuestDelayTime
 	endif
 	SetFunctionValue ticks
 End

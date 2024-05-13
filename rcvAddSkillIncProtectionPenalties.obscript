@@ -35,7 +35,7 @@ Begin _Function { attributes lvlProgress skillIncsForMaxAttrib levelCurve } ; Ad
 		set i to 0
 		while (i < attribSkillCount)
 			let skillCode := majorSkills[i]["code"]
-			call rcvAddSkillUseIncOverride skillCode expMultiplier expMultiplier (Recurved.SkillUseOverrideReasons["AttributeProtection"])
+			call rcvAddSkillUseIncOverride skillCode expMultiplier expMultiplier (Recurved.OverrideReasonAttributeProtection)
 			DebugPrint "recurve: Attribute Protection added use exp overrides for skill %g, attribute %g. Experience Multiplier: %g. skillIncsForMaxAttrib: %g" skillCode attributes[attrIndex] expMultiplier skillIncsForMaxAttrib
 			let i += 1
 			ar_Append skillsModified skillCode

@@ -136,13 +136,8 @@ Begin _Function { level }
 		let capUseInc1 := Recurved.DefaultSkillUseIncrements[skillCode][0] * Recurved.AllExperienceMultiplier
 		let capUseInc2 := Recurved.DefaultSkillUseIncrements[skillCode][1] * Recurved.AllExperienceMultiplier
 		if Recurved.MinorSkillSoftCapsDisabled == 0
-			if (Recurved.SoftCapMulti > 0)
-				let capUseInc1 /= Recurved.SoftCapMulti
-				let capUseInc2 /= Recurved.SoftCapMulti
-			else
-				set capUseInc1 to 0
-				set capUseInc2 to 0
-			endif
+			let capUseInc1 := call rcvCalculateUseIncrement capUseInc1 Recurved.SoftCapMulti
+			let capUseInc2 := call rcvCalculateUseIncrement capUseInc2 Recurved.SoftCapMulti
 		endif
 		let levelCurve["skills"][i] := ar_Construct "StringMap"
 		let levelCurve["skills"][i]["skillCode"] := skillCode

@@ -1,0 +1,28 @@
+scn rcvFindOverridenSkills
+
+array_var useKvp
+array_var useOverride
+array_var ovrSkill
+
+; inputs
+int overrideReason
+
+; ouput
+array_var overridenSkills
+
+Begin _Function { overrideReason } ; Gets all skill use overrides for a particular overrideReason.
+
+	let overridenSkills := ar_Construct "Array"
+	
+	foreach useKvp <- Recurved.SkillUseOverrides
+		let useOverride := useKvp["value"]
+		if Eval(useOverride["reason"] == overrideReason)
+			let ovrSkill := ar_Construct "StringMap"
+			let ovrSkill["skillCode"] := useOverride["skillCode"]
+			let ovrSkill["overrideReason"] := overrideReason
+			let ovrSkill["exp"] := GetPlayerSkillUseC useOverride["skillCode"]
+			ar_Append overridenSkills ovrSkill
+		endif
+	loop
+	SetFunctionValue overridenSkills
+End

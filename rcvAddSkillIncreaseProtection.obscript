@@ -20,7 +20,7 @@ int maxedAttrProgressReq
 array_var levelCurve
 array_var failsafeSkills
 array_var protectedSkills
-array_var removedProtections
+int removedProtections
 
 ; inputs
 int skillCode       ; Actor value code for the skill
@@ -33,11 +33,10 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	
 	; if disabled, ensure any existing protections are removed then get out of here
 	if Recurved.AttributeProtectionDisabled
-		let removedProtections := call rcvRemoveSkillOverageProtection
-		if Eval ((ar_Size removedProtections) > 0)
-			let skillsCapped := skillsCapped - (ar_Size removedProtections)
-		endif
+		let removedProtections := call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
+		let skillsCapped -= removedProtections
 		SetFunctionValue skillsCapped
+		DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." removedProtections
 		return
 	endif
 
@@ -120,10 +119,9 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	endif
 	
 	if (isProtectionApplied == 0) ; If no protection applied, then unlock any capped skills
-		let removedProtections := call rcvRemoveSkillOverageProtection
-		if Eval ((ar_Size removedProtections) > 0)
-			let skillsCapped := skillsCapped - (ar_Size removedProtections)
-		endif
+		let removedProtections := call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
+		let skillsCapped -= removedProtections
+		DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." removedProtections
 	endif
 	SetFunctionValue skillsCapped
 	;DebugPrint "recurve: Dumping array Recurved.SkillUseOverrides after processing"

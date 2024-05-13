@@ -44,7 +44,7 @@ Begin _Function { addedLevelProgress isScripted }
 			set i to 12
 			while (i < 33)
 				ar_Append allSkills i
-				call rcvAddSkillUseIncOverride i 0 0 Recurved.SkillUseOverrideReasons["Overlevel"]
+				call rcvAddSkillUseIncOverride i 0 0 Recurved.OverrideReasonOverlevel
 				let i += 1
 			loop
 			set overlevelPrevented to 1

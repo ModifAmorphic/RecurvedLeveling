@@ -1,0 +1,39 @@
+scn rcvSetConstants
+
+Begin Function {} ; Set constants
+
+	;; attributes
+	set Recurved.StrengthAvc to 0
+	set Recurved.IntelligenceAvc to 1
+	set Recurved.WillpowerAvc to 2
+	set Recurved.AgilityAvc to 3
+	set Recurved.SpeedAvc to 4
+	set Recurved.EnduranceAvc to 5
+	set Recurved.PersonalityAvc to 6
+	set Recurved.LuckAvc to 7
+	set Recurved.HealthAvc to 8
+	set Recurved.MagickaAvc to 9
+	set Recurved.FatigueAvc to 9
+	;; equip exp tracking
+	set Recurved.BlockAvc to 15
+	set Recurved.HeavyArmorAvc to 18
+	set Recurved.LightArmorAvc to 27
+	set Recurved.BlockIndex to 0
+	set Recurved.HeavyArmorIndex to 1
+	set Recurved.LightArmorIndex to 2
+	;; override reasons
+    set Recurved.OverrideReasonOverlevel to 0
+    set Recurved.OverrideReasonAttributeProtection to 1
+    set Recurved.OverrideReasonWeapon to 2
+	;; Events
+	set Recurved.EventTypeGameRestarted to 0
+	set Recurved.EventTypeGameLoaded to 1
+	set Recurved.EventTypeGlobalTickReset to 2
+	set Recurved.EventTypeLevelUp to 3
+	set Recurved.EventTypeSkillChange to 4
+    ;; Messenger constants
+    set RecurvedMessenger.EffectFailsafe to 0
+	set RecurvedMessenger.EffectAttributeProtection to 1
+	set RecurvedMessenger.EffectSoftcap to 2
+
+End

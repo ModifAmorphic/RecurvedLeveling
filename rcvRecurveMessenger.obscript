@@ -36,6 +36,7 @@ short IsSoftcapEffectsAdded
 int EffectFailsafe
 int EffectAttributeProtection
 int EffectSoftcap
+
 short isFirstPass
 
 ; Effects Vars
@@ -53,9 +54,7 @@ Begin _GameMode
 	; Allow other quests to start before checking on messaging
 	set isGameLoaded to GetGameLoaded
 	if (isGameLoaded)
-		set EffectFailsafe to 0
-		set EffectAttributeProtection to 1
-		set EffectSoftcap to 2
+		
 		; Only show a message every 15 seconds
 		let MessageWaitTicks := call rcvConvertSecondsToTicks Recurved.MessageWaitSeconds
 		; only show a message 

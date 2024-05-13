@@ -1,6 +1,6 @@
 scn rcvRecurveData
-
-; Attribute "Constants"
+; ## Constants ##
+;; Attribute "Constants"
 int StrengthAvc
 int EnduranceAvc
 int SpeedAvc
@@ -13,7 +13,7 @@ int HealthAvc
 int MagickaAvc
 int FatigueAvc
 
-; skill constants
+;; Skill constants
 int BlockAvc
 int HeavyArmorAvc
 int LightArmorAvc
@@ -21,7 +21,17 @@ int BlockIndex
 int HeavyArmorIndex
 int LightArmorIndex
 
-array_var SkillUseOverrideReasons
+;; Override reasons
+int OverrideReasonOverlevel
+int OverrideReasonAttributeProtection
+int OverrideReasonWeapon
+
+; Event Types
+int EventTypeGameRestarted
+int EventTypeGameLoaded
+int EventTypeGlobalTickReset
+int EventTypeLevelUp
+int EventTypeSkillChange
 
 ; ### Ini variables  ###
 ;; Major Overage Prevention temporarily caps major skill increases for governing attributes 
@@ -236,12 +246,6 @@ ref LastSpellCast
 ; History of events, used mostly for messaging
 array_var EventHistory
 
-; Event Types
-int EventTypeGameRestarted
-int EventTypeGameLoaded
-int EventTypeGlobalTickReset
-int EventTypeLevelUp
-int EventTypeSkillUp
 ; Internal Setting for controlling pruning of stale events so they don't clog up the save file
 int EventExpirationTicks
 

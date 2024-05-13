@@ -1,16 +1,13 @@
 scn rcvProcessMessages
 
 short shouldContinue
-int i
 array_var latestSkills
 array_var updatedSkills
-string_var softCapMsg
-string_var skillName
 
 Begin _Function {}
 
 	; Check if there's been any level up or skill up events since the last time we checked
-	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillUp RecurvedMessenger.LastMsgCheckTick
+	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastMsgCheckTick
 	if (shouldContinue == 0)
 		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastMsgCheckTick
 	endif
@@ -60,8 +57,8 @@ Begin _Function {}
 		; then show the protected skill message
 		;DebugPrint "recurve: Checking Protection Messages GlobalTick=%g, LastProtectionMessageTick=%g, LastProtectionMessageTick=%g" RecurvedController.GlobalTick RecurvedMessenger.LastProtectionMessageTick RecurvedMessenger.LastProtectionMessageTick
 		if (RecurvedController.GlobalTick - RecurvedMessenger.LastProtectionMessageTick > RecurvedMessenger.MessageWaitTicks || RecurvedMessenger.LastProtectionMessageTick == 0)
-			let latestSkills := call rcvFindSkillUseOverridesAttributes (Recurved.SkillUseOverrideReasons["AttributeProtection"])
-			; If the last check is over 5 seconds ago then don't display stale messages
+			let latestSkills := call rcvFindOverridenSkills Recurved.OverrideReasonAttributeProtection
+			; Only show messages for changes that occured within the last RecurvedMessenger.MessageTickWindow seconds
 			if (RecurvedController.GlobalTick - RecurvedMessenger.LastProtectionCheckTick > RecurvedMessenger.MessageTickWindow || RecurvedMessenger.LastProtectionCheckTick == 0)
 				let RecurvedMessenger.PrevPenalizedAttributes := latestSkills
 				set RecurvedMessenger.LastProtectionCheckTick to RecurvedController.GlobalTick
@@ -72,13 +69,10 @@ Begin _Function {}
 				if Eval ((ar_size RecurvedMessenger.PrevPenalizedAttributes) < 1)
 					let RecurvedMessenger.PrevPenalizedAttributes := ar_Construct "Array"
 				endif
-				let updatedSkills := call rcvFindUpdatedAttributeSkills RecurvedMessenger.PrevPenalizedAttributes latestSkills
+				let updatedSkills := call rcvFindUpdatedSkills RecurvedMessenger.PrevPenalizedAttributes latestSkills
 				if Eval ((ar_Size updatedSkills) > 0)
+					call rcvShowSkillPenaltyMessage updatedSkills
 					set RecurvedMessenger.LastProtectionMessageTick to RecurvedController.GlobalTick
-					call rcvShowAttributeProtectionMessage updatedSkills
-					let RecurvedMessenger.PrevPenalizedAttributes := latestSkills
-					let latestSkills := ar_Construct "Array"
-					return
 				endif
 			endif
 			let RecurvedMessenger.PrevPenalizedAttributes := latestSkills
@@ -89,10 +83,9 @@ Begin _Function {}
 
 	; Send Messages for Soft Capped Minor Skills
 	if (Recurved.MinorSkillSoftCapsDisabled == 0)
-		;DebugPrint "recurve: Checking Softcap Messages GlobalTick=%g, LastSoftCapTick=%g, LastSoftCapCheckTick=%g" RecurvedController.GlobalTick RecurvedMessenger.LastSoftCapTick RecurvedMessenger.LastSoftCapCheckTick
 		if (RecurvedController.GlobalTick - RecurvedMessenger.LastSoftCapTick > RecurvedMessenger.MessageWaitTicks || RecurvedMessenger.LastSoftCapTick == 0)
 			let latestSkills := call rcvFindSkillsSoftCapped
-			; If the last check is over 5 seconds ago then don't display stale messages
+			; Only show messages for changes that occured within the last RecurvedMessenger.MessageTickWindow seconds
 			if (RecurvedController.GlobalTick - RecurvedMessenger.LastSoftCapCheckTick > RecurvedMessenger.MessageTickWindow || RecurvedMessenger.LastSoftCapCheckTick == 0)
 				let RecurvedMessenger.PrevSoftcapped := latestSkills
 				set RecurvedMessenger.LastSoftCapCheckTick to RecurvedController.GlobalTick
@@ -104,17 +97,8 @@ Begin _Function {}
 				endif
 				let updatedSkills := call rcvFindUpdatedSkills RecurvedMessenger.PrevSoftcapped latestSkills
 				if Eval ((ar_Size updatedSkills) > 0)
+					call rcvShowSkillPenaltyMessage updatedSkills
 					set RecurvedMessenger.LastSoftCapTick to RecurvedController.GlobalTick
-					set i to 0
-					while (i < ar_Size updatedSkills)
-						let skillName := ActorValueToStringC updatedSkills[i]["skillCode"]
-						let softCapMsg := sv_Construct "You are struggling to make progress with %z." skillName
-						Message $softCapMsg
-						let i += 1
-					loop
-					set i to 0
-					sv_Destruct softCapMsg
-					sv_Destruct skillName
 				endif
 			endif
 			let RecurvedMessenger.PrevSoftcapped := latestSkills

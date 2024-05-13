@@ -1,12 +1,17 @@
 scn rcvSetLevelProgress
 
 array_var prevCurve
-array_var remainingPoints
+array_var remainingAttrProg
 int points
 int levelsAmt
 int curvesAmt
 
-Begin Function {  } ; Sets attribute progress points based on remaining points from previous level
+int i
+int attributeCode
+int remainingPoints
+int progressPoints
+
+Begin _Function {  } ; Sets attribute progress points based on remaining points from previous level
 	let levelsAmt := ar_Size Recurved.Levels
     let curvesAmt := ar_Size Recurved.LevelCurves
 
@@ -15,11 +20,19 @@ Begin Function {  } ; Sets attribute progress points based on remaining points f
 		return
 	endif
 	let prevCurve := call rcvGetLevelCurve (player.GetLevel - 1) 0
-	let remainingPoints := call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) prevCurve
-    let points := ar_Size remainingPoints
+	let remainingAttrProg := call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) prevCurve
+    let points := ar_Size remainingAttrProg
 	DebugPrint "recurve: Character leveled. Applying any left over attribute points to the current level. Found %g points." points
 	if (points > 0)
-	    call rcvSetAttributeProgress (call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) prevCurve)
+		;call rcvSetAttributeProgress (remainingAttrProg)
+	    ;call rcvSetAttributeProgress (call rcvGetRemainingAttributeProgress (Recurved.Levels[player.GetLevel - 2]) prevCurve)
+		while (i < points)
+			let attributeCode := remainingAttrProg[i]["attributeCode"]
+			let remainingPoints := remainingAttrProg[i]["progressPoints"]
+			set progressPoints to GetPCAttributeBonusC attributeCode
+			SetPCAttributeBonusC attributeCode (progressPoints + remainingPoints)
+			let i += 1
+		loop
 	endif
 	
 End

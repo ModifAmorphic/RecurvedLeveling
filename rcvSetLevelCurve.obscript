@@ -62,7 +62,7 @@ Begin _Function { levelCurve useOverrides }
 	;; to a function to avoid copy/pasting these entire loops over and over
 	let skillUseIncs := ar_Construct "Array"
 	; Add any weapon overrides first
-	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides (Recurved.SkillUseOverrideReasons["Weapon"])
+	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides (Recurved.OverrideReasonWeapon)
 	set o to 0
 	;foreach (useKvp <- ruseOverrides)
 	;	let useOverride := useKvp["value"]
@@ -75,14 +75,14 @@ Begin _Function { levelCurve useOverrides }
 		let skillUseInc["useIncs"][0] := useOverride["useInc"][0]
 		let skillUseInc["useIncs"][1] := useOverride["useInc"][1]
 		let skillUseInc["reasons"] := ar_Construct "Array"
-		let skillUseInc["reasons"][0] := Recurved.SkillUseOverrideReasons["Weapon"]
+		let skillUseInc["reasons"][0] := Recurved.OverrideReasonWeapon
 		ar_Append skillUseIncs skillUseInc
 		let o += 1
 	loop
 
 	; modify 
 	set o to 0
-	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides Recurved.SkillUseOverrideReasons["AttributeProtection"]
+	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides Recurved.OverrideReasonAttributeProtection
 	; foreach (useKvp <- ruseOverrides)
 	; 	let useOverride := useKvp["value"]
 	DebugPrint "recurve: Creating %g AttributeProtection exp overrides." (ar_Size ruseOverrides)
@@ -104,20 +104,20 @@ Begin _Function { levelCurve useOverrides }
 			let skillUseInc["useIncs"][0] := useOverride["useInc"][0]
 			let skillUseInc["useIncs"][1] := useOverride["useInc"][1]
 			let skillUseInc["reasons"] := ar_Construct "Array"
-			let skillUseInc["reasons"][0] := Recurved.SkillUseOverrideReasons["AttributeProtection"]
+			let skillUseInc["reasons"][0] := Recurved.OverrideReasonAttributeProtection
 			ar_Append skillUseIncs skillUseInc
 		else
 			; If use increment was added in an earlier foreach, then apply the Attribute Protection use modifiers to the existing modified use experience amounts
 			let skillUseInc["useIncs"][0] := call rcvCalculateUseIncrement (skillUseInc["useIncs"][0]) (useOverride["useIncModifiers"][0])
 			let skillUseInc["useIncs"][1] := call rcvCalculateUseIncrement (skillUseInc["useIncs"][1]) (useOverride["useIncModifiers"][1])
-			ar_Append (skillUseInc["reasons"]) (Recurved.SkillUseOverrideReasons["AttributeProtection"])
+			ar_Append (skillUseInc["reasons"]) (Recurved.OverrideReasonAttributeProtection)
 		endif
 		let o += 1
 	loop
 
 	set i to 0
 	set o to 0
-	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides Recurved.SkillUseOverrideReasons["Overlevel"]
+	let ruseOverrides := call rcvFindSkillUseOverrides useOverrides Recurved.OverrideReasonOverlevel
 	DebugPrint "recurve: Creating %g Overlevel exp overrides." (ar_Size ruseOverrides)
 	; foreach (useKvp <- ruseOverrides)
 	; 	let useOverride := useKvp["value"]
@@ -139,7 +139,7 @@ Begin _Function { levelCurve useOverrides }
 		let skillUseInc["reasons"] := ar_Construct "Array"
 		let skillUseInc["useIncs"][0] := useOverride["useInc"][0]
 		let skillUseInc["useIncs"][1] := useOverride["useInc"][1]
-		let skillUseInc["reasons"][0] := Recurved.SkillUseOverrideReasons["Overlevel"]
+		let skillUseInc["reasons"][0] := Recurved.OverrideReasonOverlevel
 		let o += 1
 	loop
 

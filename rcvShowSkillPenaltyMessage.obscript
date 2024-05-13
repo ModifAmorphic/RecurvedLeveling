@@ -1,0 +1,29 @@
+scn rcvShowSkillPenaltyMessage
+
+int i
+string_var skillName
+string_var dispMessage
+float useIncMod
+
+; inputs
+array_var penalizedSkills
+Begin _Function { penalizedSkills }
+	while (i < ar_Size penalizedSkills)
+		let useIncMod := penalizedSkills[i]["useIncModifier"]
+		let skillName := ActorValueToStringC penalizedSkills[i]["skillCode"]
+		if (useIncMod == 0)
+			let dispMessage := "Experience is disabled for " + skillName
+		elseif (useIncMod < 2)
+			let dispMessage := sv_Construct "Additional progress in %z is slightly difficult" skillName
+		elseif (useIncMod < 4)
+			let dispMessage := sv_Construct "Additional progress in %z is challenging" skillName
+		elseif (useIncMod < 8)
+			let dispMessage := sv_Construct "Additional progress in %z is extremely challenging" skillName
+		else
+			let dispMessage := sv_Construct "Additional progress in %z is insurmountable" skillName
+		endif
+		Message $dispMessage
+	loop
+	sv_Destruct skillName
+	sv_Destruct dispMessage
+End

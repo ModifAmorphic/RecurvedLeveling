@@ -10,7 +10,7 @@ int overrideReason
 ; ouput
 array_var reasonUseOverrides
 
-Begin Function { userOverrides overrideReason } ; Gets all skill use overrides for a particular Recurved.SkillUseOverrideReasons overrideReason.
+Begin Function { userOverrides overrideReason } ; Gets all skill use overrides for a particular overrideReason.
 
 	let reasonUseOverrides := ar_Construct "Array"
 	

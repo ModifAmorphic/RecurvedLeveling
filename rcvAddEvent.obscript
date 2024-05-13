@@ -11,5 +11,19 @@ Begin _Function { eventType data }
     let newEvent["tick"] := RecurvedController.GlobalTick
     let newEvent["data"] := data
     ar_Append Recurved.EventHistory newEvent
-    DebugPrint "recurve: New Event added { eventType=%g, tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+
+    if (eventType == Recurved.EventTypeGameRestarted)
+        DebugPrint "recurve: New Event added { eventType=%g (GameRestarted), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    elseif(eventType == Recurved.EventTypeGameLoaded)
+        DebugPrint "recurve: New Event added { eventType=%g (GameLoaded), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    elseif(eventType == Recurved.EventTypeGlobalTickReset)
+        DebugPrint "recurve: New Event added { eventType=%g (GlobalTickReset), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    elseif(eventType == Recurved.EventTypeLevelUp)
+        DebugPrint "recurve: New Event added { eventType=%g (LevelUp), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    elseif(eventType == Recurved.EventTypeSkillChange)
+        DebugPrint "recurve: New Event added { eventType=%g (SkillChange), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    else
+        DebugPrint "recurve: New Event added { eventType=%g (Unknown), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    endif
+
 End

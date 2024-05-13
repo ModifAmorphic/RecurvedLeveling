@@ -17,14 +17,6 @@ Begin Function { skillCode }
 
 	set softCap to attributeValue / 2 + player.GetLevel
 
-	; if player.GetLevel < 21
-	; 	set softCap to attributeValue / 2 + player.GetLevel
-	; elseif player.GetLevel < 41
-	; 	set softCap to attributeValue * .75
-	; else
-	; 	set softCap to attributeValue * .95
-	; endif
-
 	let race := player.GetRace
 	let raceBonus := GetRaceSkillBonusC skillCode race
 	let softCap := softCap + raceBonus
@@ -34,8 +26,8 @@ Begin Function { skillCode }
 		let softCap := softCap + 5
 	endif
 	
-	if softCap > 100
-		set softCap to 100
+	if softCap >= 100
+		set softCap to 999
 	endif
 	
 	SetFunctionValue softCap

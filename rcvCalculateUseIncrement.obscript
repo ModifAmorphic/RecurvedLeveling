@@ -7,7 +7,7 @@ float useIncModifier
 ; ouput
 float modifieduseInc
 
-Begin Function { useInc useIncModifier } ; Gets all skill use overrides for a particular Recurved.SkillUseOverrideReasons overrideReason.
+Begin Function { useInc useIncModifier } ; Calculates a use increment by dividing by the useIncModifier if greater than zero, otherwise returns zero.
 
 	if (useIncModifier > 0)
 		set modifieduseInc to useInc / useIncModifier

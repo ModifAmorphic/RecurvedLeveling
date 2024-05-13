@@ -101,7 +101,9 @@ Begin _GameMode
 	endif
 	if isGameLoadedPeek || IsIniLoadNeeded
 		set IsIniLoadNeeded to 0
-		call rcvLoadIni		
+		call rcvSetConstants
+		call rcvLoadIni
+		call rcvSetConstants
 		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, IsTutorialComplete=%g, HasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected IsTutorialComplete HasUpdate
 		; Prune events and update event time offsets, Reset GlobalTick back to 0
 		call rcvResetGlobalTick
@@ -133,7 +135,7 @@ Begin _GameMode
 		; Ensure existing protections are removed in case this was
 		; recently disabled
 		if Recurved.AttributeProtectionDisabled
-			call rcvRemoveSkillOverageProtection
+			call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
 		endif
 		call rcvAddEvent Recurved.EventTypeGameLoaded GlobalTick
 	endif

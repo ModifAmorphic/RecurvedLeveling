@@ -1,5 +1,6 @@
 scn rcvGetIsInTutorial
 
+ref class
 
 ; output
 short isInTutorial
@@ -11,7 +12,8 @@ Begin _Function {}
 	set isInTutorial to 0
 	; Wait for a class to be selected
 	if RecurvedController.isClassSelected == 0
-		if call rcvHasTutorialClass
+		let class := player.GetClass
+		if class == CharactergenClass
 			set RecurvedController.isTutorialCheckActive to 1
 			if RecurvedController.isGameLoadedPeek
 				DebugPrint "recurve: Character's class is CharactergenClass. Set isTutorialCheckActive to 1."

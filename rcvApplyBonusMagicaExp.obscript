@@ -1,5 +1,6 @@
 scn rcvApplyBonusMagicaExp
 
+int magicItemType
 int spellType
 int spellMasteryLevel
 int skillMasteryLevel
@@ -29,11 +30,15 @@ Begin Function { spellCast caster }
 		return
 	endif
 
-	set spellType to GetMagicItemType spellCast
-
-	; ignore anything but spells
-	if (spellType != 1)
+	set magicItemType to GetMagicItemType spellCast
+	; ignore non spell magic items
+	if (magicItemType != 1)
 		;DebugPrint "recurve: MagicItem is not a spell. SpellType=%g" spellType
+		return
+	endif
+	; only add exp for spell type spells (vs ability, disease, lesser and greater powers)
+	set spellType to GetSpellType spellCast
+	if (spellType != 0)
 		return
 	endif
 
