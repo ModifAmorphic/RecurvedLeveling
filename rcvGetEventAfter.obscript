@@ -1,0 +1,45 @@
+scn rcvGetEventAfter
+
+int i
+int eventCount
+int adjAfterTick
+
+; inputs
+int eventType
+int afterTick
+; outputs
+array_var event
+Begin _Function { eventType afterTick } ; Gets the most recent event that has occured after the tick
+    let eventCount := ar_Size Recurved.EventHistory
+    set adjAfterTick to afterTick
+    ;DebugPrint "recurve: Scanning %g events for Global Tick Reset event that occured after event type %g's tick of %g" eventCount eventType afterTick
+    ; Check if there was a Global rest that occured after the "afterTick" and if so, adjust the adjAfterTick
+    ; to reflect that offset
+    set i to 0
+    while (i < eventCount)
+        if Eval(Recurved.EventHistory[i]["eventType"] == Recurved.EventTypeGlobalTickReset)
+            if Eval(adjAfterTick < Recurved.EventHistory[i]["data"])
+                let adjAfterTick := 0 - afterTick
+                ;DebugPrint "recurve: Found Global Tick reset event. Adjusted tick search to %g" adjAfterTick
+            endif
+            break
+        endif
+        let i += 1
+    loop
+
+    ;DebugPrint "recurve: Scanning %g events event type %g that occured after tick %g" eventCount eventType adjAfterTick
+    set i to eventCount
+    while (i > 0)
+        let i -= 1
+        if Eval(Recurved.EventHistory[i]["tick"] > adjAfterTick)
+            if Eval(Recurved.EventHistory[i]["eventType"] == eventType)
+                let event := ar_Copy Recurved.EventHistory[i]
+                ;DebugPrint "recurve: Found event type %g that occured at tick %g" eventType Recurved.EventHistory[i]["tick"]
+                break
+            endif
+        else
+            break
+        endif
+    loop
+    SetFunctionValue event
+End

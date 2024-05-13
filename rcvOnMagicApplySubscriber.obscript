@@ -3,7 +3,7 @@ scn rcvOnMagicApplySubscriber
 ; inputs
 ref caster
 ref spellCast 
-Begin Function { spellCast caster }
+Begin _Function { spellCast caster }
 	
 	if (Recurved.SpellExpFromMagickaDisabled)
 		;DebugPrint "recurve: Spell experience from magicka is disabled. SpellExpFromMagickaDisabled=%g" Recurved.SpellExpFromMagickaDisabled
@@ -13,6 +13,11 @@ Begin Function { spellCast caster }
 		DebugPrint "recurve: Ignoring additional effect application of spell %n" spellCast
 		return
 	endif
+	
+	if Eval(call rcvGetIsRecurvedSpell spellCast)
+		return
+	endif
+
 	set Recurved.LastSpellCast to spellCast
 	set Recurved.LastCastTick to RecurvedController.GlobalTick
 	call rcvApplyBonusMagicaExp spellCast caster

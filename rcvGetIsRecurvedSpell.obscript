@@ -1,0 +1,30 @@
+scn rcvGetIsRecurvedSpell
+
+int i
+int e
+
+;inputs
+ref spell
+;outputs
+short isRecurvedSpell
+Begin _Function { spell } ; Checks the RecurvedMessenger.Effects array for a dynamically created spell match
+	
+	set isRecurvedSpell to 0
+	set i to 0
+	while (i < ar_Size RecurvedMessenger.Effects)
+		set e to 0
+		while (e < ar_Size RecurvedMessenger.Effects[i])
+			if Eval(spell == RecurvedMessenger.Effects[i][e]["spell"])
+				set isRecurvedSpell to 1
+				break
+			endif
+			let e += 1
+		loop
+		if (isRecurvedSpell)
+			break
+		endif
+		let i += 1
+	loop
+
+	SetFunctionValue isRecurvedSpell
+End

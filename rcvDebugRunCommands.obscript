@@ -5,6 +5,7 @@ ref abilitySpell
 ref abilityDrainEffect
 int effectIndex
 string_var effectName
+string_var formId
 
 Begin _Function {}
 	if (Recurved.DumpLevel > 0)
@@ -33,19 +34,41 @@ Begin _Function {}
     endif
 
     if (Recurved.SlowAttributeSkills > -1)
-        ; player.AddSpell 0001CE5C
-        let effectName := ActorValueToStringC Recurved.SlowAttributeSkills
-        let effectName := effectName + " Skill Progress Slowed"
-        let abilityDrainEffect := DRAT
-        SetName effectName, abilityDrainEffect
-
-        let abilitySpell := rcvAttributeProtection
-        ;RemoveAllEffectItems abilitySpell
-        set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
-        SetNthEffectItemActorValueC Recurved.SlowAttributeSkills abilitySpell effectIndex
-        SetName effectName abilitySpell
-        player.AddSpell abilitySpell
-        DebugPrint "recurve: Added spell %n with effect %n." abilitySpell abilityDrainEffect
+        ; ; player.AddSpell 0001CE5C
+        ; let abilityDrainEffect := DRAT
+        ; ;SetName effectName, abilityDrainEffect 
+        ; let abilitySpell := rcvAttributeProtection
+        ; ;RemoveAllEffectItems abilitySpell
+        ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
+        ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills rcvAttributeProtection effectIndex
+        ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
+        ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) rcvAttributeProtection effectIndex
+        
+        ; player.AddSpell abilitySpell
+        ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
+        
+        ;; cloning
+        ; let effectName := ActorValueToStringC Recurved.SlowAttributeSkills
+        ; let effectName := effectName + " Skill Progress Slowed"
+        ; let abilityDrainEffect := DRAT
+        ; let abilitySpell := CloneForm rcvAttributeProtection
+        ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
+        ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills abilitySpell effectIndex
+        ; SetName effectName abilitySpell
+        ; player.AddSpell abilitySpell
+        ; let formId := GetFormIDString abilitySpell
+        ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
+        ; ;second effect
+        ; let effectName := ActorValueToStringC (Recurved.SlowAttributeSkills + 1)
+        ; let effectName := effectName + " Skill Progress Slowed"
+        ; let abilityDrainEffect := DRAT
+        ; let abilitySpell := CloneForm rcvAttributeProtection
+        ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
+        ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) abilitySpell effectIndex
+        ; SetName effectName abilitySpell
+        ; player.AddSpell abilitySpell
+        ; let formId := GetFormIDString abilitySpell
+        ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
     endif
     set Recurved.DumpLevel to 0
     set Recurved.DumpCurrentLevel to 0

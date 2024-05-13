@@ -100,6 +100,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	; Perform overage protection if level progress exceeds or equals the amount of increases 
 	;; required to max one attribute and the amount of currently maxed attribute bonuses is less 
 	;; than the required amount.
+	DebugPrint "recurve: lvlProgress=%g, skillIncsForMaxAttrib=%.2f, maxedAttrProgressCount=%g, maxedAttrProgressReq=%g" lvlProgress skillIncsForMaxAttrib maxedAttrProgressCount maxedAttrProgressReq
 	if Eval ((lvlProgress >= (Floor skillIncsForMaxAttrib)) && (maxedAttrProgressCount < maxedAttrProgressReq))
 		
 		; If character is about to level without reaching 3 maxed attributes, enable attribute leveling failsafe

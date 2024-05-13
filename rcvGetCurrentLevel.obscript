@@ -62,8 +62,12 @@ Begin _Function {  }
                 let attribute["normalizedIncrease"] := 0
                 ; When no normalization occured, then set to the previous normalized value if one exists
                 ;; otherwise set to raw value
-                if Eval ((ar_Size prevLevel["attributes"]) > i && isPrevLvlRecorded)
-                    let attribute["normalizedValue"] := prevLevel["attributes"][i]["normalizedValue"]
+                if (isPrevLvlRecorded)
+                    if Eval ((ar_Size prevLevel["attributes"]) > i)
+                        let attribute["normalizedValue"] := prevLevel["attributes"][i]["normalizedValue"]
+                    else
+                        let attribute["normalizedValue"] := attribute["value"]
+                    endif
                 else
                     let attribute["normalizedValue"] := attribute["value"]
                 endif                

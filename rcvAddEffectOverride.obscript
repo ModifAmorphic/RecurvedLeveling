@@ -1,0 +1,50 @@
+; Works but requires completely hijacking a magic effect
+scn rcvAddEffectOverride
+
+string_var spellName
+ref magicEffect
+int effectCode
+int resistCode
+array_var trackedEffect
+string_var formId
+string_var iconPath
+; inputs
+int skillCode
+int effectType
+; outputs
+ref recurvedSpell
+Begin _Function{ skillCode effectType }
+	
+	if (effectType == RecurvedMessenger.EffectFailsafe)
+		let recurvedSpell := CloneForm rcvSkillExpPenalty
+	elseif (effectType == RecurvedMessenger.EffectAttributeProtection)
+		let recurvedSpell := CloneForm rcvSkillExpPenalty
+		let magicEffect := DGSP
+		SetMagicEffectName "Major Skills Hindered" magicEffect
+		let spellName := (ActorValueToStringC skillCode) + " progress slowed."
+	elseif (effectType == RecurvedMessenger.EffectSoftcap)
+		let recurvedSpell := CloneForm rcvSkillExpPenalty
+		let magicEffect := DGSP
+		DebugPrint "recurve: Got effectCode %g for BA09" effectCode
+		let iconPath := GetMagicEffectIcon DRSK
+		DebugPrint "recurve: Icon Path is %q%z%q. resistCode=%g" iconPath resistCode
+		SetName "Recurved Effect" magicEffect
+		SetMagicEffectIcon iconPath magicEffect
+		SetMagicEffectName "Minor Skills Hindered" magicEffect
+		let spellName := (ActorValueToStringC skillCode) + " progress difficult."
+	endif
+
+	
+	SetName spellName recurvedSpell
+	AddFullEffectItem magicEffect 0 0 0 0 recurvedSpell
+	let trackedEffect := ar_Construct "StringMap"
+	let trackedEffect["skillCode"] := skillCode
+	let trackedEffect["effectType"] := effectType
+	let trackedEffect["spell"] := recurvedSpell
+	ar_Append RecurvedMessenger.Effects trackedEffect
+	let formId := GetFormIDString recurvedSpell
+	DebugPrint "Adding spell %n (%z) with effect %n for skillCode %g and effect type %g" recurvedSpell formId magicEffect skillCode effectType
+	player.AddSpell recurvedSpell
+	
+	SetFunctionValue recurvedSpell
+End

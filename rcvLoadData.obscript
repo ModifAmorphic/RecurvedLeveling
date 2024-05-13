@@ -72,4 +72,8 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 	set Recurved.LastCastTick to 0
 	set Recurved.LastSpellCast to 0
 
+	if Eval((ar_Size Recurved.EventHistory) < 1)
+		let Recurved.EventHistory := ar_Construct "Array"
+	endif
+
 End

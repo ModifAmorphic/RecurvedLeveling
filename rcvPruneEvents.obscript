@@ -1,0 +1,39 @@
+scn rcvPruneEvents
+
+int i
+int pruneBefore
+int eventTick
+array_var tmpEvents
+int prunedEvents
+; inputs
+short pruneAll
+Begin Function { pruneAll }
+    ; If prune all events, get the count of existing events then reset the array
+    if (pruneAll)
+        let prunedEvents := ar_Size Recurved.EventHistory
+        let Recurved.EventHistory := ar_Construct "Array"
+        SetFunctionValue prunedEvents
+        return
+    endif
+
+    ; otherwise, prune any events older than the current GlobalTick minus EventExpirationTicks
+    ; shuffle recent events into a temp array
+    let tmpEvents := ar_Construct "Array"
+    set pruneBefore to RecurvedController.GlobalTick - Recurved.EventExpirationTicks
+    while (i < ar_Size Recurved.EventHistory)
+        let eventTick := Recurved.EventHistory[i]["tick"]
+        ; prune events that happened before the cutoff, or events that occured before a GlobalTick reset.
+        if (eventTick < pruneBefore || eventTick > RecurvedController.GlobalTick)
+            let prunedEvents := 1
+        else
+            ar_Append tmpEvents Recurved.EventHistory[i]
+        endif
+        let i += 1
+    loop
+
+    ; if events were pruned, then overwrite the EventHistory data with the temp data with older events removed
+    if (prunedEvents)
+        let Recurved.EventHistory := tmpEvents
+    endif
+    SetFunctionValue prunedEvents
+End

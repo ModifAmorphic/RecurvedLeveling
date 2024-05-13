@@ -27,17 +27,30 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	let Recurved.SkillUseOverrideReasons["Overlevel"] := 0
 	let Recurved.SkillUseOverrideReasons["AttributeProtection"] := 1
 	let Recurved.SkillUseOverrideReasons["Weapon"] := 2
-
+	;; Events
+	set Recurved.EventTypeGameRestarted to 0
+	set Recurved.EventTypeGameLoaded to 1
+	set Recurved.EventTypeGlobalTickReset to 2
+	set Recurved.EventTypeLevelUp to 3
+	set Recurved.EventTypeSkillUp to 4
+	
 	; ### Load Default Values ###
 	call rcvLoadIniDefaults
 	
 	;run batch ini settings script
 	if FileExists "Data\Recurved.ini"
 		RunBatchScript "Data\Recurved.ini"
+		if Recurved.DebugEnabled
+			SetDebugMode 1
+		endif
 		DebugPrint "recurve: Ini file Data\Recurved.ini loaded."
 	else
 		PrintToConsole "recurve: Data\Recurved.ini not found."
 	endif
+	
+	; Set expiration for event pruning
+	let Recurved.EventExpirationTicks := call rcvConvertSecondsToTicks Recurved.EventExpirationSeconds
+	DebugPrint "Set EventExpirationTicks to %g from EventExpirationSeconds value of %g." Recurved.EventExpirationTicks Recurved.EventExpirationSeconds
 	
 	; Read secondaries into array for easier access access
 	let Recurved.AttributeSecondaries := ar_Construct "Array"

@@ -51,6 +51,10 @@ short ArmorExpFromDamageDisabled
 short WeaponExpNormalizedDisabled
 ;; Disables extra experience gained from Magicka spent.
 short SpellExpFromMagickaDisabled
+;; Stops "Recurved Effects" for skill experience penalties from being added to the Active Effects tab in game
+short RecurvedEffectsDisabled
+;; Prevents "difficulty with skill X" messages from showing in the upper left hand corner of the screen
+short RecurvedMessagesDisabled
 ;; Debugging
 short DebugEnabled
 
@@ -63,6 +67,7 @@ int Tier1OverageProtectionExponent
 int Tier2OverageProtectionExponent
 int Tier3OverageProtectionExponent
 int Tier4OverageProtectionExponent
+int Tier5OverageProtectionExponent
 
 ;; Guards against missed attribute increases during level ups.
 ;; Will stop all major experience gains one progress point (skill level) before
@@ -117,7 +122,16 @@ float SpellExpFromMagickaModifier
 ;;; at the normal pace get's old.
 float AllExperienceMultiplier
 
-; Level Scaling Settings
+;;; The Magic Effect Abbreviation (https://cs.uesp.net/wiki/Magic_Effects_List) that Recurved leveling effects
+;;; will be displayed under.
+;;; BRDN (Burden) - Default. All recurved skill softcaps / progress penalties will be listed under this effect
+;;; DRAT (Drain Attribute) - Groups skill exp penalties into a Drain {Attribute} for their governing attribute
+;;; DRSK (Drain Skill) - A Drain {Skill} effect is added to active effects for every skill currently under an exp penalty
+;;; DARK (DO NOT USE - Darkness) - Groups all skill exp penalties under an effect named "Recurved Effects".* 
+;;;; *DARK is not the default because of the "DO NOT USE" name and concerns about compatibility
+string_var MagicEffectDisplayAbbr
+
+; ## Level Scaling Settings ##
 ;; Increases amount of experience required to level a skill past the soft cap. 
 float SoftCapMulti
 
@@ -131,26 +145,31 @@ int Tier1StartLevel
 int Tier2StartLevel
 int Tier3StartLevel
 int Tier4StartLevel
+int Tier5StartLevel
 ;; Sets attribute points gained per level up for a tier
 int Tier1MaxAttributeUp
 int Tier2MaxAttributeUp
 int Tier3MaxAttributeUp
 int Tier4MaxAttributeUp
+int Tier5MaxAttributeUp
 ;; Major Skills increases required for a level up
 int Tier1LevelUpSkillIncs
 int Tier2LevelUpSkillIncs
 int Tier3LevelUpSkillIncs
 int Tier4LevelUpSkillIncs
+int Tier5LevelUpSkillIncs
 ;; Adds additonal progress points On Major skill ups
 int Tier1MajorAttributeBonus
 int Tier2MajorAttributeBonus
 int Tier3MajorAttributeBonus
 int Tier4MajorAttributeBonus
+int Tier5MajorAttributeBonus
 ;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if SecondaryAttributesDisabled is set.
 int Tier1SecondaryAttributeBonus
 int Tier2SecondaryAttributeBonus
 int Tier3SecondaryAttributeBonus
 int Tier4SecondaryAttributeBonus
+int Tier5SecondaryAttributeBonus
 ;; Maps a skill's governing attribute to a secondary attribute to increase.
 int StrengthSecondary
 int EnduranceSecondary
@@ -166,6 +185,17 @@ int Tier1EnduranceNormalizeAmount
 int Tier2EnduranceNormalizeAmount
 int Tier3EnduranceNormalizeAmount
 int Tier4EnduranceNormalizeAmount
+int Tier5EnduranceNormalizeAmount
+
+; ## Messege Settings ##
+
+; Time to wait between when messages are shown
+int MessageWaitSeconds
+; Event must have occured within X seconds for it to be shown
+int MessageWindowSeconds
+
+; ## Internal Settings
+int EventExpirationSeconds
 
 ; ### End Ini variables  ###
 
@@ -199,8 +229,21 @@ array_var SecondaryAttribBonuses
 ; Used for tracking last known experience values to add bonus armor skill experience
 array_var DefenseEquipExp
 
+; Tracks last spell cast to avoid duplicating bonus exp for spells with multiple effects
 int LastCastTick
 ref LastSpellCast
+
+; History of events, used mostly for messaging
+array_var EventHistory
+
+; Event Types
+int EventTypeGameRestarted
+int EventTypeGameLoaded
+int EventTypeGlobalTickReset
+int EventTypeLevelUp
+int EventTypeSkillUp
+; Internal Setting for controlling pruning of stale events so they don't clog up the save file
+int EventExpirationTicks
 
 ; short WeaponEquipped
 

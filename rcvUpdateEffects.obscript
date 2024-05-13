@@ -1,0 +1,70 @@
+scn rcvUpdateEffects
+
+int s
+int e
+array_var recurvedEffect
+short removeSpell
+
+short addEffect
+ref spellEffect
+
+; inputs
+array_var skillCodes
+int effectType
+Begin _Function{ skillCodes effectType }
+	; Remove all attribute protection effects when failsafe is enabled
+	if (effectType == RecurvedMessenger.EffectFailsafe)
+		while (e < ar_Size RecurvedMessenger.Effects[RecurvedMessenger.EffectAttributeProtection])
+			let recurvedEffect := RecurvedMessenger.Effects[RecurvedMessenger.EffectAttributeProtection][e]
+			if Eval(recurvedEffect["active"])
+				player.RemoveSpellNS recurvedEffect["spell"]
+				DebugPrint "recurve: Removed effect spell %q%n%q for failsafe." recurvedEffect["spell"]
+				let recurvedEffect["active"] := 0
+			endif
+			let e += 1
+		loop
+	endif
+
+	; Process any potential removals that need to happen
+	set e to 0
+	while (e < ar_Size RecurvedMessenger.Effects[effectType])
+		let recurvedEffect := RecurvedMessenger.Effects[effectType][e]
+		set removeSpell to 1
+		; Check if skillCode is in new list of codes
+		set s to 0
+		while (s < ar_Size skillCodes)
+			if Eval(skillCodes[s] == recurvedEffect["skillCode"])
+				set removeSpell to 0
+				break
+			endif
+			let s += 1
+		loop
+		if Eval(removeSpell && recurvedEffect["active"])
+			player.RemoveSpell recurvedEffect["spell"]
+			DebugPrint "recurve: Removed effect spell %q%n%q." recurvedEffect["spell"]
+			let recurvedEffect["active"] := 0
+		endif
+		let e += 1
+	loop
+
+	; Now invert the array loops and check for additions
+	set s to 0
+	while (s < ar_Size skillCodes)
+		set e to 0
+		set addEffect to 1
+		while (e < ar_Size RecurvedMessenger.Effects[effectType])
+			let recurvedEffect := RecurvedMessenger.Effects[effectType][e]
+			; check if effect exists and already active
+			if Eval(recurvedEffect["skillCode"] == skillCodes[s] && recurvedEffect["active"])
+				set addEffect to 0
+				break
+			endif
+			let e += 1
+		loop
+		; if effect didn't exist yet, or did but was inactive add it now
+		if (addEffect)
+			let spellEffect := call rcvAddEffect skillCodes[s] effectType
+		endif
+		let s += 1
+	loop
+End

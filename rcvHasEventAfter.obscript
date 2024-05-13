@@ -1,0 +1,16 @@
+scn rcvHasEventAfter
+
+array_var event
+
+; inputs
+int eventType
+int afterTick
+; outputs
+short hasEvent
+Begin _Function { eventType afterTick } ; Returns 1 if the a recent event was found that occured after afterTick
+
+    let event := call rcvGetEventAfter eventType afterTick
+    let hasEvent := ((ar_Size event) > 0)
+
+    SetFunctionValue hasEvent
+End

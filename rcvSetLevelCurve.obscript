@@ -53,7 +53,7 @@ Begin _Function { levelCurve useOverrides }
 	set i to 0
 
 	if Eval ((ar_Size useOverrides) < 1)
-		DebugPrint "No Use Exp Overrides currently configured."
+		DebugPrint "recurve: No Use Exp Overrides currently configured."
 		return
 	endif
 

@@ -1,0 +1,58 @@
+scn rcvGetIsInTutorial
+
+
+; output
+short isInTutorial
+Begin _Function {}
+	;;; Start Tutorial Check
+	;;;; 1. If the player started a new game, wait for a valid class to be selected
+	;;;; 2. If #1 happened, then wait for the player to leave the sewers
+	;;;; 3. If neither were true, then continue
+	set isInTutorial to 0
+	; Wait for a class to be selected
+	if RecurvedController.isClassSelected == 0
+		if call rcvHasTutorialClass
+			set RecurvedController.isTutorialCheckActive to 1
+			if RecurvedController.isGameLoadedPeek
+				DebugPrint "recurve: Character's class is CharactergenClass. Set isTutorialCheckActive to 1."
+			endif
+			set isInTutorial to 1
+			SetFunctionValue isInTutorial
+			return
+		else
+			set RecurvedController.isClassSelected to 1
+		endif
+	endif
+	
+	; Catch active tutorial for existing saves still in tutorial before this mod was added
+	if RecurvedController.isTutorialQuestPassed == 0
+		if call rcvHasTutorialQuest
+			set RecurvedController.isTutorialCheckActive to 1
+			if RecurvedController.isGameLoadedPeek
+				DebugPrint "recurve: Tutorial quest found in character's quests."
+			endif
+			set isInTutorial to 1
+		else
+			DebugPrint "recurve: Tutorial quest marked complete."
+			set RecurvedController.isTutorialCheckActive to 0 
+			set RecurvedController.isTutorialQuestPassed to 1
+		endif
+	endif
+
+	; If Tutorial was active, wait until player is outside sewers
+	if RecurvedController.isTutorialCheckActive 
+		if Player.IsInInterior == 0
+			set RecurvedController.isTutorialCheckActive to 0
+			set RecurvedController.isTutorialQuestPassed to 1
+			set RecurvedController.isGameRestarted to 1
+			set RecurvedController.isGameLoaded to 1
+			DebugPrint "recurve: Tutorial complete."
+		else
+			set isInTutorial to 1
+			if RecurvedController.isGameLoadedPeek
+				PrintToConsole "recurve: Tutorial is active. Delaying level scaling changes until tutorial is finished."
+			endif
+		endif
+	endif
+	SetFunctionValue  isInTutorial
+End

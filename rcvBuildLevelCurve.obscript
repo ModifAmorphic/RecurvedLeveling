@@ -5,6 +5,7 @@ int startLevel1
 int startLevel2
 int startLevel3
 int startLevel4
+int startLevel5
 int maxAttributeUp
 int skillsForLevelUp
 
@@ -36,6 +37,7 @@ Begin _Function { level }
 	let startLevel2 := call rcvSubtractOrMin Recurved.Tier2StartLevel 1 (Recurved.Tier1StartLevel + 1)
 	let startLevel3 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier2StartLevel + 1)
 	let startLevel4 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier3StartLevel + 1)
+	let startLevel5 := call rcvSubtractOrMin Recurved.Tier4StartLevel 1 (Recurved.Tier4StartLevel + 1)
 	
 	;DebugPrint "Start1: %g, Start2: %g, Start3: %g, level: %g" startLevel1 startLevel2 startLevel3 level
 	if (level >= startLevel1) && (level < startLevel2)
@@ -65,15 +67,24 @@ Begin _Function { level }
 		let levelCurve["endLvl"] := startLevel4
 		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier3EnduranceNormalizeAmount
 		let levelCurve["OverageProtectionExponent"] := Recurved.Tier3OverageProtectionExponent
-	elseif (level >= startLevel4)
+	elseif (level >= startLevel4) && (level < startLevel5)
 		set maxAttributeUp to Recurved.Tier4MaxAttributeUp
 		set skillsForLevelUp to Recurved.Tier4LevelUpSkillIncs
 		let levelCurve["MajorAttributeBonus"] := Recurved.Tier4MajorAttributeBonus
 		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier4SecondaryAttributeBonus
 		let levelCurve["startLvl"] := Recurved.Tier4StartLevel
-		let levelCurve["endLvl"] := 999
+		let levelCurve["endLvl"] := startLevel4
 		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier4EnduranceNormalizeAmount
 		let levelCurve["OverageProtectionExponent"] := Recurved.Tier4OverageProtectionExponent
+	elseif (level >= startLevel5)
+		set maxAttributeUp to Recurved.Tier5MaxAttributeUp
+		set skillsForLevelUp to Recurved.Tier5LevelUpSkillIncs
+		let levelCurve["MajorAttributeBonus"] := Recurved.Tier5MajorAttributeBonus
+		let levelCurve["SecondaryAttributeBonus"] := Recurved.Tier5SecondaryAttributeBonus
+		let levelCurve["startLvl"] := Recurved.Tier4StartLevel
+		let levelCurve["endLvl"] := 999
+		let levelCurve["EnduranceNormalizeAmount"] := Recurved.Tier5EnduranceNormalizeAmount
+		let levelCurve["OverageProtectionExponent"] := Recurved.Tier5OverageProtectionExponent
 	else
 		set maxAttributeUp to 5
 		set skillsForLevelUp to 10

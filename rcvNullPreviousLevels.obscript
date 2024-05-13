@@ -6,6 +6,9 @@ int i
 Begin Function {}
 
 	let currentIndex := player.GetLevel - 1
+	if (currentIndex < 1)
+		return
+	endif
 	set saveIndex to currentIndex - 1
 	DebugPrint "recurve: Nulling previous Recurved.Levels lower than %g" saveIndex
 	while (i < ar_Size Recurved.Levels)

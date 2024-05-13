@@ -8,32 +8,129 @@ short TutorialAttributeProtectionShown
 short TutorialAttributeFailsafeShown
 short TutorialOverlevelShown
 
-; Vars for tracking pervious protection messages
+;; Amount of time to wait between sending messages
+int MessageWaitTicks
+; Only show a message if the change triggering the message happened withing the last X ticks
+int MessageTickWindow
+; Vars for tracking previous protection messages
 int LastProtectionMessageTick
+int LastProtectionCheckTick
 array_var PrevPenalizedAttributes
 
-; Vars for tracking pervious softcap messages
+; Vars for tracking previous softcap messages
 int LastSoftCapTick
+int LastSoftCapCheckTick
 array_var PrevSoftcapped
+
+; Tracks last time a skill check happened
+;; to avoid constantly checking for skill level / softcap / protection changes when none could have occured
+int LastMsgCheckTick
+int LastEffectCheckTick
+
+; Flags set whenever an effects are added. Used to clean up effects if effects where disabled
+short IsEffectsAdded
+short IsAttributeEffectsAdded
+short IsSoftcapEffectsAdded
+
+;Effect Constants
+int EffectFailsafe
+int EffectAttributeProtection
+int EffectSoftcap
+short isFirstPass
+
+; Effects Vars
+array_var Effects
+ref LastConfiguredMagicEffect
+short ForceEffectsRefresh
 
 Begin _GameMode
 	set fQuestDelayTime to 2
 	
-	set isGameLoaded to GetGameLoaded
-	; Allow other quests to start before checking on messaging
-	if (isGameLoaded)
-		set LastProtectionMessageTick to 0
-		set LastSoftCapTick to 0
+	if (GetGameRestarted)
 		let PrevPenalizedAttributes := ar_Construct "Array"
 		let PrevSoftcapped := ar_Construct "Array"
+	endif
+	; Allow other quests to start before checking on messaging
+	set isGameLoaded to GetGameLoaded
+	if (isGameLoaded)
+		set EffectFailsafe to 0
+		set EffectAttributeProtection to 1
+		set EffectSoftcap to 2
+		; Only show a message every 15 seconds
+		let MessageWaitTicks := call rcvConvertSecondsToTicks Recurved.MessageWaitSeconds
+		; only show a message 
+		let MessageTickWindow := call rcvConvertSecondsToTicks Recurved.MessageWindowSeconds
+		set LastProtectionMessageTick to 0
+		set LastSoftCapTick to 0	
+		set LastProtectionCheckTick to 0	
+		set LastSoftCapCheckTick to 0
+		if Eval((ar_Size Effects) < 1)
+			let Effects := ar_Construct "Array"
+			let Effects[EffectFailsafe] := ar_Construct "Array"
+			let Effects[EffectAttributeProtection] := ar_Construct "Array"
+			let Effects[EffectSoftcap] := ar_Construct "Array"
+		endif
+		set isFirstPass to 1
+		DebugPrint "recurve: Recurved Messeger Initialized"
 		return
 	endif
 
 	; don't start checking for messages until tutorial is over
-	if (RecurvedController.IsTutorialActive)
+	if (RecurvedController.IsTutorialComplete == 0)
 		return
 	endif
 
-	call rcvProcessMessages
+	if (isFirstPass)
+		set ForceEffectsRefresh to 1
+		; if Eval (LastConfiguredMagicEffect != (MagicEffectFromChars Recurved.MagicEffectDisplayAbbr))
+		; 	let LastConfiguredMagicEffect := MagicEffectFromChars Recurved.MagicEffectDisplayAbbr
+		; 	set ForceEffectsRefresh to 1
+		; endif
+
+		;; If DARK effect configured, then change the name and icon
+		if Eval((sv_Compare "DARK" Recurved.MagicEffectDisplayAbbr) == 0)
+			;let iconPath := GetMagicEffectIcon DRSK
+			DebugPrint "recurve: DARK effect configured. Hijacking DARK effect for Recurved Events."
+			SetMagicEffectName "Recurved Effects" DARK
+			SetMagicEffectIcon (GetMagicEffectIcon DRSK) DARK
+			SetMagicEffectIsDetrimental 1 DARK
+			SetMagicEffectSchool 0 DARK
+		endif
+		set isFirstPass to 0
+	endif
+	
+	call rcvProcessEffects ForceEffectsRefresh
+	; Refreshing needs to happen in 2 passes otherwise the effects won't be registered correctly.
+	;; - 1st pass clears all effects and sets ForceEffectsRefresh to 2.
+	;; - 2nd pass adds effects and sets ForceEffectsRefresh to 0.
+	if (ForceEffectsRefresh == 1 && Recurved.RecurvedEffectsDisabled == 0)
+		set ForceEffectsRefresh to 2
+	else
+		set ForceEffectsRefresh to 0
+	endif
+
+	; Only show messages if enabled
+	if (Recurved.RecurvedMessagesDisabled == 0)
+		call rcvProcessMessages
+	endif
 
 end
+
+Begin _MenuMode 1009
+	call rcvProcessEffects 0
+End
+Begin _MenuMode 1014
+	call rcvProcessEffects 0
+End
+Begin _MenuMode 1028
+	call rcvProcessEffects 0
+End
+Begin _MenuMode 1034
+	call rcvProcessEffects 0
+End
+Begin _MenuMode 1035
+	call rcvProcessEffects 0
+End
+Begin _MenuMode 1040
+	call rcvProcessEffects 0
+End

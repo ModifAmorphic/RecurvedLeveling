@@ -22,11 +22,18 @@ Begin Function { healthDamage attacker }
 	endif
 
 	; Determine attack damage
-	if (attacker.CreatureUsesWeaponAndShield)
-		set attackerWeapon to attacker.GetEquippedObject 16
-		if (attackerWeapon)
-			set damage to GetAttackDamage attackerWeapon
-		endif
+	;; Doesn't always work (humanoides for example)
+	; if (attacker.CreatureUsesWeaponAndShield)
+	; 	set attackerWeapon to attacker.GetEquippedObject 16
+	; 	if (attackerWeapon)
+	; 		set damage to GetAttackDamage attackerWeapon
+	; 	endif
+	; endif
+	;; Just always check for a weapon to use as damage first, then check attacker's damage
+	;; If all else fails, use the health damage received.
+	set attackerWeapon to attacker.GetEquippedObject 16
+	if (attackerWeapon)
+		set damage to GetAttackDamage attackerWeapon
 	endif
 	if (damage == 0)
 		set damage to attacker.GetAttackDamage
@@ -35,6 +42,7 @@ Begin Function { healthDamage attacker }
 		DebugPrint "recurve: Could not determine attacker's attack damage. Using health damage received (%.2f) instead." healthDamage
 		set damage to healthDamage
 	endif
+	let damage := abs damage
 	if (damage <= Recurved.ExpNormalizedReceivedDamage)
 		DebugPrint "recurve: Attack damage (%.2f) is less than ExpNormalizedReceivedDamage (%.2f). No bonus exp awarded." damage Recurved.ExpNormalizedReceivedDamage
 		return

@@ -1,0 +1,15 @@
+scn rcvAddEvent
+
+array_var newEvent
+
+; inputs
+int eventType
+int data
+Begin _Function { eventType data }
+    let newEvent := ar_Construct "StringMap"
+    let newEvent["eventType"] := eventType
+    let newEvent["tick"] := RecurvedController.GlobalTick
+    let newEvent["data"] := data
+    ar_Append Recurved.EventHistory newEvent
+    DebugPrint "recurve: New Event added { eventType=%g, tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+End

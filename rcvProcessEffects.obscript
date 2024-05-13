@@ -1,0 +1,146 @@
+scn rcvProcessEffects
+
+int i
+array_var overrides
+array_var softCapSkills
+array_var skillCodes
+int effectType
+short shouldContinue
+;inputs
+short forceRefresh
+Begin _Function { forceRefresh }
+	; Check if Recurved Effects have been disabled or refresh is forced then
+	; remove any all effects if any were added previously
+	if (Recurved.RecurvedEffectsDisabled || forceRefresh == 1)
+		if (RecurvedMessenger.IsEffectsAdded)
+			set RecurvedMessenger.IsEffectsAdded to 0
+			let skillCodes := ar_Construct "Array"
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectFailsafe
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectSoftcap
+		endif
+		; Return for both disabled or forceRefreshes. Removing and adding spell in same pass 
+		; doesn't correctly register the spell.
+		return
+	endif
+
+	; Check if there's been any level up or skill up events since the last time we checked
+	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillUp RecurvedMessenger.LastEffectCheckTick
+	if (shouldContinue == 0)
+		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastEffectCheckTick
+	endif
+	set RecurvedMessenger.LastEffectCheckTick to RecurvedController.GlobalTick
+	if (shouldContinue == 0 && forceRefresh == 0)
+		return
+	endif
+
+	; Add effect when attribute protection is first enabled (experience requirements for an attribute's major skills is increased exponentially)
+	if (Recurved.AttributeProtectionDisabled == 0)
+
+		let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.SkillUseOverrideReasons["AttributeProtection"]
+		set i to 0
+		if Eval ((ar_Size overrides) > 0)
+			let skillCodes := ar_Construct "Array"
+			while (i < ar_Size overrides)
+				ar_Append skillCodes overrides[i]["skillCode"]
+				let i += 1
+			loop
+			set effectType to RecurvedMessenger.EffectAttributeProtection
+			if (Recurved.AttributeFailsafeEnabled)
+				set effectType to RecurvedMessenger.EffectFailsafe
+			endif
+			call rcvUpdateEffects skillCodes effectType
+			set RecurvedMessenger.IsEffectsAdded to 1
+			set RecurvedMessenger.IsAttributeEffectsAdded to 1
+		elseif (RecurvedMessenger.IsAttributeEffectsAdded)
+			; if no overrides then remove any effects if they were added previously
+			let skillCodes := ar_Construct "Array"
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectFailsafe
+			set RecurvedMessenger.IsAttributeEffectsAdded to 0
+			DebugPrint "recurve: Removed all Attribute Protection / Failsafe effects."
+		endif
+	endif
+	set i to 0
+
+	; Add effect for any minor skill that is currently at or over its softcap
+	if (Recurved.MinorSkillSoftCapsDisabled == 0)
+		let softCapSkills := call rcvFindSkillsSoftCapped
+		if Eval((ar_Size softCapSkills) > 0)
+			let skillCodes := ar_Construct "Array"
+			while (i < ar_Size softCapSkills)
+				ar_Append skillCodes softCapSkills[i]["skillCode"]
+				let i += 1
+			loop
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectSoftcap
+			set RecurvedMessenger.IsEffectsAdded to 1
+			set RecurvedMessenger.IsSoftcapEffectsAdded to 1
+		elseif (RecurvedMessenger.IsSoftcapEffectsAdded)
+			; if no softcaps then remove any effects if they were added previously
+			let skillCodes := ar_Construct "Array"
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectSoftcap
+			set RecurvedMessenger.IsSoftcapEffectsAdded to 0
+			DebugPrint "recurve: Removed all soft cap effects."
+		endif
+	endif
+	set i to 0
+
+	; ;;; Works but duplicates spells
+	; ; ; Add drain effect for any minor skill that is currently at or over its softcap
+	; if (Recurved.MinorSkillSoftCapsDisabled == 0)
+	; 	let skills := call rcvFindSkillsSoftCapped
+	; 	if Eval((ar_Size skills) > 0)
+	; 		DebugPrint "recurve: Adding %g soft cap effects." (ar_Size skills)
+	; 		RemoveAllEffectItems rcvAttributeProtection
+	; 		player.RemoveSpellNS rcvAttributeProtection
+	; 		set i to 0
+	; 		while (i < ar_Size skills)
+	; 			let skillCode := skills[i]["skillCode"]
+	; 			let softCapSpell := CloneForm rcvAttributeProtection
+	; 			let formId := GetFormIDString softCapSpell
+	; 			let skillName := (ActorValueToStringC skillCode) + " Softcap"
+	; 			SetName skillName softCapSpell
+	; 			let softCapEffect := DGSP
+	; 			SetMagicEffectName "Skill Softcaps" softCapEffect
+	; 			set effectIndex to AddFullEffectItem softCapEffect 1 0 0 0 softCapSpell
+	; 			let i += 1
+	; 			DebugPrint "Adding spell %n (%z) with effect %n for skillCode %g and effect type %g" softCapSpell formId softCapEffect skillCode RecurvedMessenger.EffectSoftcap
+	; 			let wasSpellAdded := call rcvTrackEffect skillCode RecurvedMessenger.EffectSoftcap softCapSpell
+	; 			if (wasSpellAdded)
+	; 				player.AddSpellNS softCapSpell
+	; 			endif
+	; 		loop
+	; 		set i to 0
+	; 	endif
+	; endif
+
+	;;; failure here
+	; ; ; Add drain effect for any minor skill that is currently at or over its softcap
+	; if (Recurved.MinorSkillSoftCapsDisabled == 0)
+	; 	let skills := call rcvFindSkillsSoftCapped
+	; 	if Eval((ar_Size skills) > 0)
+	; 		DebugPrint "recurve: Adding %g soft cap effects." (ar_Size skills)
+	; 		let softCapSpell := rcvAttributeProtection
+	; 		RemoveAllEffectItems softCapSpell
+	; 		player.RemoveSpellNS softCapSpell
+	; 		SetName "Skill Softcaps" softCapSpell
+	; 		set i to 0
+	; 		while (i < ar_Size skills)
+	; 			let skillName := (ActorValueToStringC skills[i]["skillCode"]) + " Softcap"
+				
+	; 			let softCapEffect := CloneForm DGSP
+	; 			let formId := GetFormIDString softCapEffect
+	; 			SetMagicEffectName skillName softCapEffect
+	; 			set effectIndex to AddFullEffectItem softCapEffect 1 0 0 0 softCapSpell
+	; 			; DebugPrint "recurve: Adding skill %z (%g) soft cap effects." skillName skills[i]["skillCode"]
+	; 			; set effectIndex to AddFullEffectItem DRSK 0 0 0 0 softCapSpell
+	; 			; DebugPrint "recurve: Added DRSK effect to %n at index %g." softCapSpell effectIndex
+	; 			; SetNthEffectItemActorValueC skills[i]["skillCode"] softCapSpell effectIndex
+	; 			; DebugPrint "recurve: Set ActorValue to code %g at index %g." skills[i]["skillCode"] effectIndex
+	; 			DebugPrint "Adding effect %n(%z) to spell %n." softCapEffect formId softCapSpell
+	; 			let i += 1
+	; 		loop
+			
+	; 		player.AddSpellNS softCapSpell
+	; 		set i to 0
+	; 	endif
+	; endif
+End

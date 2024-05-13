@@ -42,6 +42,12 @@ set Recurved.WeaponExpNormalizedDisabled to 0
 ;; Disables extra experience gained from Magicka spent.
 set Recurved.SpellExpFromMagickaDisabled to 0
 
+;; Stops "Recurved Effects" for skill experience penalties from being added to the Active Effects tab in game
+set Recurved.RecurvedEffectsDisabled to 0
+
+;; Prevents "difficulty with skill X" messages from showing in the upper left hand corner of the screen
+set Recurved.RecurvedMessagesDisabled to 0
+
 ;; Enable/Disable Debugging Logs
 set Recurved.DebugEnabled to 1
 
@@ -53,7 +59,8 @@ set Recurved.DebugEnabled to 1
 set Recurved.Tier1OverageProtectionExponent to 6
 set Recurved.Tier2OverageProtectionExponent to 6
 set Recurved.Tier3OverageProtectionExponent to 4
-set Recurved.Tier4OverageProtectionExponent to 4
+set Recurved.Tier4OverageProtectionExponent to 3
+set Recurved.Tier5OverageProtectionExponent to 2
 
 ;; Guards against missed attribute increases during level ups.
 ;; Will stop all major experience gains one progress point (skill level) before
@@ -110,6 +117,15 @@ set Recurved.SpellExpFromMagickaModifier to 5.0
 ;;; at the normal pace get's old.
 set Recurved.AllExperienceMultiplier to 1.0
 
+;;; The Magic Effect Abbreviation (https://cs.uesp.net/wiki/Magic_Effects_List) that Recurved leveling effects
+;;; will be displayed under.
+;;; BRDN (Burden) - Default. All recurved skill softcaps / progress penalties will be listed under this effect
+;;; DRAT (Drain Attribute) - Groups skill exp penalties into a Drain {Attribute} for their governing attribute
+;;; DRSK (Drain Skill) - A Drain {Skill} effect is added to active effects for every skill currently under an exp penalty
+;;; DARK (DO NOT USE - Darkness) - Groups all skill exp penalties under an effect named "Recurved Effects".* 
+;;;; *DARK is not the default because of the "DO NOT USE" name and concerns about compatibility
+set Recurved.MagicEffectDisplayAbbr to sv_Construct "BRDN"
+
 ; ### Level Scaling Settings ###
 
 ;: Increases amount of experience required to level a minor skill past its soft cap. 
@@ -122,25 +138,28 @@ set Recurved.SoftCapMulti to 5.0
 ;; Controls what percentage, rounded down, of each remaining attribute progress is brought over to the next level.
 ;;; Vanilla does not bring any unused points over to the next level.
 ;;; Set between .1 (ten percent) to 1 (all points)
-set Recurved.RemainingAttributeProgressPerc to 1
+set Recurved.RemainingAttributeProgressPerc to 1.0
 
 ;; This section controls when level tiers start and end.
 set Recurved.Tier1StartLevel to 1
 set Recurved.Tier2StartLevel to 11
 set Recurved.Tier3StartLevel to 21
-set Recurved.Tier4StartLevel to 41
+set Recurved.Tier4StartLevel to 31
+set Recurved.Tier5StartLevel to 41
 
 ;; Sets attribute points gained per level up for a tier
 set Recurved.Tier1MaxAttributeUp to 3
 set Recurved.Tier2MaxAttributeUp to 4
-set Recurved.Tier3MaxAttributeUp to 6
-set Recurved.Tier4MaxAttributeUp to 8
+set Recurved.Tier3MaxAttributeUp to 5
+set Recurved.Tier4MaxAttributeUp to 6
+set Recurved.Tier5MaxAttributeUp to 8
 
 ;; Major Skill level increases required for next level
 set Recurved.Tier1LevelUpSkillIncs to 15
 set Recurved.Tier2LevelUpSkillIncs to 12
 set Recurved.Tier3LevelUpSkillIncs to 10
-set Recurved.Tier4LevelUpSkillIncs to 8
+set Recurved.Tier4LevelUpSkillIncs to 10
+set Recurved.Tier5LevelUpSkillIncs to 8
 
 ;; Adds additonal attribute progression on Major Skill ups. Normally a skill increase
 ;;; adds 1 progress towards higher attribute gains. This setting allows for increasing
@@ -148,16 +167,18 @@ set Recurved.Tier4LevelUpSkillIncs to 8
 ;;; MajorAttributeBonus to 2 increases the the total amount to 3 for every skill level up. 
 ;;;   (1 + 2 = 3) [Default Progress + Bonus Progress]
 set Recurved.Tier1MajorAttributeBonus to 1
-set Recurved.Tier2MajorAttributeBonus to 2
-set Recurved.Tier3MajorAttributeBonus to 2
-set Recurved.Tier4MajorAttributeBonus to 3
+set Recurved.Tier2MajorAttributeBonus to 1
+set Recurved.Tier3MajorAttributeBonus to 1
+set Recurved.Tier4MajorAttributeBonus to 2
+set Recurved.Tier5MajorAttributeBonus to 2
 
 ;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if 
 ;;; SecondaryAttributesDisabled is set.
 set Recurved.Tier1SecondaryAttributeBonus to 1
 set Recurved.Tier2SecondaryAttributeBonus to 1
 set Recurved.Tier3SecondaryAttributeBonus to 1
-set Recurved.Tier4SecondaryAttributeBonus to 2
+set Recurved.Tier4SecondaryAttributeBonus to 1
+set Recurved.Tier5SecondaryAttributeBonus to 2
 
 ;; Maps attributes to secondary. When a major skill increase occurs, then both the skill's governing
 ;;; attribute and the associated secondary attribute will gain progress towards attribute increases.
@@ -177,5 +198,16 @@ set Recurved.Tier1EnduranceNormalizeAmount to 5
 set Recurved.Tier2EnduranceNormalizeAmount to 5
 set Recurved.Tier3EnduranceNormalizeAmount to 5
 set Recurved.Tier4EnduranceNormalizeAmount to 5
+set Recurved.Tier5EnduranceNormalizeAmount to 5
+
+; ## Messege Settings ##
+
+; Time to wait between when messages are shown
+set Recurved.MessageWaitSeconds to 15
+; Event must have occured within X seconds for it to be shown
+set Recurved.MessageWindowSeconds to 5
+
+; ## Internal Settings ##
+set Recurved.EventExpirationSeconds to 180
 
 End

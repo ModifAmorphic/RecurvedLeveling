@@ -1,0 +1,20 @@
+scn rcvResetGlobalTick
+
+int i
+
+Begin Function {}
+	; prune any older events before reseting GlobalTick to 0
+	call rcvPruneEvents 0
+	; update the remaining event ticks to keep their tick offset (giving them negative values)
+	while (i < ar_Size Recurved.EventHistory)
+		let Recurved.EventHistory["tick"] := 0 - Recurved.EventHistory["tick"]
+		let i += 1
+	loop
+	
+	; add an event that this happened so event history readers are aware
+	call rcvAddEvent Recurved.EventTypeGlobalTickReset RecurvedController.GlobalTick
+	DebugPrint "recurve: Reseting GlobalTick to 0. Last tick before reset was %g." RecurvedController.GlobalTick
+	; reset ticks back to 0
+	set RecurvedController.GlobalTick to 0
+	
+End
