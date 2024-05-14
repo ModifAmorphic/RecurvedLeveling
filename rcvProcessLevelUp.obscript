@@ -13,9 +13,10 @@ Begin _Function { }
 	set Recurved.ExcessAttributeProgress to 0
 	; Carry over any left over progress points from the previous level and apply.
 	if (Recurved.RemainingAttributeProgressDisabled == 0)
-		call rcvSetLevelProgress
+		call rcvSetLevelProgress 1
 		; reset attribute bonus data
 		while (i < 7)
+			let Recurved.PrimaryAttribBonuses[i] := 0
 			let Recurved.SecondaryAttribBonuses[i] := 0
 			let i += 1
 		loop

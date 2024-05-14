@@ -25,6 +25,9 @@ Begin _Function {}
     if (Recurved.DumpActiveEffects > 0)
         ar_Dump player.GetActiveEffectCodes
     endif
+    if (Recurved.RefreshCurrentLevel)
+        let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+    endif
     if (Recurved.ResetSkillUseOverrides)
         ; let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
 	    let Recurved.SkillUseOverrides := ar_Construct "Array"
@@ -97,6 +100,7 @@ Begin _Function {}
     set Recurved.DumpLevelCurve to 0
     set Recurved.DumpActiveEffects to 0
     set Recurved.ResetSkillUseOverrides to 0
+    set Recurved.RefreshCurrentLevel to 0
     ;set Recurved.SlowAttributeSkills to -1
     set Recurved.GetNormalizedEndurance to 0
     set Recurved.SetNormalizedEndurance to 0

@@ -21,7 +21,7 @@ Begin _Function {}
 
 	; Show one time message box when maximum major skill increases over the current level are reached
 	if (RecurvedMessenger.TutorialOverlevelShown == 0)
-		if (Recurved.ExcessAttributeProgress > 0 && RecurvedController.isPlayerLeveled == 0)
+		if (Recurved.ExcessAttributeProgress > 0 && RecurvedController.IsPlayerLeveled == 0)
 			; only check after next level has been added.
 			if Eval ((ar_Size Recurved.LevelCurves) >= player.GetLevel)
 				if Eval((Recurved.ExcessAttributeProgress + 1) == Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"])

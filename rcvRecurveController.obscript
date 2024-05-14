@@ -13,12 +13,12 @@ short IsIniLoadNeeded
 short IsTutorialComplete
 short isSleepMenuInit
 short isLevelMenuInit
-short isPlayerLeveled
+short IsPlayerLeveled
 short isGameRestarted
 short isGameLoaded
 short isGameRestartedPeek
 short isGameLoadedPeek
-
+int lastPreLevelUpCheck
 ; Tutorial function vars
 short isTutorialCheckActive
 short isTutorialQuestPassed
@@ -51,7 +51,7 @@ begin _MenuMode 1027
 	; Set HasUpdate flag so next _GameMode tick processes
 	set HasUpdate to 1
 	; track internally for the next game mode tick
-	set isPlayerLeveled to 1
+	set IsPlayerLeveled to 1
 	; record the event in history
 	call rcvAddEvent Recurved.EventTypeLevelUp player.GetLevel + 1
 	; set so this code only gets executed once per menu open
@@ -162,8 +162,12 @@ Begin _GameMode
 		set Recurved.DelayedResetLevelProgress to 0
 	endif
 
-	; Handle Player level up 
-	if (isPlayerLeveled == 1)
+	; Handle Player pre and post level up 
+	if Eval(call rcvHasEventAfter Recurved.EventTypeLevelUpProgressReached lastPreLevelUpCheck)
+		call rcvSetLevelProgress 0
+	endif
+	set lastPreLevelUpCheck to GlobalTick
+	if (IsPlayerLeveled == 1)
 		call rcvProcessLevelUp
 	endif
 	
@@ -193,7 +197,7 @@ Begin _GameMode
 	; reset variables
 	set isSleepMenuInit to 0
 	set isLevelMenuInit to 0
-	set isPlayerLeveled to 0
+	set IsPlayerLeveled to 0
 	set HasUpdate to 0
 	set IsIniLoadNeeded to 0
 

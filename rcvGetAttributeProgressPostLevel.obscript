@@ -1,0 +1,112 @@
+scn rcvGetAttributeProgressPostLevel
+
+int attributeCode
+int m
+
+array_var attributeProgress
+array_var currentLevel
+array_var lastAttr
+; array_var currentAttr
+array_var lvlMult
+int increase
+int skillProgress
+int currentAttributeBonus
+int pointsSpent
+int primaryBonus
+int secondaryBonus
+int pointsRemain
+int preLvlPoints
+
+; Input Params
+array_var lastLevel
+array_var levelCurve
+
+; Output array of attributes with progress remaining, if any.
+array_var attributePoints
+Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining that would not have been used entirely by the attribute increase on level up.
+    let currentLevel := call rcvGetCurrentLevel
+    let attributePoints := ar_Construct "Array"
+    set attributeCode to 0
+    while (attributeCode < ar_Size lastLevel["attributes"])
+        if (attributeCode == Recurved.LuckAvc)
+			; don't calculate luck progress
+			let attributeCode += 1
+            continue;
+        endif
+        let lastAttr := lastLevel["attributes"][attributeCode]
+        let increase := currentLevel["attributes"][attributeCode]["increase"]
+        ; If a attribute was increased, calculate how many attribute progress 
+        ;    points were used by reading through the iLevelUpMults table
+        set pointsSpent to 0
+        if increase > 0
+            while (m < ar_Size levelCurve["iLevelUpMults"])
+                let lvlMult := levelCurve["iLevelUpMults"][m]
+                ; Select the lowest used value to subtract from total progress made
+                if Eval (lvlMult["value"] == increase)
+                    set pointsSpent to m + 1
+                    break
+                endif
+                let m += 1
+            loop
+            set m to 0
+		endif
+        ; Add any left over over progress points to the current level, taking in to account any points spent for attribute increases.
+        let skillProgress := lastAttr["skillProgress"]
+
+		; Calculate the current attribute bonus minus points that were added in by pre level up
+		; get points that were added previous to the actual level up
+		let preLvlPoints := lastLevel["attributes"][attributeCode]["preLevelCarryOver"]
+		;; get current points total
+		let currentAttributeBonus := GetPCAttributeBonusC attributeCode
+		;; reduce by pre level carryover (modified by Recurved.RemainingAttributeProgressPerc)
+		let currentAttributeBonus -= preLvlPoints
+
+		; calculate the points that remain from points that would be carried over
+		;; set to skill progress that was achieved last level
+		set pointsRemain to skillProgress
+		let primaryBonus := Recurved.PrimaryAttribBonuses[attributeCode]
+		;; reduce points spent by any bonus point amounts first, since they may not carry forward
+		let pointsSpent -= Recurved.SecondaryAttribBonuses[attributeCode]
+		if (pointsSpent < 0)
+			let secondaryBonus := pointsSpent * (-1)
+		else
+			set secondaryBonus to 0
+			let pointsSpent -= Recurved.PrimaryAttribBonuses[attributeCode]
+			if (pointsSpent < 0)
+				let primaryBonus := pointsSpent * (-1)
+			else 
+				set primaryBonus to 0
+			endif
+		endif
+		;; if bonus points exceeded pointsSpent, then set pointsSpent to 0
+		if (pointsSpent < 0)
+			set pointsSpent to 0
+		endif
+		;; remove any remaining points spent after bonus point removals
+		let pointsRemain -= pointsSpent
+		;; If carryover not enabled, remove the remaining primary Bonus points, if any
+		if (Recurved.CarryMajorAttributeBonusForward == 0)
+			let pointsRemain -= primaryBonus
+		endif
+		if (Recurved.CarrySecondaryAttributeBonusForward == 0)
+			let pointsRemain -= secondaryBonus
+		endif
+		; Finally, modify by Recurved.RemainingAttributeProgressPerc
+		if (Recurved.RemainingAttributeProgressPerc > 0)
+			let pointsRemain *= Recurved.RemainingAttributeProgressPerc
+		endif
+		if (pointsRemain < 0)
+			PrintToConsole "recurve: (WARN) Failed to calculate progress point carryover for attribute %g. Calculation resulted in %g points. Set carryover to 0." attributeCode pointsRemain
+			set pointsRemain to 0
+		endif
+		let attributeProgress := ar_Construct "StringMap"
+		let attributeProgress["attributeCode"] := attributeCode
+		; Remove bonus points since they don't get carried over and don't need to be accounted for
+		let attributeProgress["progressPoints"] := pointsRemain
+        ar_Append attributePoints attributeProgress
+        DebugPrint "recurve: Calculated %g progress points for attribute %g. Pre level up progress points (before level up): %g. Remaining Primary Bonus points: %g, Remaining Secondary Bonus Points: %g." attributeProgress["progressPoints"] attributeProgress["attributeCode"] preLvlPoints primaryBonus secondaryBonus
+        
+        let attributeCode += 1
+    loop
+    SetFunctionValue attributePoints
+End

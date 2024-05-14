@@ -1,0 +1,53 @@
+scn rcvGetAttributeProgressPreLevel
+
+int attributeCode
+
+
+array_var attributeProgress
+int skillProgress
+int pointsRemain
+int nextAttributeBonus
+
+; Input Params
+array_var currentLevel
+array_var levelCurve
+
+; Output array of attributes with progress remaining, if any.
+array_var attributePoints
+Begin _Function { currentLevel levelCurve } ; Gets any attribute progress remaining prior points being spent (after level up progress has been reached, but before actual level up).
+    let attributePoints := ar_Construct "Array"
+    set attributeCode to 0
+    DebugPrint "recurve: currentLevel attributes: %g" ar_Size currentLevel["attributes"]
+    while (attributeCode < ar_Size currentLevel["attributes"])
+        if (attributeCode == Recurved.LuckAvc)
+			; don't calculate luck progress
+			let attributeCode += 1
+            continue
+        endif
+
+        let skillProgress := currentLevel["attributes"][attributeCode]["skillProgress"]
+        let attributeProgress := ar_Construct "StringMap"
+        let attributeProgress["attributeCode"] := attributeCode
+        set pointsRemain to skillProgress
+        ; Remove bonus points unless configured to carry forward
+        if (Recurved.CarrySecondaryAttributeBonusForward == 0)
+			let pointsRemain -= Recurved.SecondaryAttribBonuses[attributeCode]
+		endif
+        if (Recurved.CarryMajorAttributeBonusForward == 0)
+			let pointsRemain -= Recurved.PrimaryAttribBonuses[attributeCode]
+		endif		
+        if (pointsRemain < 0)
+            set pointsRemain to 0
+        endif
+
+        ; Apply the RemainingAttributeProgressPerc value
+        let pointsRemain := Floor (pointsRemain * Recurved.RemainingAttributeProgressPerc)
+        let nextAttributeBonus := GetPCAttributeBonusC attributeCode
+        let attributeProgress["progressPoints"] := pointsRemain + nextAttributeBonus
+        DebugPrint "recurve: Calculated %g points remaining for attribute %g adjusted from raw progress %g and multiplied by RemainingAttributeProgressPerc %.2f.  Primary Bonus points: %g, Secondary Bonus Points: %g." attributeProgress["progressPoints"] attributeCode skillProgress Recurved.RemainingAttributeProgressPerc Recurved.PrimaryAttribBonuses[attributeCode] Recurved.SecondaryAttribBonuses[attributeCode]
+        ar_Append attributePoints attributeProgress
+
+        let attributeCode += 1
+    loop
+    SetFunctionValue attributePoints
+End

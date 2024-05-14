@@ -33,9 +33,10 @@ Begin Function {} ; Set constants
 	set Recurved.EventTypeGameRestarted to 0
 	set Recurved.EventTypeGameLoaded to 1
 	set Recurved.EventTypeGlobalTickReset to 2
-	set Recurved.EventTypeLevelUp to 3
-	set Recurved.EventTypeSkillChange to 4
-	set Recurved.EventTypeAttributeProtection to 5
+	set Recurved.EventTypeLevelUpProgressReached to 3
+	set Recurved.EventTypeLevelUp to 4
+	set Recurved.EventTypeSkillChange to 5
+	set Recurved.EventTypeAttributeProtection to 6
     ;; Messenger constants
     set RecurvedMessenger.EffectFailsafe to 0
 	set RecurvedMessenger.EffectAttributeProtection to 1

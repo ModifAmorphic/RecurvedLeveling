@@ -35,6 +35,7 @@ int PenaltyTypeOverleveled
 int EventTypeGameRestarted
 int EventTypeGameLoaded
 int EventTypeGlobalTickReset
+int EventTypeLevelUpProgressReached
 int EventTypeLevelUp
 int EventTypeSkillChange
 int EventTypeAttributeProtection
@@ -148,6 +149,12 @@ float AllExperienceMultiplier
 string_var MagicEffectDisplayAbbr
 
 ; ## Level Scaling Settings ##
+
+;; If enabled, carries forward any remaining bonus progress points for attributes. By default only the vanilla progress is carried over
+short CarryMajorAttributeBonusForward
+;; If enabled, carries forward any remaining secondary bonus progress points for attributes. By default only the vanilla progress is carried over.
+short CarrySecondaryAttributeBonusForward
+
 ;; Increases amount of experience required to level a skill past the soft cap. 
 float SoftCapMulti
 
@@ -155,6 +162,8 @@ float SoftCapMulti
 ;; Vanilla does not bring any unused points over to the next level.
 ;; Set this to a value less than 1 unless you want to be swimming in attribute progress points in a few levels.
 float RemainingAttributeProgressPerc
+
+; ### Fine Tuning ###
 
 ;; Controls when level tiers start and end.
 int Tier1StartLevel
@@ -203,12 +212,48 @@ int Tier3EnduranceNormalizeAmount
 int Tier4EnduranceNormalizeAmount
 int Tier5EnduranceNormalizeAmount
 
+; ## Magicka Exp School Settings ##
+;; Magicka spent when casting a spell is compared to the settings below to determine the percentage of the maximum
+;; exp bonus to grant per succesful cast.
+;;; Alteration
+int AlterationNoviceMagicka
+int AlterationApprenticeMagicka
+int AlterationJourneymanMagicka
+int AlterationExpertMagicka
+;;; Conjuration
+int ConjurationNoviceMagicka
+int ConjurationApprenticeMagicka
+int ConjurationJourneymanMagicka
+int ConjurationExpertMagicka
+;;; Destruction
+int DestructionNoviceMagicka
+int DestructionApprenticeMagicka
+int DestructionJourneymanMagicka
+int DestructionExpertMagicka
+;;; Illusion
+int IllusionNoviceMagicka
+int IllusionApprenticeMagicka
+int IllusionJourneymanMagicka
+int IllusionExpertMagicka
+;;; Mysticism
+int MysticismNoviceMagicka
+int MysticismApprenticeMagicka
+int MysticismJourneymanMagicka
+int MysticismExpertMagicka
+;;;  Restoration
+int RestorationNoviceMagicka
+int RestorationApprenticeMagicka
+int RestorationJourneymanMagicka
+int RestorationExpertMagicka
+
 ; ## Messege Settings ##
 
 ; Time to wait between when messages are shown
 int MessageWaitSeconds
 ; Event must have occured within X seconds for it to be shown
 int MessageWindowSeconds
+; Outputs formulas for experience calculations
+short OutputFormulas
 
 ; ## Internal Settings
 int EventExpirationSeconds
@@ -240,10 +285,15 @@ int ExcessAttributeProgress
 short AttributeFailsafeEnabled
 
 ; Keeps track of attribute bonuses for the level
+array_var PrimaryAttribBonuses
 array_var SecondaryAttribBonuses
 
 ; Used for tracking last known experience values to add bonus armor skill experience
 array_var DefenseEquipExp
+
+; Array of schools and their magicka values per novice, apprentice, journeyman, expert 
+; for calculating exp bonuses
+array_var SchoolExpMaxMagicka
 
 ; Tracks last spell cast to avoid duplicating bonus exp for spells with multiple effects
 int LastCastTick
@@ -261,6 +311,7 @@ int EventExpirationTicks
 int DumpLevel
 short DumpCurrentLevel
 int DumpLevelCurve
+short RefreshCurrentLevel
 short DumpActiveEffects
 short ResetSkillUseOverrides
 short GetNormalizedEndurance

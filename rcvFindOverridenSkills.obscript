@@ -23,9 +23,9 @@ Begin _Function { overrideReason } ; Gets all skill use overrides for a particul
 			let ovrSkill["exp"] := GetPlayerSkillUseC useOverride["skillCode"]
 			let ovrSkill["useIncModifier"] := useOverride["useIncModifiers"][0]
 			if (overrideReason == Recurved.OverrideReasonAttributeProtection)
-				let skill["penaltyReason"] := Recurved.PenaltyTypeAttributeProtection
+				let ovrSkill["penaltyReason"] := Recurved.PenaltyTypeAttributeProtection
 			elseif (overrideReason == Recurved.OverrideReasonOverlevel)
-				let skill["penaltyReason"] := Recurved.PenaltyTypeOverleveled
+				let ovrSkill["penaltyReason"] := Recurved.PenaltyTypeOverleveled
 			endif
 			ar_Append overridenSkills ovrSkill
 		endif

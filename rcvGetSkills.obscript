@@ -28,6 +28,14 @@ Begin Function { useAllExpMultiplier } ; Gets list of current skills split in to
 	else
 		set allExpMultiplier to 1
 	endif
+
+	; set first 11 skills to null so they are indexed by skillcode
+	while (i < 12)
+		let skills["all"][i] := ar_Null
+		let i += 1
+	loop
+	set i to 0
+	
 	let skillCode := 12
 	while (skillCode < 33)
 		let isClassSkill := player.IsClassSkillC skillCode
@@ -60,7 +68,7 @@ Begin Function { useAllExpMultiplier } ; Gets list of current skills split in to
 		if isClassSkill == 0
 			let skills[skillType][i]["softCap"] := call rcvGetSkillSoftCap skillCode
 		endif
-		let skills["all"][skillCode - 12] := skills[skillType][i]
+		let skills["all"][skillCode] := skills[skillType][i]
 		let skillCode := skillCode + 1
 	loop
 	

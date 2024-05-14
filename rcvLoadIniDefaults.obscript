@@ -109,8 +109,8 @@ set Recurved.ExpNormalizedBowDamage to 8.0
 ;;; A dial for turning up or down spell experience from magicka spent. Doubles the experience
 ;;;; every time the amount doubles. Example: Setting to 10 doubles the experience bonus from 5.
 ;;;; Formula:
-;;;; [Max Bonus Exp] = [Base Exp Req] / ([Skill Level] / SpellExpFromMagickaModifier)
-set Recurved.SpellExpFromMagickaModifier to 5.0
+;;;; [Max Bonus Exp] = ([Base Exp Req] / ([Skill Level]) * SpellExpFromMagickaModifier
+set Recurved.SpellExpFromMagickaModifier to 2.0
 
 ;;; Multiplies experience gain for every skill in the game by this amount.
 ;;; Originaly added this to QA my mod, as leveling a character through 50 levels multiple times
@@ -127,6 +127,11 @@ set Recurved.AllExperienceMultiplier to 1.0
 set Recurved.MagicEffectDisplayAbbr to sv_Construct "BRDN"
 
 ; ### Level Scaling Settings ###
+
+;; If enabled, carries forward any remaining bonus progress points for attributes. By default only the vanilla progress is carried over
+set Recurved.CarryMajorAttributeBonusForward to 0
+;; If enabled, carries forward any remaining secondary bonus progress points for attributes. By default only the vanilla progress is carried over.
+set Recurved.CarrySecondaryAttributeBonusForward to 0
 
 ;: Increases amount of experience required to level a minor skill past its soft cap. 
 ;:     Has no effect if MinorSkillSoftCapsDisabled is set to 1.
@@ -169,7 +174,7 @@ set Recurved.Tier5LevelUpSkillIncs to 8
 set Recurved.Tier1MajorAttributeBonus to 1
 set Recurved.Tier2MajorAttributeBonus to 1
 set Recurved.Tier3MajorAttributeBonus to 1
-set Recurved.Tier4MajorAttributeBonus to 2
+set Recurved.Tier4MajorAttributeBonus to 1
 set Recurved.Tier5MajorAttributeBonus to 2
 
 ;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if 
@@ -200,12 +205,48 @@ set Recurved.Tier3EnduranceNormalizeAmount to 5
 set Recurved.Tier4EnduranceNormalizeAmount to 5
 set Recurved.Tier5EnduranceNormalizeAmount to 5
 
-; ## Messege Settings ##
+; ## Magicka Exp School Settings ##
+;; Magicka spent when casting a spell is compared to the settings below to determine the percentage of the maximum
+;; exp bonus to grant per succesful cast.
+;;; Alteration
+set Recurved.AlterationNoviceMagicka to 40
+set Recurved.AlterationApprenticeMagicka to 54
+set Recurved.AlterationJourneymanMagicka to 131
+set Recurved.AlterationExpertMagicka to 221
+;;; Conjuration
+set Recurved.ConjurationNoviceMagicka to 50
+set Recurved.ConjurationApprenticeMagicka to 60
+set Recurved.ConjurationJourneymanMagicka to 145
+set Recurved.ConjurationExpertMagicka to 390
+;;; Destruction
+set Recurved.DestructionNoviceMagicka to 25
+set Recurved.DestructionApprenticeMagicka to 54
+set Recurved.DestructionJourneymanMagicka to 129
+set Recurved.DestructionExpertMagicka to 378
+;;; Illusion
+set Recurved.IllusionNoviceMagicka to 35
+set Recurved.IllusionApprenticeMagicka to 52
+set Recurved.IllusionJourneymanMagicka to 142
+set Recurved.IllusionExpertMagicka to 332
+;;; Mysticism
+set Recurved.MysticismNoviceMagicka to 35
+set Recurved.MysticismApprenticeMagicka to 60
+set Recurved.MysticismJourneymanMagicka to 135
+set Recurved.MysticismExpertMagicka to 323
+;;;  Restoration
+set Recurved.RestorationNoviceMagicka to 16
+set Recurved.RestorationApprenticeMagicka to 61
+set Recurved.RestorationJourneymanMagicka to 140
+set Recurved.RestorationExpertMagicka to 277
+
+; ## Message Settings ##
 
 ; Time to wait between when messages are shown
 set Recurved.MessageWaitSeconds to 15
 ; Event must have occured within X seconds for it to be shown
 set Recurved.MessageWindowSeconds to 5
+; Outputs formulas for experience calculations
+set Recurved.OutputFormulas to 1
 
 ; ## Internal Settings ##
 set Recurved.EventExpirationSeconds to 180

@@ -35,6 +35,7 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
             if (Recurved.AttributeBonusDisabled == 0)
                 set attributeProgress to GetPCAttributeBonusC attributeCode 
                 let majorAttrBonus := curve["MajorAttributeBonus"]
+                let Recurved.PrimaryAttribBonuses[attributeCode] += majorAttrBonus
                 DebugPrint "recurve: Skill %g is a major skill and will increase attribute %g progress %g by an additional %g." skillActorValueCode attributeCode attributeProgress majorAttrBonus
                 SetPCAttributeBonusC attributeCode attributeProgress + majorAttrBonus
             endif
@@ -66,6 +67,7 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
             if (isScripted)
                 let Recurved.Levels[player.GetLevel - 1]["attributes"][attributeCode]["skillProgress"] := attributeProgress + amount
             endif
+            call rcvAddEvent Recurved.EventTypeLevelUpProgressReached newLvlProgress
 		endif
 	endif
 	

@@ -48,6 +48,16 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 		DebugPrint "recurve: Initializing Recurved.SkillUseOverrides array."
 	endif
 
+	if Eval ((ar_Size Recurved.PrimaryAttribBonuses) == -1)
+		let Recurved.PrimaryAttribBonuses := ar_Construct "Array"
+		set i to 0
+		while (i < 7)
+			let Recurved.PrimaryAttribBonuses[i] := 0
+			let i += 1
+		loop
+		DebugPrint "recurve: Initializing Recurved.PrimaryAttribBonuses array."
+	endif
+
 	if Eval ((ar_Size Recurved.SecondaryAttribBonuses) == -1)
 		let Recurved.SecondaryAttribBonuses := ar_Construct "Array"
 		set i to 0

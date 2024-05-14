@@ -23,8 +23,12 @@ float capUseInc1
 float capUseInc2
 
 array_var skills
-
 array_var levelCurve
+
+; magicka cost vars
+float fMagicCasterSkillCostBase
+float fMagicCasterSkillCostMult
+int skillLevel
 
 ; input params
 int level
@@ -150,14 +154,29 @@ Begin _Function { level }
 		let levelCurve["skills"][i]["softCapUseInc"] := ar_Construct "Array"
 		let levelCurve["skills"][i]["softCapUseInc"][0] := capUseInc1
 		let levelCurve["skills"][i]["softCapUseInc"][1] := capUseInc2
-		DebugPrint "Setting levelCurve['skills'][%g]['baseExpReq'] = %.2f" skills["all"][i]["baseExpReq"]
-		let levelCurve["skills"][i]["baseExpReq"] := skills["all"][i]["baseExpReq"]
-
+		DebugPrint "Setting levelCurve['skills'][%g]['baseExpReq'] = %.2f" skills["all"][skillCode]["baseExpReq"]
+		let levelCurve["skills"][i]["baseExpReq"] := skills["all"][skillCode]["baseExpReq"]
 		let i += 1
 		set capUseInc1 to 0
 		set capUseInc2 to 0
 	Loop
 	set i to 0
+
+	set fMagicCasterSkillCostBase to GetGameSetting "fMagicCasterSkillCostBase"
+	set fMagicCasterSkillCostMult to GetGameSetting "fMagicCasterSkillCostMult"
+	let levelCurve["magicSchools"] := ar_Construct "Array"
+	DebugPrint "recurve: Calculating magicka cost multiplier for all magic schools."
+	while (i < 6)
+		let skillLevel := skills["all"][i + 20]["amount"]
+		let levelCurve["magicSchools"][i] := ar_Construct "StringMap"
+		let levelCurve["magicSchools"][i]["magickaCostMult"] := fMagicCasterSkillCostBase + (fMagicCasterSkillCostMult * (1 - (skillLevel / 100)))
+		if (Recurved.DebugEnabled || Recurved.OutputFormulas)
+			PrintToConsole "recurve: Calculated magicka cost multiplier for school %g (skill %g)." i (i + 20)
+			PrintToConsole "recurve: Formula: magickaCostMult = fMagicCasterSkillCostBase + (fMagicCasterSkillCostMult * (1 - (skillLevel / 100)))"
+			PrintToConsole "recurve:  Result: %.4f = %.2f + (%.2f * (1 - (%g / 100)))" levelCurve["magicSchools"][i]["magickaCostMult"] fMagicCasterSkillCostBase fMagicCasterSkillCostMult skillLevel
+		endif
+		let i += 1
+	loop
 
 	SetFunctionValue levelCurve
 End
