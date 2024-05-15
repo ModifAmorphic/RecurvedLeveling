@@ -11,7 +11,7 @@ Begin Function { actor object }
 		return
 	endif
 	if (Recurved.WeaponExpNormalizedDisabled == 0)
-		set RecurvedController.HasUpdate to 1
+		set RecurvedController.UpdateFlag to 1
 	endif
 
 	; let useInc := call rcvGetWeaponuseIncModNormalized 1.4 object

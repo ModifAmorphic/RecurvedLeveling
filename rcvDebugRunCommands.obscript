@@ -38,7 +38,7 @@ Begin _Function {}
             call rcvAddWeaponUseIncMod
             call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
         endif
-        set RecurvedController.HasUpdate to 1
+        set RecurvedController.UpdateFlag to 1
     endif
 
     ; if (Recurved.SlowAttributeSkills > -1)

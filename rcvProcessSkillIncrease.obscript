@@ -72,5 +72,5 @@ Begin _Function { skillActorValueCode amount isScripted } ; Listens to Skill Up 
 	endif
 	
     call rcvAddEvent Recurved.EventTypeSkillChange skillActorValueCode
-	set RecurvedController.HasUpdate to 1
+	set RecurvedController.UpdateFlag to 1
 End

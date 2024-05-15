@@ -1,16 +1,18 @@
 scn rcvAddWeaponUseIncMod
 
+array_var levelCurve
 ref weapon
 int weaponType
 int skillCode
+ref normalizedWeapon
+float normalizedDps
 float speed
 float damage
 float dps
-float normalizeToDps
-float speedExpMult
-float expDpsMod
-float useIncMod
 float useIncMult
+float useIncMod
+float useIncExp
+float expExtraWeaponMulti
 
 Begin _Function { }
 
@@ -29,57 +31,59 @@ Begin _Function { }
     ; 4: Staff
     ; 5: Bow
 
+    if (weaponType == 4)
+        return
+    endif
+    DebugPrint "Getting LevelCurve"
+    let levelCurve := call rcvGetLevelCurve Player.GetLevel 0
     if (weaponType < 2)
-        set skillCode to 17 ; Blade
-    elseif (weaponType < 5)
+        set skillCode to 14 ; Blade
+        let normalizedDps := levelCurve["normalizedWeaponExp"]["melee"]["dps"]
+        let normalizedWeapon := levelCurve["normalizedWeaponExp"]["melee"]["weapon"]
+    elseif (weaponType < 4)
         set skillCode to 16 ; Blunt
+        let normalizedDps := levelCurve["normalizedWeaponExp"]["melee"]["dps"]
+        let normalizedWeapon := levelCurve["normalizedWeaponExp"]["melee"]["weapon"]
     elseif (weaponType == 5)
         set skillCode to 28 ; Marksman
+        let normalizedDps := levelCurve["normalizedWeaponExp"]["bow"]["dps"]
+        let normalizedWeapon := levelCurve["normalizedWeaponExp"]["bow"]["weapon"]
     endif
 
-    ; Marksman only normalizes to damage
-    if (skillCode == 28 && Recurved.ExpNormalizedBowDamage > 0)
-        let damage := GetAttackDamage weapon
-        set useIncMult to damage / Recurved.ExpNormalizedBowDamage 
-        DebugPrint "recurve: Calculated a bonus experience multiplier of %.2f for equipped bow %n." (1 / useIncMod) weapon
-        if (Recurved.DebugEnabled || Recurved.OutputFormulas)
-            PrintToConsole "recurve: Formula: expMultiplier = WeaponDamage / Recurved.ExpNormalizedBowDamage "
-            PrintToConsole "recurve:  Result: %.2f = %.2f / %.2f" useIncMult damage Recurved.ExpNormalizedBowDamage
-        endif
-    else
-        ; Blade and Blunt normalize exp to speed
-        let speed := GetWeaponSpeed weapon
-        set speedExpMult to Recurved.ExpNormalizedWeaponSpeed / speed
-        set useIncMult to Recurved.ExpNormalizedWeaponSpeed / speed
-        
-        ; Blade and Blunt normalize exp to dps if set
-        if (Recurved.ExpNormalizedWeaponDamage > 0)
-            let damage := GetAttackDamage weapon
-            set normalizeToDps to Recurved.ExpNormalizedWeaponSpeed * Recurved.ExpNormalizedWeaponDamage
-            set dps to speed * damage
-            set expDpsMod to dps / normalizeToDps
-            ;set useIncMod to useIncMod / expDpsMod
-            ;expMultiplier = [Normalized Speed Bonus] * ([Weapon DPS] / [Normalized DPS])"
-            set useIncMult to speedExpMult * (dps / normalizeToDps)
-        endif
-        DebugPrint "recurve: Calculated a bonus experience multiplier of %.2f for equipped weapon %n. Weapon's speed of %.2f contributed %.4f experience. Weapon's dps of %.2f multiplied this by an additional %.4f experience." (1 / useIncMod) weapon speed speedExpMult dps expDpsMod
-        if (Recurved.DebugEnabled || Recurved.OutputFormulas)
-            PrintToConsole "recurve: Calculated a bonus experience multiplier of %.2f for equipped weapon %n." (1 / useIncMod) weapon
-            if (Recurved.ExpNormalizedWeaponDamage)
-                PrintToConsole "recurve:    Formula: expMultiplier = (Recurved.ExpNormalizedWeaponSpeed / WeaponSpeed) * ((WeaponSpeed * WeaponDamage) / (Recurved.ExpNormalizedWeaponSpeed * Recurved.ExpNormalizedWeaponDamage))"
-                PrintToConsole "recurve: Simplified: expMultiplier = [Normalized Speed Bonus] * ([Weapon DPS] / [Normalized DPS])"
-                PrintToConsole "recurve:     Result: %.2f = %.2f * (%.2f / %.2f)" useIncMult speedExpMult dps normalizeToDps
-            else
-                PrintToConsole "recurve: Formula: expMultiplier = Recurved.ExpNormalizedWeaponSpeed / WeaponSpeed"
-                PrintToConsole "recurve:  Result: %.2f = %.2f * (%.2f / %.2f)" useIncMult dps normalizeToDps
-            endif
-		endif
+    set damage to GetAttackDamage weapon
+    set speed to GetWeaponSpeed weapon
+    set dps to speed * damage
+    ; If for some reason normalized DPS was zero (error loading curve or some wierd modded value)
+    ; then don't divide by zero
+    if (normalizedDps <= 0)
+        PrintToConsole "recurve: (WARN) Could not calculate dps from normalized weapon %q%n%q." normalizedWeapon
+        return
     endif
-    ; invert the multiplier because the the algo to determine use increments divides by this number instead multiplies
-    set useIncMod to 1 / useIncMult
+    
+    set expExtraWeaponMulti to Recurved.ExpExtraWeaponMulti
+    if (expExtraWeaponMulti <= 0)
+        set expExtraWeaponMulti to 1
+    endif
+    set useIncMult to dps / normalizedDps * expExtraWeaponMulti
+
+    DebugPrint "recurve: Calculated a bonus experience multiplier of %.2f for equipped weapon %n." useIncMult weapon
+    if (Recurved.DebugEnabled || Recurved.OutputFormulas)
+        PrintToConsole "recurve: Calculated a bonus experience multiplier of %.2f for equipped weapon %n. Comparison weapon: %n." useIncMult weapon normalizedWeapon
+        PrintToConsole "recurve:    Formula: expMultiplier = ((WeaponSpeed * WeaponDamage) / [%n DPS]) * Recurved.ExpExtraWeaponMulti" normalizedWeapon normalizedWeapon
+        PrintToConsole "recurve:     Result: %.2f = ((%.2f * %.2f) / %.2f) * %.2f" useIncMult speed damage normalizedDps expExtraWeaponMulti
+        set useIncExp to GetSkillUseIncrementC skillCode 0
+        PrintToConsole "recurve:    Formula: expPerHit = [Skill %g Use Increment] * expMultiplier" skillCode
+        PrintToConsole "recurve:     Result: %.2f = %.2f * %.2f" (useIncExp * useIncMult) useIncExp useIncMult
+    endif
+
 	;DebugPrint "recurve: Normalizing weapon type %g. Adding skill use override mod of %.4f for skill %g." weaponType useIncMod skillCode
     ; Remove any existing weapon use overrides
     call rcvDeleteSkillOverrides Recurved.OverrideReasonWeapon
-    ; Add the new override
-	call rcvAddSkillUseIncOverride skillCode useIncMod useIncMod Recurved.OverrideReasonWeapon
+
+    ; invert the multiplier because the the algo to determine use increments divides by this number instead multiplies
+    if (useIncMult)
+        set useIncMod to 1 / useIncMult
+        ; Add the new override
+	    call rcvAddSkillUseIncOverride skillCode useIncMod useIncMod Recurved.OverrideReasonWeapon
+    endif
 End

@@ -4,28 +4,28 @@ float fQuestDelayTime
 
 ; Ticks since the game was restarted
 int GlobalTick
-int lastEventPurge
+int lastEventPurge        ; Tracks last time events array was last purged
 ; public used vars
-short HasUpdate
-short IsIniLoadNeeded
+short UpdateFlag          ; For other scripts to request an update to run on next tick
+short IsTutorialComplete  ; Only updated once, after tutorial is found to be completed
 
 ; Flags for flow control
-short IsTutorialComplete
+;; Flags for only running code once on menus opening
 short isSleepMenuInit
 short isLevelMenuInit
-short IsPlayerLeveled
+short IsPlayerLeveling
+;; flags for tracking game restart and reloads
+short hasRestartedSinceUpdate
+short hasLoadedSinceUpdate
 short isGameRestarted
 short isGameLoaded
-short isGameRestartedPeek
-short isGameLoadedPeek
-int lastPreLevelUpCheck
+
+int lastPreLevelUpCheck ; For tracking a PreLevelUp event
+
 ; Tutorial function vars
 short isTutorialCheckActive
 short isTutorialQuestPassed
 short isClassSelected
-
-; Overlevel flag
-short isOverLevel
 
 ; Sleep Menu
 ;; Not needed anymore, but left in as a way to cause an update manually.
@@ -37,8 +37,8 @@ begin MenuMode 1012
 	
 	; set so this code only gets executed once per menu open
 	set isSleepMenuInit to 1
-	; Set HasUpdate flag so next _GameMode tick processes
-	set HasUpdate to 1
+	; Set UpdateFlag flag so next _GameMode tick processes
+	set UpdateFlag to 1
 
 end
 
@@ -48,10 +48,10 @@ begin _MenuMode 1027
 		return
 	endif
 	
-	; Set HasUpdate flag so next _GameMode tick processes
-	set HasUpdate to 1
+	; Set UpdateFlag flag so next _GameMode tick processes
+	set UpdateFlag to 1
 	; track internally for the next game mode tick
-	set IsPlayerLeveled to 1
+	set IsPlayerLeveling to 1
 	; record the event in history
 	call rcvAddEvent Recurved.EventTypeLevelUp player.GetLevel + 1
 	; set so this code only gets executed once per menu open
@@ -67,141 +67,13 @@ begin _MenuMode 1027
 end
 
 Begin _GameMode
-	set GlobalTick to GlobalTick + 1
-	set isGameRestartedPeek to GetGameRestarted
-	set isGameLoadedPeek to GetGameLoaded
-	
-	if isGameRestartedPeek
-		set fQuestDelayTime to .2
+	set isGameRestarted to GetGameRestarted
+	set isGameLoaded to GetGameLoaded
+	; Runs every tick
+	if Eval((call rcvRecurveControllerOnTick isGameRestarted isGameLoaded))
+		; rcvRecurveControllerOnTick determined there was an update pending.
+		call rcvRecurveControllerOnUpdate isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoadedSinceUpdate
 	endif
 	
-	; Preserve load and restart statuses for later
-	; if the tutorial is active
-	if IsTutorialComplete || isGameRestartedPeek
-		set isGameRestarted to isGameRestartedPeek
-	endif
-	if IsTutorialComplete || isGameLoadedPeek
-		set isGameLoaded to isGameLoadedPeek
-	endif
-
-	; Run any debug commands that may be pending
-	if Recurved.DebugEnabled
-		call rcvDebugRunCommands
-	endif
-
-	if (GlobalTick - lastEventPurge > Recurved.EventExpirationTicks && isGameLoadedPeek == 0 && IsIniLoadNeeded == 0)
-		DebugPrint "Pruning events older than %g ticks. Last Event Pruning was at %g ticks. Current tick is %g." Recurved.EventExpirationTicks lastEventPurge GlobalTick
-		call rcvPruneEvents 0
-		set lastEventPurge to GlobalTick
-	endif
-
-	; Exit early if new updates or game loads
-	if isGameLoaded == 0 && HasUpdate == 0 && IsIniLoadNeeded == 0
-		return
-	endif
-	if isGameLoadedPeek || IsIniLoadNeeded
-		set IsIniLoadNeeded to 0
-		call rcvSetConstants
-		call rcvLoadIni
-		call rcvSetConstants
-		DebugPrint "recurve: Flow control: isGameRestartedPeek=%g, isGameLoadedPeek=%g, isGameRestarted=%g, isGameLoaded=%g, isClassSelected=%g, IsTutorialComplete=%g, HasUpdate=%g" isGameRestartedPeek isGameLoadedPeek isGameRestarted isGameLoaded isClassSelected IsTutorialComplete HasUpdate
-		; Prune events and update event time offsets, Reset GlobalTick back to 0
-		call rcvResetGlobalTick
-		
-		; ; ; one time fix
-		; DebugPrint "Fixing Health Values"
-		; let Recurved.Levels[player.getlevel - 1]["health"] := 320
-		; let Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedValue"] := 100
-		; DebugPrint "Fixed Current Level Health: %g" (Recurved.Levels[player.getlevel - 1]["health"])
-	endif
 	
-	; If tutorial was flagged as active, then check to see if that's changed
-	if (IsTutorialComplete == 0)
-		let IsTutorialComplete := !(call rcvGetIsInTutorial)
-		if (IsTutorialComplete == 0)
-			return
-		endif
-	endif
-
-	;;; End Tutorial Check
-
-	if isGameRestarted
-		DebugPrint "recurve: Loading..."
-	endif
-	
-	; Load data on game load event
-	if isGameLoaded
-		call rcvLoadData isGameLoaded isGameRestarted
-		; Ensure existing protections are removed in case this was
-		; recently disabled
-		if Recurved.AttributeProtectionDisabled
-			call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
-		endif
-		call rcvAddEvent Recurved.EventTypeGameLoaded GlobalTick
-	endif
-	
-	if isGameRestarted
-		; Subscribe to Skill Up Events on restart
-		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
-		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
-		SetEventHandler "OnMagicApply" rcvOnMagicApplySubscriber "second"::PlayerRef
-		;; Seems to cause crashes. Doesn't seem worth it to avoid a few
-		;; strings in save files.
-		; SetEventHandler "SaveGame" rcvSaveGameSubscriber
-		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
-		;SetEventHandler "OnHit" rcvOnHitSubscriber "first"::PlayerRef
-		SetEventHandler "OnHealthDamage" rcvOnHealthDamageSubscriber ;"object"::PlayerRef
-		DebugPrint "recurve: Subscribed event handlers."
-		call rcvAddEvent Recurved.EventTypeGameRestarted GlobalTick
-	endif
-
-	; Handle overleveling. Reset progress back to max progress for current level
-	if (Recurved.DelayedResetLevelProgress > 0)
-		SetPCMajorSkillUps (GetGameSetting "iLevelUpSkillCount")
-		DebugPrint "recurve: Reset level progress to level maximum."
-		set Recurved.DelayedResetLevelProgress to 0
-	endif
-
-	; Handle Player pre and post level up 
-	if Eval(call rcvHasEventAfter Recurved.EventTypeLevelUpProgressReached lastPreLevelUpCheck)
-		call rcvSetLevelProgress 0
-	endif
-	set lastPreLevelUpCheck to GlobalTick
-	if (IsPlayerLeveled == 1)
-		call rcvProcessLevelUp
-	endif
-	
-	; Reset Skill Use Increments Prior to reconfiguring
-	DebugPrint "recurve: Resetting Skill Use Increments"
-	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
-	; Reset overrides
-	let Recurved.SkillUseOverrides := ar_Construct "Array"
-	; Configure attribute gains and required skill increase for the current level
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 1) Recurved.SkillUseOverrides
-	;  ## overrides ##
-	; Apply overlevel prvention if needed
-	if (Recurved.AttributeProtectionDisabled == 0)
-		let isOverLevel := call rcvPreventOverLevel 0 0
-	endif
-	
-	; if overlevel protection not enabled then add other overrides
-	if (isOverLevel == 0)
-		; Add weapon use mod overrides
-		call rcvAddWeaponUseIncMod
-		; set Recurved.WeaponEquipped to 0
-		call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
-	endif
-	; Reapply level curve with potential changes
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 0) Recurved.SkillUseOverrides
-	
-	; reset variables
-	set isSleepMenuInit to 0
-	set isLevelMenuInit to 0
-	set IsPlayerLeveled to 0
-	set HasUpdate to 0
-	set IsIniLoadNeeded to 0
-
-	if isGameLoaded
-		PrintToConsole "Recurved Levels Initialized and Active."
-	endif
 end

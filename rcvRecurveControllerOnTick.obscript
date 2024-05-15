@@ -1,0 +1,40 @@
+scn rcvRecurveControllerOnTick ; Called on every fQuestDelayTime "tick" of the GameMode
+
+;inputs
+short isGameRestarted
+short isGameLoaded
+; outputs
+short hasUpdate
+Begin _Function { isGameRestarted isGameLoaded }
+	set RecurvedController.GlobalTick to RecurvedController.GlobalTick + 1
+
+	if isGameRestarted
+		set RecurvedController.fQuestDelayTime to .2
+	endif
+	
+	; Preserve load and restart statuses for later
+	; if the tutorial is active
+	if RecurvedController.IsTutorialComplete || isGameRestarted
+		set RecurvedController.hasRestartedSinceUpdate to isGameRestarted
+	endif
+	if RecurvedController.IsTutorialComplete || isGameLoaded
+		set RecurvedController.hasLoadedSinceUpdate to isGameLoaded
+	endif
+
+	; Run any debug commands that may be pending
+	if Recurved.DebugEnabled
+		call rcvDebugRunCommands
+	endif
+
+	if (RecurvedController.GlobalTick - RecurvedController.lastEventPurge > Recurved.EventExpirationTicks && RecurvedController.hasLoadedSinceUpdate == 0)
+		DebugPrint "Pruning events older than %g ticks. Last Event Pruning was at %g ticks. Current tick is %g." Recurved.EventExpirationTicks RecurvedController.lastEventPurge RecurvedController.GlobalTick
+		call rcvPruneEvents 0
+		set RecurvedController.lastEventPurge to RecurvedController.GlobalTick
+	endif
+
+	; Only mark update if new updates or game loads
+	if RecurvedController.hasLoadedSinceUpdate || RecurvedController.UpdateFlag
+		set hasUpdate to 1
+	endif
+	SetFunctionValue hasUpdate
+End

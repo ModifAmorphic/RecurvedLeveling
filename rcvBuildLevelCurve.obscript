@@ -30,6 +30,15 @@ float fMagicCasterSkillCostBase
 float fMagicCasterSkillCostMult
 int skillLevel
 
+; Normalized Weapon DPS
+ref weapon
+float weaponDamage
+float weaponSpeed
+
+ref bowWeapon
+float bowDamage
+float bowSpeed
+
 ; input params
 int level
 Begin _Function { level }
@@ -40,8 +49,8 @@ Begin _Function { level }
 	let startLevel1 := call rcvSubtractOrMin Recurved.Tier1StartLevel 1 1
 	let startLevel2 := call rcvSubtractOrMin Recurved.Tier2StartLevel 1 (Recurved.Tier1StartLevel + 1)
 	let startLevel3 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier2StartLevel + 1)
-	let startLevel4 := call rcvSubtractOrMin Recurved.Tier3StartLevel 1 (Recurved.Tier3StartLevel + 1)
-	let startLevel5 := call rcvSubtractOrMin Recurved.Tier4StartLevel 1 (Recurved.Tier4StartLevel + 1)
+	let startLevel4 := call rcvSubtractOrMin Recurved.Tier4StartLevel 1 (Recurved.Tier3StartLevel + 1)
+	let startLevel5 := call rcvSubtractOrMin Recurved.Tier5StartLevel 1 (Recurved.Tier4StartLevel + 1)
 	
 	;DebugPrint "Start1: %g, Start2: %g, Start3: %g, level: %g" startLevel1 startLevel2 startLevel3 level
 	if (level >= startLevel1) && (level < startLevel2)
@@ -177,6 +186,49 @@ Begin _Function { level }
 		endif
 		let i += 1
 	loop
+	;; Calculate Normalized Weapon DPS
+	if (Recurved.WeaponExpNormalizedDisabled == 0)
+		if (level < 4)
+			set weapon to WeapIronDaggerRusty
+			set bowWeapon to WeapIronBow
+		elseif (level < 9)
+			set weapon to WeapIronDagger
+			set bowWeapon to WeapIronBow
+		elseif (level < 12)
+			set weapon to WeapIronDaggerFine
+			set bowWeapon to WeapIronBowFine
+		elseif (level < 16)
+			set weapon to WeapSteelDagger
+			set bowWeapon to WeapSteelBow
+		else
+			set weapon to WeapSilverDagger
+			set bowWeapon to WeapSilverBow
+		endif
+		; 	set weapon to WeapElvenDagger
+		; 	set bowWeapon to WeapElvenBow
+		; endif
+		
+		let levelCurve["normalizedWeaponExp"] := ar_Construct "StringMap"
 
+		set weaponDamage to GetAttackDamage weapon
+		set weaponSpeed to GetWeaponSpeed weapon
+		let levelCurve["normalizedWeaponExp"]["melee"] := ar_Construct "StringMap"
+		let levelCurve["normalizedWeaponExp"]["melee"]["damage"] := weaponDamage
+		let levelCurve["normalizedWeaponExp"]["melee"]["speed"] := weaponSpeed
+		let levelCurve["normalizedWeaponExp"]["melee"]["dps"] := weaponSpeed * weaponDamage
+		let levelCurve["normalizedWeaponExp"]["melee"]["weapon"] := weapon
+
+		set bowDamage to GetAttackDamage bowWeapon
+		set bowSpeed to GetWeaponSpeed bowWeapon ;bow speed is the same for all vanilla bows, but doesn't hurt to use it
+		if (level < 4)
+			; Reduce to 60% of iron damage since the rusty iron bow is the same damage/dps
+			let bowDamage *= .6
+		endif
+		let levelCurve["normalizedWeaponExp"]["bow"] := ar_Construct "StringMap"
+		let levelCurve["normalizedWeaponExp"]["bow"]["damage"] := bowWeapon
+		let levelCurve["normalizedWeaponExp"]["bow"]["speed"] := bowSpeed * bowDamage
+		let levelCurve["normalizedWeaponExp"]["bow"]["dps"] := weaponSpeed * weaponDamage
+		let levelCurve["normalizedWeaponExp"]["bow"]["weapon"] := bowWeapon
+	endif
 	SetFunctionValue levelCurve
 End

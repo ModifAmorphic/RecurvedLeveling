@@ -9,7 +9,7 @@ Begin Function { level } ; Dumps Recurved.LevelCurves Array
 	set index to level - 1
 
 	if Eval (index > ar_Size Recurved.LevelCurves)
-		DebugPrint "recurve: Unable to dump Recurved.LevelCurves[%g] for level %g. Level does not exist in Recurved.LevelCurves." index level
+		DebugPrint "recurve: Unable to dump Recurved.LevelCurves[%g] for level %g. Level does not exist in Recurved.LevelCurves.%n" index level
 		return
 	endif
 	DebugPrint "recurve: ######## Dumping Recurved.LevelCurves[%g] #######" index
@@ -29,5 +29,10 @@ Begin Function { level } ; Dumps Recurved.LevelCurves Array
 		let i += 1
 	loop
 	set i to 0
-	DebugPrint "recurve: ######## End Dumping Recurved.LevelCurves[%g] #######" index
+
+	DebugPrint "recurve: Dumping Recurved.LevelCurves[%g][%qnormalizedWeaponExp%q][%qmelee%q]:" index
+	ar_Dump Recurved.LevelCurves[index]["normalizedWeaponExp"]["melee"]
+	DebugPrint "recurve: Dumping Recurved.LevelCurves[%g][%qnormalizedWeaponExp%q][%qbow%q]:" index
+	ar_Dump Recurved.LevelCurves[index]["normalizedWeaponExp"]["bow"]
+	DebugPrint "%nrecurve: ######## End Dumping Recurved.LevelCurves[%g] #######" index
 End

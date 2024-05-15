@@ -61,10 +61,11 @@ short RemainingAttributeProgressDisabled
 short EnduranceHealthNormalizationDisabled
 ;; Disables bonus experience on damage recieved for Light and Heavy Armor skills.
 short ArmorExpFromDamageDisabled
-;; Disables normalization of on hit experience for Blade and Blunt weapons.
-;;; When enabled, uses weapon speed of each weapon to calculate the 
-;;; experience per hit. Per hit experience increases as weapon speed decreases,
-;;; causing all weapons to generate the same amount of experience over time.
+;; Disables normalization of on hit experience for Blade, Blunt and Bow weapons.
+;;; When enabled, compares DPS of an equipped melee weapon to a dagger's DPS of a lower
+;;; quality. Bows are compared to, well, bows because there's only the single category.
+;;; The quality of weapon used in the comparison is loosely derived 
+;;; from https://en.uesp.net/wiki/Oblivion:Leveled_Lists#Random_Item_Lists
 short WeaponExpNormalizedDisabled
 ;; Disables extra experience gained from Magicka spent.
 short SpellExpFromMagickaDisabled
@@ -106,27 +107,34 @@ int MinimumMaxedAttributes
 ;;; 1+ - Increases experience for attacks higher than this value
 float ExpNormalizedReceivedDamage
 
-;;; Base weapon speed to normalize all other weapon speeds to in order to calculate the 
-;;; experience per hit. Per hit experience increases as weapon speed decreases,
-;;; causing all weapons to generate the same amount of experience over time.
-;;; By default, set to the fastest weapon (daggers) - 1.4 attacks per second.
-float ExpNormalizedWeaponSpeed
+;;; When WeaponExpNormalized is enabled, allows for additional fine tuning of the experience bonus gained from higher dps weapons.
+;;; <= 0 : Ignored "set Recurved.WeaponExpNormalizedDisabled to 1" if you want to disable bonus weapon experience.
+;;;  < 1 : Decreased bonus experience
+;;;  = 1 : No change to bonus experience (Default)
+;;;  > 1 : Increased bonus experience
+float ExpExtraWeaponMulti
 
-;;; Damage to normalize weapons against for experience gains. Higher damage weapons earn more 
-;;; exp per hit to componsate for less attacks prior to target death. Works in combination with
-;;; ExpNormalizedWeaponSpeed to calculate a base DPS in which all other weapons are normalized 
-;;; against. The lower the value, the higher the experience increase will be for higher dps weapons.
-;;; [Weapon Exp Per Hit] = (Equipped Weapon Damage x Speed) /  (ExpNormalizedWeaponDamage * ExpNormalizedWeaponSpeed) * [Normalized Weapon Skill Exp Per Use]
-;;; By default, set to the worst weapon (rusty dagger) - 3 damage.
-;;;; 0  - Disables Exp increases from damage
-;;;; 1+ - Damage to normalize exp gains against.
-float ExpNormalizedWeaponDamage
+; ;;; Base weapon speed to normalize all other weapon speeds to in order to calculate the 
+; ;;; experience per hit. Per hit experience increases as weapon speed decreases,
+; ;;; causing all weapons to generate the same amount of experience over time.
+; ;;; By default, set to the fastest weapon (daggers) - 1.4 attacks per second.
+; float ExpNormalizedWeaponSpeed
 
-;;; Similar to ExpNormalizedWeaponDamage but for bows. Only uses damage in the comparison, as all
-;;; bows have the same speed. Bows with higher damage will grant more exp per hit.
-;;;; 0  - Disables Exp increases from damage
-;;;; 1+ - Damage to normalize exp gains against.
-float ExpNormalizedBowDamage
+; ;;; Damage to normalize weapons against for experience gains. Higher damage weapons earn more 
+; ;;; exp per hit to componsate for less attacks prior to target death. Works in combination with
+; ;;; ExpNormalizedWeaponSpeed to calculate a base DPS in which all other weapons are normalized 
+; ;;; against. The lower the value, the higher the experience increase will be for higher dps weapons.
+; ;;; [Weapon Exp Per Hit] = (Equipped Weapon Damage x Speed) /  (ExpNormalizedWeaponDamage * ExpNormalizedWeaponSpeed) * [Normalized Weapon Skill Exp Per Use]
+; ;;; By default, set to the worst weapon (rusty dagger) - 3 damage.
+; ;;;; 0  - Disables Exp increases from damage
+; ;;;; 1+ - Damage to normalize exp gains against.
+; float ExpNormalizedWeaponDamage
+
+; ;;; Similar to ExpNormalizedWeaponDamage but for bows. Only uses damage in the comparison, as all
+; ;;; bows have the same speed. Bows with higher damage will grant more exp per hit.
+; ;;;; 0  - Disables Exp increases from damage
+; ;;;; 1+ - Damage to normalize exp gains against.
+; float ExpNormalizedBowDamage
 
 ;;; A dial for turning up or down spell experience from magicka spent. Doubles the experience
 ;;;; every time the amount doubles. Example: Setting to 10 doubles the experience bonus from 5.

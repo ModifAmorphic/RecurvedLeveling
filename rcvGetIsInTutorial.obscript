@@ -2,9 +2,11 @@ scn rcvGetIsInTutorial
 
 ref class
 
+; input
+short isGameLoaded
 ; output
 short isInTutorial
-Begin _Function {}
+Begin _Function { isGameLoaded }
 	;;; Start Tutorial Check
 	;;;; 1. If the player started a new game, wait for a valid class to be selected
 	;;;; 2. If #1 happened, then wait for the player to leave the sewers
@@ -15,7 +17,7 @@ Begin _Function {}
 		let class := player.GetClass
 		if class == CharactergenClass
 			set RecurvedController.isTutorialCheckActive to 1
-			if RecurvedController.isGameLoadedPeek
+			if isGameLoaded
 				DebugPrint "recurve: Character's class is CharactergenClass. Set isTutorialCheckActive to 1."
 			endif
 			set isInTutorial to 1
@@ -30,7 +32,7 @@ Begin _Function {}
 	if RecurvedController.isTutorialQuestPassed == 0
 		if call rcvHasTutorialQuest
 			set RecurvedController.isTutorialCheckActive to 1
-			if RecurvedController.isGameLoadedPeek
+			if isGameLoaded
 				DebugPrint "recurve: Tutorial quest found in character's quests."
 			endif
 			set isInTutorial to 1
@@ -46,15 +48,13 @@ Begin _Function {}
 		if Player.IsInInterior == 0
 			set RecurvedController.isTutorialCheckActive to 0
 			set RecurvedController.isTutorialQuestPassed to 1
-			set RecurvedController.isGameRestarted to 1
-			set RecurvedController.isGameLoaded to 1
 			DebugPrint "recurve: Tutorial complete."
 		else
 			set isInTutorial to 1
-			if RecurvedController.isGameLoadedPeek
+			if isGameLoaded
 				PrintToConsole "recurve: Tutorial is active. Delaying level scaling changes until tutorial is finished."
 			endif
 		endif
 	endif
-	SetFunctionValue  isInTutorial
+	SetFunctionValue isInTutorial
 End
