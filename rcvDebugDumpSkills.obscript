@@ -10,7 +10,7 @@ Begin Function { skills } ; Dumps a Skills Array
 	set i to 0 
 	if Eval (ar_HasKey skills "major")
 		set majorSkills to ar_size skills["major"]
-		DebugPrint "recurve: MajorSkills (%g):" majorSkills
+		PrintToConsole "recurve: %g skills[%qmajor%q]:" majorSkills
 		while (i < ar_size skills["major"])
 			ar_Dump skills["major"][i]
 			DebugPrint "recurve: useIncrements:"
@@ -18,20 +18,20 @@ Begin Function { skills } ; Dumps a Skills Array
 			let i += 1
 		loop
 	else
-		DebugPrint "recurve: Unable to dump Skills['major']. Key not found."
+		PrintToConsole "recurve: Unable to dump skills[%qmajor%q]. Key not found."
 	endif
 
 	set i to 0
 	if Eval (ar_HasKey skills "minor")
 		set minorSkills to ar_size skills["minor"]
-		DebugPrint "recurve: MinorSkills (%g):" minorSkills
+		PrintToConsole "recurve: %g skills[%qminor%q]:" minorSkills
 		while (i < ar_size skills["minor"])
 			ar_Dump skills["minor"][i]
-			DebugPrint "recurve: useIncrements:"
+			PrintToConsole "recurve: useIncrements:"
 			ar_Dump skills["minor"][i]["useIncrements"]
 			let i += 1
 		loop
 	else
-		DebugPrint "recurve: Unable to dump Skills['minor']. Key not found."
+		PrintToConsole "recurve: Unable to dump skills[%qminor%q]. Key not found."
 	endif
 End

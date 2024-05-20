@@ -8,14 +8,19 @@ array_var currentLevel
 array_var lastAttr
 ; array_var currentAttr
 array_var lvlMult
-int increase
+int attributeIncrease
 int skillProgress
+int preLvlPointsApplied
 int currentAttributeBonus
 int pointsSpent
 int primaryBonus
+int primaryBonusCarryOver
 int secondaryBonus
-int pointsRemain
-int preLvlPoints
+int secondaryBonusCarryOver
+int vanillaAttribBonus
+int earnedAttributePoints
+int pointDebt
+int pointBalance
 
 ; Input Params
 array_var lastLevel
@@ -27,6 +32,9 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
     let currentLevel := call rcvGetCurrentLevel
     let attributePoints := ar_Construct "Array"
     set attributeCode to 0
+	if (Recurved.OutputFormulas)
+		PrintToConsole "recurve: ### PostLevel Attribute Progress Carryover Balance Sheet ###"
+	endif
     while (attributeCode < ar_Size lastLevel["attributes"])
         if (attributeCode == Recurved.LuckAvc)
 			; don't calculate luck progress
@@ -34,15 +42,22 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
             continue;
         endif
         let lastAttr := lastLevel["attributes"][attributeCode]
-        let increase := currentLevel["attributes"][attributeCode]["increase"]
+        let attributeIncrease := currentLevel["attributes"][attributeCode]["increase"]
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve: ______________________________________________________________________________________"
+			PrintToConsole "recurve: -- %v {%g} Attribute Balance Sheet --" attributeCode attributeCode
+			PrintToConsole "recurve:    @@ Stage 1 @@"
+			PrintToConsole "recurve:    Calculates attribute bonus points spent on attribute upgrade, if one was made. Also retrieves values from the previous level for later stages."
+			PrintToConsole "recurve:        attributeIncrease=%g     - Amount attribute was increased if selected in the level up menu, otherwise zero." attributeIncrease
+		endif
         ; If a attribute was increased, calculate how many attribute progress 
         ;    points were used by reading through the iLevelUpMults table
         set pointsSpent to 0
-        if increase > 0
+        if attributeIncrease > 0
             while (m < ar_Size levelCurve["iLevelUpMults"])
                 let lvlMult := levelCurve["iLevelUpMults"][m]
                 ; Select the lowest used value to subtract from total progress made
-                if Eval (lvlMult["value"] == increase)
+                if Eval (lvlMult["value"] == attributeIncrease)
                     set pointsSpent to m + 1
                     break
                 endif
@@ -50,63 +65,160 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
             loop
             set m to 0
 		endif
-        ; Add any left over over progress points to the current level, taking in to account any points spent for attribute increases.
-        let skillProgress := lastAttr["skillProgress"]
 
-		; Calculate the current attribute bonus minus points that were added in by pre level up
-		; get points that were added previous to the actual level up
-		let preLvlPoints := lastLevel["attributes"][attributeCode]["preLevelCarryOver"]
-		;; get current points total
 		let currentAttributeBonus := GetPCAttributeBonusC attributeCode
-		;; reduce by pre level carryover (modified by Recurved.RemainingAttributeProgressPerc)
-		let currentAttributeBonus -= preLvlPoints
+		let preLvlPointsApplied := lastAttr["preLvlAppliedProgress"]
+        let skillProgress := lastAttr["skillProgress"]
+		let primaryBonus := lastAttr["primaryBonus"]
+		let secondaryBonus := lastAttr["secondaryBonus"]
+		let vanillaAttribBonus := skillProgress - primaryBonus - secondaryBonus
+		if (vanillaAttribBonus < 0)
+			set vanillaAttribBonus to 0
+		endif
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:        currentAttributeBonus=%g - Attribute bonuses awarded since required Major Skill Ups for this new level were reached" currentAttributeBonus
+			PrintToConsole "recurve:        preLvlPointsApplied=%g   - Points that were carried forward from the previous level to the new level" preLvlPointsApplied
+			PrintToConsole "recurve:        skillProgress=%g         - Total attribute bonus points earned in the previous level" preLvlPointsApplied
+			PrintToConsole "recurve:        primaryBonus=%g          - Primary bonus points earned in the previous level" primaryBonus
+			PrintToConsole "recurve:        secondaryBonus=%g        - Secondary bonus points earned in the previous level" secondaryBonus
+			PrintToConsole "recurve:        vanillaAttribBonus=%g    - Vanilla, non Recurved attribute bonus points earned last level (skillProgress - primaryBonus - secondaryBonus)" vanillaAttribBonus
+		endif
+		;; at this point we know: 
+		;;;   - how many attribute bonus points the character currently has
+		;;;   - of the current attribute bonus, how many were added when pre level up was hit
+		;;;   - how many skill progress points were earned when pre level up was hit
+		;;;   - of those skill progress points, how many were recurved primary and secondary bonus points
+		;;;   - how many vanilla progress points we have after removing recurved bonus points
+		;;;   - and finally, how many points were spent on a attribute increase post level up
+		
+		;; we need to know:
+		;;;   - how many primary and secondary bonus point should roll over, if any
+		;;;   - how many "vanilla" progress points should roll over
+		;;;   - what to adjust the current (new) level's attribute bonus to
 
-		; calculate the points that remain from points that would be carried over
-		;; set to skill progress that was achieved last level
-		set pointsRemain to skillProgress
-		let primaryBonus := Recurved.PrimaryAttribBonuses[attributeCode]
-		;; reduce points spent by any bonus point amounts first, since they may not carry forward
-		let pointsSpent -= Recurved.SecondaryAttribBonuses[attributeCode]
-		if (pointsSpent < 0)
-			let secondaryBonus := pointsSpent * (-1)
-		else
-			set secondaryBonus to 0
-			let pointsSpent -= Recurved.PrimaryAttribBonuses[attributeCode]
-			if (pointsSpent < 0)
-				let primaryBonus := pointsSpent * (-1)
-			else 
+		;; First, we'll calculate how much of our bonus points should remain (if any) while at the same
+		;; time calculating our "debt" we have after spending our bonus points for an attribute increase
+
+		;; Spend secondary bonus points
+		set pointDebt to pointsSpent
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:    @@ Stage 2 @@"
+			PrintToConsole "recurve:    Calculates points remaining balance after spending points on an attribute increase."
+			PrintToConsole "recurve:      -Starting Secondary Bonus Point payment calculation-"
+			PrintToConsole "recurve:        pointDebt=%g             - Amount of bonus points spent to increase the attribute" pointDebt
+			PrintToConsole "recurve:        secondaryBonus=%g" secondaryBonus
+		endif
+		; if points were spent, then there's a debt that needs payin'
+		if (pointDebt > 0)
+			let pointDebt -= secondaryBonus
+			; if debt overpayed, then the credit the back the overage to the secondary bonus
+			if (pointDebt < 0)
+				let secondaryBonus := Abs pointDebt
+				set pointDebt to 0
+			else ; secondary bonus spent
+				set secondaryBonus to 0
+			endif
+		endif
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:      -Remaining debt post Secondary Bonus Point payment calculation-"
+			PrintToConsole "recurve:        pointDebt=%g" pointDebt
+			PrintToConsole "recurve:        secondaryBonus=%g        - Adjusted, minus payment to pointDebt" secondaryBonus
+			PrintToConsole "recurve:      -Starting Primary Bonus Point payment calculation-"
+			PrintToConsole "recurve:        primaryBonus=%g" primaryBonus
+		endif
+		; If there's still a debt remaining after spending the secondary bonus,
+		;; then spend the primaryBonus
+		if (pointDebt > 0)
+			let pointDebt -= primaryBonus
+			;; if debt was overpayed, credit back the overage to the primary bonus
+			if (pointDebt < 0)
+				let primaryBonus := Abs pointDebt
+				set pointDebt to 0
+			else ; primary bonus spent
 				set primaryBonus to 0
 			endif
 		endif
-		;; if bonus points exceeded pointsSpent, then set pointsSpent to 0
-		if (pointsSpent < 0)
-			set pointsSpent to 0
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:      -Remaining debt post Primary Bonus Point payment calculation-"
+			PrintToConsole "recurve:        pointDebt=%g" pointDebt
+			PrintToConsole "recurve:        primaryBonus=%g          - Adjusted, minus payment to pointDebt" primaryBonus
+			PrintToConsole "recurve:      -Starting Vanilla Attribute Bonus Point payment calculation-"
+			PrintToConsole "recurve:        vanillaAttribBonus=%g" vanillaAttribBonus
 		endif
-		;; remove any remaining points spent after bonus point removals
-		let pointsRemain -= pointsSpent
-		;; If carryover not enabled, remove the remaining primary Bonus points, if any
-		if (Recurved.CarryMajorAttributeBonusForward == 0)
-			let pointsRemain -= primaryBonus
+		; If we couldn't pay with recurved bonus points, then we'll have to pay with real money (vanilla bonus progress points) vanillaAttribBonus
+		if (pointDebt > 0)
+			let pointDebt -= vanillaAttribBonus
+			;; if debt was overpayed, credit back the overage to the vanillaAttribBonus
+			if (pointDebt < 0)
+				let vanillaAttribBonus := Abs pointDebt
+				set pointDebt to 0
+			else ; primary bonus spent
+				set vanillaAttribBonus to 0
+			endif
 		endif
-		if (Recurved.CarrySecondaryAttributeBonusForward == 0)
-			let pointsRemain -= secondaryBonus
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:      -Remaining debt post Vanilla Attribute Bonus Point calculation-"
+			PrintToConsole "recurve:        pointDebt=%g" pointDebt
+			PrintToConsole "recurve:        vanillaAttribBonus=%g    - Adjusted, minus payment to pointDebt" vanillaAttribBonus
 		endif
-		; Finally, modify by Recurved.RemainingAttributeProgressPerc
-		if (Recurved.RemainingAttributeProgressPerc > 0)
-			let pointsRemain *= Recurved.RemainingAttributeProgressPerc
+		;; if there's still a debt to be payed after all this, then something went horribly wrong and they get the debt wiped clean
+		;; with a warning (this shouldn't ever happen unless someone screwed with progress points or this mod screwed up)
+		if (pointDebt > 0)
+			PrintToConsole "recurve: (WARN) Failed to calculate progress point carryover for attribute %g. Calculation resulted in %g points unpaid for an attribute increase. Set carryover to 0." attributeCode pointDebt
+			set pointDebt to 0
 		endif
-		if (pointsRemain < 0)
-			PrintToConsole "recurve: (WARN) Failed to calculate progress point carryover for attribute %g. Calculation resulted in %g points. Set carryover to 0." attributeCode pointsRemain
-			set pointsRemain to 0
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:    @@ Stage 3 @@"
+			PrintToConsole "recurve:    Calculates final attribute balance."
+			PrintToConsole "recurve:        Recurved.CarrySecondaryAttributeBonusForward=%g  - Ini setting for enabling or disabling carrying of secondary bonus points forward." Recurved.CarrySecondaryAttributeBonusForward
+			PrintToConsole "recurve:        Recurved.CarryMajorAttributeBonusForward=%g      - Ini setting for enabling or disabling carrying of primary bonus points forward." Recurved.CarryMajorAttributeBonusForward
+			PrintToConsole "recurve:        currentAttributeBonus=%g" currentAttributeBonus
+			PrintToConsole "recurve:        preLvlPointsApplied=%g" preLvlPointsApplied
+			PrintToConsole "recurve:        primaryBonus=%g" primaryBonus
+			PrintToConsole "recurve:        secondaryBonus=%g" secondaryBonus
+			PrintToConsole "recurve:        vanillaAttribBonus=%g" vanillaAttribBonus
 		endif
+		;; finally, we'll reduce the current attribute bonus by the preLvlPointsApplied to determine how many points were actually earned "this" level
+		set earnedAttributePoints to currentAttributeBonus - preLvlPointsApplied
+
+		;; We find ourselves about finished (finally) with this transaction and ready to calculate our balance.
+		;; To accomplish this we'll:
+		;;;   - Check if Secondary bonuses are configured to roll over, if there is any credit remaining that is
+		;;;   - Check if Primary bonuses are configured to roll over, again if there is one
+		;;;   - Calculate our balance by suming recurved bonuses (if applicable) with our vanilla bonus and the bonus(es) earned this level (earnedAttributePoints)
+		set pointBalance to 0
+		set secondaryBonusCarryOver to 0
+		if (Recurved.CarrySecondaryAttributeBonusForward)
+			set secondaryBonusCarryOver to secondaryBonus
+		endif
+		set primaryBonusCarryOver to 0
+		if (Recurved.CarryMajorAttributeBonusForward)
+			set primaryBonusCarryOver to primaryBonus
+		endif
+		
+		set pointBalance to secondaryBonusCarryOver + primaryBonusCarryOver + earnedAttributePoints + vanillaAttribBonus
+
+		; and now we're done. just need to record the result
 		let attributeProgress := ar_Construct "StringMap"
 		let attributeProgress["attributeCode"] := attributeCode
-		; Remove bonus points since they don't get carried over and don't need to be accounted for
-		let attributeProgress["progressPoints"] := pointsRemain
+		let attributeProgress["progressPoints"] := pointBalance
         ar_Append attributePoints attributeProgress
-        DebugPrint "recurve: Calculated %g progress points for attribute %g. Pre level up progress points (before level up): %g. Remaining Primary Bonus points: %g, Remaining Secondary Bonus Points: %g." attributeProgress["progressPoints"] attributeProgress["attributeCode"] preLvlPoints primaryBonus secondaryBonus
-        
+		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:     Calculate points balance, adding attribute points from the previous level to attribute points earned for the next, now current level."
+			PrintToConsole "recurve:        secondaryBonusCarryOver=%g  - Amount of secondary bonus points carried over to the next level." secondaryBonusCarryOver
+			PrintToConsole "recurve:        primaryBonusCarryOver=%g    - Amount of primary bonus points carried over to the next level." primaryBonusCarryOver
+			PrintToConsole "recurve:        earnedAttributePoints=%g    - Attribute points earned this new level (currentAttributeBonus - preLvlPointsApplied)" earnedAttributePoints
+			PrintToConsole "recurve:     	pointBalance = secondaryBonusCarryOver + primaryBonusCarryOver + earnedAttributePoints + vanillaAttribBonus"
+			PrintToConsole "recurve:     	pointBalance = %g + %g + %g + %g" secondaryBonusCarryOver primaryBonusCarryOver earnedAttributePoints vanillaAttribBonus
+			PrintToConsole "recurve:        pointBalance = %g" pointBalance
+		endif
+		DebugPrint "recurve: Summary: Calculated balance of %g progress points for attribute %v {%g}. Pre level up progress points (before level up): %g. Remaining Primary Bonus points: %g, Remaining Secondary Bonus Points: %g, Remaining Vanilla Bonus Points: %g." attributeProgress["progressPoints"] attributeProgress["attributeCode"] attributeProgress["attributeCode"] preLvlPointsApplied primaryBonus secondaryBonus vanillaAttribBonus
         let attributeCode += 1
     loop
+	if (Recurved.OutputFormulas)
+		PrintToConsole "recurve: ### End of PostLevel Attribute Progress Carryover Balance Sheet ###"
+	endif
     SetFunctionValue attributePoints
 End
+
+

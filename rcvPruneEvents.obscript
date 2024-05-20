@@ -35,5 +35,6 @@ Begin Function { pruneAll }
     if (prunedEvents)
         let Recurved.EventHistory := tmpEvents
     endif
+    DebugPrint "Pruned %g events older than %g ticks. Previous Event Pruning was at %g ticks. Current tick is %g." prunedEvents Recurved.EventExpirationTicks RecurvedController.lastEventPurge RecurvedController.GlobalTick
     SetFunctionValue prunedEvents
 End

@@ -1,7 +1,6 @@
 scn rcvAddSkillUseIncOverride
 
 ; locals
-int i
 float modUseInc0
 float modUseInc1
 array_var useOverride
@@ -22,8 +21,8 @@ Begin _Function { skillCode useIncMod0 useIncMod1 overrideReason } ; Adds skill 
 		set isNewOverride to 1
 	endif
 
-	let modUseInc0 := call rcvCalculateUseIncrement (Recurved.DefaultSkillUseIncrements[skillCode][0]) useIncMod0
-	let modUseInc1 := call rcvCalculateUseIncrement (Recurved.DefaultSkillUseIncrements[skillCode][1]) useIncMod1
+	let modUseInc0 := (call rcvGetDefaultSkillUseInc skillCode 0) * useIncMod0
+	let modUseInc1 := (call rcvGetDefaultSkillUseInc skillCode 1) * useIncMod1
 	let useOverride["skillCode"] := skillCode
 	let useOverride["reason"] := overrideReason
 	let useOverride["useInc"] := ar_Construct "Array"
@@ -34,7 +33,6 @@ Begin _Function { skillCode useIncMod0 useIncMod1 overrideReason } ; Adds skill 
 	let useOverride["useIncModifiers"][1] := useIncMod1
 	if (isNewOverride)
 		ar_Append Recurved.SkillUseOverrides useOverride
+		DebugPrint "recurve: New SkillUseOverride added for skill %g, reason %g. [ UseInc1=%.2f, UseInc2=%.2f, UseIncMod1=%.2f, UseIncMod2 =%.2f ] {%v}" skillCode overrideReason modUseInc0 modUseInc1 useIncMod0 useIncMod1 skillCode
 	endif
-	let i += 1
-	
 End

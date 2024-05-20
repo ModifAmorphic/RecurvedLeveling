@@ -13,31 +13,31 @@ int skillCode
 int attribProgress
 int secondaryAttribCode
 int secondaryAttribProgress
-int protectedSkillAmt
-short skipProtection
+int cappedSkillAmt
+short skipRestriction
 
 ; inputs
 int additionalLevelProgress
 ; outputs
-array_var protectedSkillCodes
+array_var cappedSkillProgress
 Begin _Function { additionalLevelProgress }
 	set lvlProgress to GetPCMajorSkillUps + additionalLevelProgress
 	set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
 
 	; If character is about to level, enable attribute leveling failsafe
 	if (lvlProgress != (maxLvlProgress - 1))
-		DebugPrint "Leveling failsafe not required. Level progress %g/%g." lvlProgress maxLvlProgress
-		SetFunctionValue protectedSkillCodes
+		DebugPrint "recurve: Attribute Guard not required. Level progress %g/%g." lvlProgress maxLvlProgress
+		SetFunctionValue cappedSkillProgress
 		return
 	endif
 	
-	let protectedSkillCodes := ar_Construct "Array"
-	; remove existing overage protections
-	call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
+	let cappedSkillProgress := ar_Construct "Array"
+	; remove existing failsafes
+	call rcvDeleteSkillOverrides Recurved.OverrideReasonFailsafe
 	; get list of character's majors
 	let majors := call rcvGetMajorSkills
 	; get loaded level curves
-	let curve := call rcvGetLevelCurve player.GetLevel 0
+	let curve := call rcvGetLevelCurve player.GetLevel 0 0
 	; calculate the attribute progress increase per major increase
 	let attribProgIncrement := curve["MajorAttributeBonus"] + 1
 	
@@ -48,12 +48,12 @@ Begin _Function { additionalLevelProgress }
 		let attribProgress := GetPCAttributeBonusC attribCode
 		; Check if an increase to this skill will push an attribute's progress to the max bonus (iLevelUp10Mult) 
 		; if the attribute bonus isn't already maxed.
-		set skipProtection to 0
+		set skipRestriction to 0
 		if (attribProgress < 10)
 			if (attribProgress + attribProgIncrement >= 10)
 				; skill increase will hit max progress, so leave unlocked
-				set skipProtection to 1
-				DebugPrint "Protection skipped for Major Skill %g. Increase to skill will maximize bonus to unmaximized attribute %g. Attribute Progress: %g, Skill Increase Amount: %g"  skillCode attribCode attribProgress attribProgIncrement
+				set skipRestriction to 1
+				DebugPrint "recurve: Not capping Major Skill %g progress. Increase to skill will maximize bonus to unmaximized attribute %g. Attribute Progress: %g, Skill Increase Amount: %g"  skillCode attribCode attribProgress attribProgIncrement
 			endif
 		elseif (Recurved.SecondaryAttributesDisabled == 0) ; check if an increase will max a secondary attribute
 			let secondAttribProgIncrement := curve["SecondaryAttributeBonus"]
@@ -61,23 +61,23 @@ Begin _Function { additionalLevelProgress }
 			let secondaryAttribProgress := GetPCAttributeBonusC secondaryAttribCode
 			if (secondaryAttribProgress < 10) && (secondaryAttribProgress + secondAttribProgIncrement >= 10)
 				; skill increase will hit max progress on secondary attribute, so leave unlocked
-				set skipProtection to 1
-				DebugPrint "Protection skipped for Major Skill %g. Increase to skill will maximize bonus of unmaximized secondary attribute %g. Attribute Progress: %g, Skill Increase Amount: %g"  skillCode secondaryAttribCode secondaryAttribProgress secondAttribProgIncrement
+				set skipRestriction to 1
+				DebugPrint "recurve: Not capping Major Skill %g progress. Increase to skill will maximize bonus of unmaximized secondary attribute %g. Attribute Progress: %g, Skill Increase Amount: %g"  skillCode secondaryAttribCode secondaryAttribProgress secondAttribProgIncrement
 			endif
 		endif
-		if (skipProtection == 0)
-			call rcvAddSkillUseIncOverride skillCode 0 0 (Recurved.OverrideReasonAttributeProtection)
-			ar_Append protectedSkillCodes skillCode
+		if (skipRestriction == 0)
+			call rcvAddSkillUseIncOverride skillCode 0 0 Recurved.OverrideReasonFailsafe
+			ar_Append cappedSkillProgress skillCode
 		endif
 		let i += 1
 	loop
 
-	SetFunctionValue protectedSkillCodes
-	let protectedSkillAmt := ar_Size protectedSkillCodes
-	if (protectedSkillAmt > 0)
+	SetFunctionValue cappedSkillProgress
+	let cappedSkillAmt := ar_Size cappedSkillProgress
+	if (cappedSkillAmt > 0)
 		set Recurved.AttributeFailsafeEnabled to 1
-		DebugPrint "Leveling failsafe enabled for %g major skills. Level progress %g/%g." protectedSkillAmt lvlProgress maxLvlProgress
+		DebugPrint "Attribute Failsafe enabled. %g major skills will no longer gain experience. Level progress %g/%g." cappedSkillAmt lvlProgress maxLvlProgress
 	else
-		DebugPrint "Leveling failsafe not required. Update of any major skill will result in maxing an attribute bonus."
+		DebugPrint "Attribute Failsafe not required. Update of any major skill will result in maxing an unmaxed attribute bonus."
 	endif
 End

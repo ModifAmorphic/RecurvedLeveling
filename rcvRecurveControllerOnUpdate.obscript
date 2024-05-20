@@ -7,28 +7,17 @@ short hasRestartedSinceUpdate
 short isGameRestarted
 short hasLoadedSinceUpdate
 short isGameLoaded
+short setCurveTwice
 Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoadedSinceUpdate }
-	DebugPrint "recurve: Flow control: isGameRestarted=%g, isGameLoaded=%g, hasRestartedSinceUpdate=%g, hasLoadedSinceUpdate=%g, isClassSelected=%g, IsTutorialComplete=%g, UpdateFlag=%g" isGameRestarted isGameLoaded hasRestartedSinceUpdate hasLoadedSinceUpdate RecurvedController.isClassSelected RecurvedController.IsTutorialComplete RecurvedController.UpdateFlag
-	if hasLoadedSinceUpdate
-		call rcvSetConstants
-		call rcvLoadIni
-		call rcvSetConstants
-		DebugPrint "recurve: Flow control: isGameRestarted=%g, isGameLoaded=%g, hasRestartedSinceUpdate=%g, hasLoadedSinceUpdate=%g, isClassSelected=%g, IsTutorialComplete=%g, UpdateFlag=%g" isGameRestarted isGameLoaded hasRestartedSinceUpdate hasLoadedSinceUpdate RecurvedController.isClassSelected RecurvedController.IsTutorialComplete RecurvedController.UpdateFlag
-		; Prune events and update event time offsets, Reset GlobalTick back to 0
-		call rcvResetGlobalTick
-	endif
-	
-	; If tutorial is not yet flagged as complete, then check to see if that's changed
-	if (RecurvedController.IsTutorialComplete == 0)
-		let RecurvedController.IsTutorialComplete := !(call rcvGetIsInTutorial isGameLoaded)
-		if (RecurvedController.IsTutorialComplete == 0)
-			return  ; Exit early if still in tutorial!!
-		endif
-	endif
-	;;; End Tutorial Check
+	DebugPrint "recurve: Controller Update: isGameRestarted=%g, isGameLoaded=%g, hasRestartedSinceUpdate=%g, hasLoadedSinceUpdate=%g, isClassSelected=%g, IsTutorialComplete=%g, UpdateFlag=%g, fQuestDelayTime=%.2f, RecurvedControllerInterval=%.2f" isGameRestarted isGameLoaded hasRestartedSinceUpdate hasLoadedSinceUpdate RecurvedController.isClassSelected RecurvedController.IsTutorialComplete RecurvedController.UpdateFlag RecurvedController.fQuestDelayTime Recurved.RecurvedControllerInterval	
 
 	if hasRestartedSinceUpdate
 		DebugPrint "recurve: Loading..."
+		; Prune events and update event time offsets, Reset GlobalTick back to 1
+		call rcvResetGlobalTick
+		set RecurvedController.lastEventPurge to 0
+		set RecurvedController.lastActionsFoundOn to 0
+		set RecurvedController.lastPreLevelUpCheck to 0
 	endif
 	
 	; Load data on game load event
@@ -36,11 +25,12 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 		call rcvLoadData hasLoadedSinceUpdate hasRestartedSinceUpdate
 		; Ensure existing protections are removed in case this was
 		; recently disabled
-		if Recurved.AttributeProtectionDisabled
-			call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
+		if Recurved.AttributeGuardDisabled
+			call rcvDeleteSkillOverrides Recurved.OverrideReasonFailsafe
+			call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeGuard
 		endif
 		; Add the GameLoaded event
-		call rcvAddEvent Recurved.EventTypeGameLoaded RecurvedController.GlobalTick
+		call rcvAddEvent Recurved.EventTypeGameLoaded RecurvedController.GlobalTick 0 ar_Null
 	endif
 	
 	; On restarts, subcribe to event handlers
@@ -57,50 +47,59 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 		SetEventHandler "OnHealthDamage" rcvOnHealthDamageSubscriber ;"object"::PlayerRef
 		DebugPrint "recurve: Subscribed event handlers."
 		; add the restarted event
-		call rcvAddEvent Recurved.EventTypeGameRestarted RecurvedController.GlobalTick
+		call rcvAddEvent Recurved.EventTypeGameRestarted RecurvedController.GlobalTick 0 ar_Null
 	endif
 
 	; Handle overleveling. Reset progress back to max progress for current level
-	if (Recurved.DelayedResetLevelProgress > 0)
-		SetPCMajorSkillUps (GetGameSetting "iLevelUpSkillCount")
-		DebugPrint "recurve: Reset level progress to level maximum."
-		set Recurved.DelayedResetLevelProgress to 0
-	endif
+	;; TODO: Why do I do this? Don't remember. Can I stop? Seems like unneeded complication
+	; if (Recurved.DelayedResetLevelProgress > 0)
+	; 	SetPCMajorSkillUps (GetGameSetting "iLevelUpSkillCount")
+	; 	DebugPrint "recurve: Reset level progress to level maximum."
+	; 	set Recurved.DelayedResetLevelProgress to 0
+	; endif
 
 	; Handle Player pre and post level up 
 	if Eval(call rcvHasEventAfter Recurved.EventTypeLevelUpProgressReached RecurvedController.lastPreLevelUpCheck)
 		call rcvSetLevelProgress 0
+		set RecurvedController.lastPreLevelUpCheck to RecurvedController.GlobalTick
 	endif
-	set RecurvedController.lastPreLevelUpCheck to RecurvedController.GlobalTick
+	
 	if (RecurvedController.IsPlayerLeveling == 1)
+		set Recurved.IsOverLeveled to 0
 		call rcvProcessLevelUp
 	endif
 	
 	; Reset Skill Use Increments to defaults before applying latest level curve
-	DebugPrint "recurve: Resetting Skill Use Increments"
-	call rcvSetSkillUseIncrements Recurved.DefaultSkillUseIncrements
-	; Reset overrides
-	let Recurved.SkillUseOverrides := ar_Construct "Array"
+	DebugPrint "recurve: Resetting Skill Use Increments to Modified Default Skill Use Increments"
+	call rcvSetSkillUseIncrements (call rcvGetDefaultSkillUseIncs 0)
+	if (Recurved.IsOverLeveled == 0)
+		; Reset overrides
+		call rcvResetSkillUseOverrides
+	endif
 	; Set level up requirements, attribute gains and required skill increase for the current level
 	;; force rebuild of level curve data
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 1) Recurved.SkillUseOverrides
+	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 1 0) Recurved.SkillUseOverrides
 	
 	;  ## overrides ##
-	; Apply overlevel prvention if needed
-	if (Recurved.AttributeProtectionDisabled == 0)
-		let isOverLevel := call rcvPreventOverLevel 0 0
+	; Apply overlevel prevention if needed
+	if (Recurved.AttributeGuardDisabled == 0 && Recurved.IsOverLeveled == 0)
+		let Recurved.IsOverLeveled := call rcvPreventOverLevel 0 0
+		set setCurveTwice to 1
 	endif
 	
 	; if overlevel protection not enabled then add other overrides
-	if (isOverLevel == 0)
+	if (Recurved.IsOverLeveled == 0)
 		; Add weapon use mod overrides
 		call rcvAddWeaponUseIncMod
 		; set Recurved.WeaponEquipped to 0
-		call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
+		call rcvUpdateAttributeGuards ((call rcvGetMajorSkills)[0]["code"]) 0
+		set setCurveTwice to 1
 	endif
 	
 	; Reapply level curve with potential changes
-	call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 0) Recurved.SkillUseOverrides
+	if (setCurveTwice)
+		call rcvSetLevelCurve (call rcvGetLevelCurve player.GetLevel 0 0) Recurved.SkillUseOverrides
+	endif
 	
 	; reset variables
 	set RecurvedController.isSleepMenuInit to 0
@@ -111,4 +110,6 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 	if hasLoadedSinceUpdate
 		PrintToConsole "Recurved Levels Initialized and Active."
 	endif
+	; Add event so other quests know the controller finished an update
+	call rcvAddEvent Recurved.EventTypeControllerUpdate RecurvedController.GlobalTick 0 ar_Null
 End

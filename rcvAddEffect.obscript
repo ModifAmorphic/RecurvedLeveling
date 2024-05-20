@@ -27,37 +27,39 @@ Begin _Function{ skillCode effectType }
 			set spellExists to 1
 			let recurvedSpell := recurvedEffect["spell"]
 			let recurvedEffect["active"] := 1
-			;DebugPrint "recurve: Adding existing spell %n to player." recurvedEffect["spell"]
+			DebugPrint "recurve: Found existing spell %q%n%q for effectType %g at index %g." recurvedEffect["spell"] effectType i
 			break
 		endif
 		let i += 1
 	loop
 
-	if (spellExists == 0)
-		; If spell needs to be created, then go through all the setup
-		; Set the spell name depending on the effect type
-		if (effectType == RecurvedMessenger.EffectFailsafe)
-			let spellName := (ActorValueToStringC skillCode) + " progress stopped"
-		elseif (effectType == RecurvedMessenger.EffectAttributeProtection)
-			let spellName := (ActorValueToStringC skillCode) + " progress slowed"
-		elseif (effectType == RecurvedMessenger.EffectSoftcap)
-			let spellName := (ActorValueToStringC skillCode) + " progress difficult"
-		endif
+	; Set the spell name depending on the effect type
+	if (effectType == RecurvedMessenger.EffectSoftcap)
+		let spellName := (ActorValueToStringC skillCode) + " progress slowed (Softcap)"
+	elseif (effectType == RecurvedMessenger.EffectAttributeGuard)
+		let spellName := (ActorValueToStringC skillCode) + " progress slowed (Attribute Guard)"
+	elseif (effectType == RecurvedMessenger.EffectAttributesFailsafe)
+		let spellName := (ActorValueToStringC skillCode) + " progress halted (Failsafe)"
+	elseif (effectType == RecurvedMessenger.EffectOverlevel)
+		let spellName := (ActorValueToStringC skillCode) + " progress halted (Overleveled)"
+	endif
 
+	if (spellExists == 0)
 		; Clone the existing Recurved Spell, rename it and track it for future use
 		let recurvedSpell := CloneForm rcvSkillExpPenalty
-		SetName spellName recurvedSpell
 		let trackedEffect := ar_Construct "StringMap"
 		let trackedEffect["skillCode"] := skillCode
 		let trackedEffect["active"] := 1
 		let trackedEffect["spell"] := recurvedSpell
 		ar_Append RecurvedMessenger.Effects[effectType] trackedEffect
 		set effectIndex to AddFullEffectItem magicEffect 0 0 0 0 recurvedSpell
+		let formId := GetFormIDString recurvedSpell
+		DebugPrint "recurve: Created new spell %n (%z) with effect %n for skillCode %g and effect type %g. RecurvedMessenger.Effects size is %g." recurvedSpell formId magicEffect skillCode effectType (ar_Size RecurvedMessenger.Effects)
 	elseif Eval((MagicItemHasEffect Recurved.MagicEffectDisplayAbbr recurvedSpell) == 0)
 		RemoveAllEffectItems recurvedSpell
 		set effectIndex to AddFullEffectItem magicEffect 0 0 0 0 recurvedSpell
 	endif
-
+	SetName spellName recurvedSpell
 	; If magic effect is a drain effect, then set the actor value appropriately
 	; so the spell gets grouped under the appropriate drain
 	if (magicEffect == DRSK)

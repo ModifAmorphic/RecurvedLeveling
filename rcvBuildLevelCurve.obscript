@@ -1,4 +1,5 @@
 scn rcvBuildLevelCurve
+; TODO: remove level param? skills are only available for the current level. Either that or move the current level stuff over to GetCurrentLevel
 
 ; locals
 int startLevel1
@@ -39,9 +40,21 @@ ref bowWeapon
 float bowDamage
 float bowSpeed
 
+; fatigue use
+float fatigueUse
+;; athletics fatigue settings
+float fFatigueAttackWeaponBase 
+float fFatigueAttackMult
+float fPowerAttackFatiguePenalty
+float weaponWeight
+;; acrobatics fatigue settings
+float fFatigueJumpBase
+float fFatigueJumpMult
+float fPerkJumpFatigueExpertMult
+
 ; input params
 int level
-Begin _Function { level }
+Begin _Function { level } 
 	let levelCurve := ar_Construct "StringMap"
 	
 	; Subtract one from starting levels because we want to display and calculate towards the
@@ -139,15 +152,15 @@ Begin _Function { level }
 	; Configure Current Skill Softcaps
 	;; We divide the experience gained per skill use by the Recurved.SoftCapMulti to multiply 
 	;; the amount of experience needed per skill level.
-	let skills := call rcvGetSkills 1
+	let skills := call rcvGetSkills
 	let levelCurve["skills"] := ar_Construct "Array"
-	let i := 0
+	set i to 0
 	while (i < ar_size skills["minor"])
 		let skillCode := skills["minor"][i]["code"]
 		let softCap := skills["minor"][i]["softCap"]
 		let skillAmount := skills["minor"][i]["amount"]
-		let capUseInc1 := Recurved.DefaultSkillUseIncrements[skillCode][0] * Recurved.AllExperienceMultiplier
-		let capUseInc2 := Recurved.DefaultSkillUseIncrements[skillCode][1] * Recurved.AllExperienceMultiplier
+		let capUseInc1 := (call rcvGetDefaultSkillUseInc skillCode 0)
+		let capUseInc2 := (call rcvGetDefaultSkillUseInc skillCode 1)
 		if Recurved.MinorSkillSoftCapsDisabled == 0
 			let capUseInc1 := call rcvCalculateUseIncrement capUseInc1 Recurved.SoftCapMulti
 			let capUseInc2 := call rcvCalculateUseIncrement capUseInc2 Recurved.SoftCapMulti
@@ -157,8 +170,8 @@ Begin _Function { level }
 		let levelCurve["skills"][i]["softCapLvl"] := softCap
 		let levelCurve["skills"][i]["softCapMulti"] := Recurved.SoftCapMulti
 		let levelCurve["skills"][i]["useInc"] := ar_Construct "Array"
-		let levelCurve["skills"][i]["useInc"][0] := Recurved.DefaultSkillUseIncrements[skillCode][0] * Recurved.AllExperienceMultiplier
-		let levelCurve["skills"][i]["useInc"][1] := Recurved.DefaultSkillUseIncrements[skillCode][0] * Recurved.AllExperienceMultiplier
+		let levelCurve["skills"][i]["useInc"][0] := (call rcvGetDefaultSkillUseInc skillCode 0)
+		let levelCurve["skills"][i]["useInc"][1] := (call rcvGetDefaultSkillUseInc skillCode 0)
 		let levelCurve["skills"][i]["softCapEnabled"] := Recurved.MinorSkillSoftCapsDisabled == 0 && skillAmount >= softCap
 		let levelCurve["skills"][i]["softCapUseInc"] := ar_Construct "Array"
 		let levelCurve["skills"][i]["softCapUseInc"][0] := capUseInc1
@@ -174,7 +187,7 @@ Begin _Function { level }
 	set fMagicCasterSkillCostBase to GetGameSetting "fMagicCasterSkillCostBase"
 	set fMagicCasterSkillCostMult to GetGameSetting "fMagicCasterSkillCostMult"
 	let levelCurve["magicSchools"] := ar_Construct "Array"
-	DebugPrint "recurve: Calculating magicka cost multiplier for all magic schools."
+	DebugPrint "recurve: Calculating magicka cost multiplier for all magic schools for character level %g." level
 	while (i < 6)
 		let skillLevel := skills["all"][i + 20]["amount"]
 		let levelCurve["magicSchools"][i] := ar_Construct "StringMap"
@@ -186,7 +199,8 @@ Begin _Function { level }
 		endif
 		let i += 1
 	loop
-	;; Calculate Normalized Weapon DPS
+	set i to 0
+	;; Calculate Weapon Exp for normalized to DPS
 	if (Recurved.WeaponExpNormalizedDisabled == 0)
 		if (level < 4)
 			set weapon to WeapIronDaggerRusty
@@ -230,5 +244,49 @@ Begin _Function { level }
 		let levelCurve["normalizedWeaponExp"]["bow"]["dps"] := weaponSpeed * weaponDamage
 		let levelCurve["normalizedWeaponExp"]["bow"]["weapon"] := bowWeapon
 	endif
+
+	let levelCurve["actionFatigueUse"] := ar_Construct "Array"
+	while (i <= Recurved.ActionCombatDodge)
+		let levelCurve["actionFatigueUse"][i] := -1
+		let i += 1
+	loop
+	
+	;; Precalculate fatigue use if possible to avoid having to do it on every action.
+	;;; Left out block and bow since they don't use fatigue after hitting novice and didn't seem worth the effort
+	;;; TODO: Add spellcasts? Fatigue usage is really low. Might not be worth bothering with the fatigue check (or precheck)
+	if (Recurved.AthleticsActionsExpDisabled == 0)
+		set weapon to Player.GetEquippedObject 16
+		if (weapon)
+			; Set fatigue use for melee weapons
+			if Eval((GetWeaponType weapon) < 5)
+				set weaponWeight to GetWeight weapon
+				set fFatigueAttackWeaponBase to GetGameSetting "fFatigueAttackWeaponBase"
+				set fFatigueAttackMult to GetGameSetting "fFatigueAttackWeaponMult"
+				set fPowerAttackFatiguePenalty to GetGameSetting "fPowerAttackFatiguePenalty"
+				let levelCurve["actionFatigueUse"][Recurved.ActionAttack] := (fFatigueAttackWeaponBase + fFatigueAttackMult * weaponWeight)
+				let levelCurve["actionFatigueUse"][Recurved.ActionPowerAttack] := (fFatigueAttackWeaponBase + fFatigueAttackMult * weaponWeight) * fPowerAttackFatiguePenalty
+				; Use weapon attack fatigue for calculating jump attack usage since the "jump" part is already removed from total fatigue
+				;; by the time we check for a "jump attack"
+				if (Recurved.AcrobaticsActionsExpDisabled == 0)
+					let levelCurve["actionFatigueUse"][Recurved.ActionJumpAttack] := levelCurve["actionFatigueUse"][Recurved.ActionAttack]
+				endif
+			endif
+		endif
+	endif
+	if (Recurved.AcrobaticsActionsExpDisabled == 0)
+		; fFatigueJumpMult is 0 in vanilla so we may be able to precalculate the fatigue use unless the value has been modded
+		set fFatigueJumpMult to GetGameSetting "fFatigueJumpMult"
+		if (fFatigueJumpMult == 0)
+			set fFatigueJumpBase to GetGameSetting "fFatigueJumpBase"
+			set fPerkJumpFatigueExpertMult to 1
+			; Only get acrobatics expert perk value if expert level or higher, otherwise leave at 1
+			if Eval(skills["all"][26]["amount"] > 74)
+				set fPerkJumpFatigueExpertMult to GetGameSetting "fPerkJumpFatigueExpertMult"
+			endif
+			set fatigueUse to fFatigueJumpBase * fPerkJumpFatigueExpertMult
+			let levelCurve["actionFatigueUse"][Recurved.ActionCombatDodge] := fFatigueJumpBase * fPerkJumpFatigueExpertMult
+		endif
+	endif
+
 	SetFunctionValue levelCurve
 End

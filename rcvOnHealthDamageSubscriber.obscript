@@ -6,25 +6,46 @@ ref target
 ; inputs
 float damage
 ref attacker
-Begin Function { damage attacker }
+Begin _Function { damage attacker }
 	set target to GetSelf
 	;DebugPrint "Target is %n" target
-	if (target != player)
+	if (target != player && attacker != player)
 		return
 	endif
-	if (attacker == 0)
-		return
-	endif
-	if (Recurved.ArmorExpFromDamageDisabled)
+	if (attacker == 0) ; no extra exp for self harm
 		return
 	endif
 
-	call rcvApplyBonusArmorExp damage attacker 
-	call rcvCaptureDefenseEquipExp
+	if (Recurved.ArmorExpFromDamageDisabled == 0)
+		if (target == player && attacker != player)
+			call rcvApplyBonusArmorExp damage attacker 
+			call rcvCaptureDefenseEquipExp
+			return
+		endif
+	endif
 
-	; if target.getSoundPlaying "*Block*"
-    ;     DebugPrint "%n blocked an attack from %n." target attacker
-    ; else
-    ;     DebugPrint "Attack from %n not blocked." attacker target
-    ; endif
+	if (attacker != player)
+		return
+	endif
+	
+	if (Recurved.AthleticsActionsExpDisabled == 0)
+		; Only attacks on the ground count torwards athletics exp
+		if (player.IsInAir == 0)
+			if (player.IsPowerAttacking)
+				DebugPrint "recurved: Attacking Fatigue: %.2f" player.GetFatiguePercentage
+				call rcvApplyActionExtraExp Recurved.ActionPowerAttack
+			else
+				call rcvApplyActionExtraExp Recurved.ActionAttack
+			endif
+			return
+		endif
+	endif
+
+	if (Recurved.AcrobaticsActionsExpDisabled == 0)
+		if (player.IsInAir)
+			call rcvApplyActionExtraExp Recurved.ActionJumpAttack ; Add jump attack experience
+		endif
+	endif
+	
+	
 End

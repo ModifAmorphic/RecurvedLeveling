@@ -5,6 +5,7 @@ float fQuestDelayTime
 ; Ticks since the game was restarted
 int GlobalTick
 int lastEventPurge        ; Tracks last time events array was last purged
+int lastActionsFoundOn      ; ticks since last check for actionable events
 ; public used vars
 short UpdateFlag          ; For other scripts to request an update to run on next tick
 short IsTutorialComplete  ; Only updated once, after tutorial is found to be completed
@@ -47,13 +48,12 @@ begin _MenuMode 1027
 	if (isLevelMenuInit)
 		return
 	endif
-	
+	; Switch to frame updates until level up menu is closed
+	set fQuestDelayTime to .001
 	; Set UpdateFlag flag so next _GameMode tick processes
 	set UpdateFlag to 1
 	; track internally for the next game mode tick
 	set IsPlayerLeveling to 1
-	; record the event in history
-	call rcvAddEvent Recurved.EventTypeLevelUp player.GetLevel + 1
 	; set so this code only gets executed once per menu open
 	set isLevelMenuInit to 1
 	DebugPrint "recurve: Level Up Menu detected. Capturing Current level attributes and level curves."
@@ -69,11 +69,16 @@ end
 Begin _GameMode
 	set isGameRestarted to GetGameRestarted
 	set isGameLoaded to GetGameLoaded
+
 	; Runs every tick
 	if Eval((call rcvRecurveControllerOnTick isGameRestarted isGameLoaded))
 		; rcvRecurveControllerOnTick determined there was an update pending.
 		call rcvRecurveControllerOnUpdate isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoadedSinceUpdate
 	endif
-	
-	
+	if (GlobalTick % Recurved.EventsProcessingTickModulus)
+		if Eval(call rcvApplyActionEventsExp lastActionsFoundOn)
+			set lastActionsFoundOn to GlobalTick
+		endif
+	endif
+
 end

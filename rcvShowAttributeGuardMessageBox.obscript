@@ -1,4 +1,4 @@
-scn rcvShowAttributeProtectionMessageBox
+scn rcvShowAttributeGuardMessageBox
 
 string_var replacer
 string_var formattedMessage

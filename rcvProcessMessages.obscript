@@ -1,45 +1,53 @@
 scn rcvProcessMessages
 
 short shouldContinue
+int eventType
 array_var latestSkills
 array_var updatedSkills
 
 Begin _Function {}
 
 	; Check if there's been any level up or skill up events since the last time we checked
-	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastMsgCheckTick
+	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastMsgEventFoundTick
+	set eventType to Recurved.EventTypeSkillChange
 	if (shouldContinue == 0)
-		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastMsgCheckTick
+		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastMsgEventFoundTick
+		set eventType to Recurved.EventTypeLevelUp
 		if (shouldContinue == 0)
-			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeProtection RecurvedMessenger.LastMsgCheckTick
+			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeGuard RecurvedMessenger.LastMsgEventFoundTick
+			set eventType to Recurved.EventTypeAttributeGuard
+			if (shouldContinue == 0)
+				let shouldContinue := call rcvHasEventAfter Recurved.EventTypeOverLeveled RecurvedMessenger.LastMsgEventFoundTick
+				set eventType to Recurved.EventTypeOverLeveled
+			endif
 		endif
 	endif
-	set RecurvedMessenger.LastMsgCheckTick to RecurvedController.GlobalTick
 	if (shouldContinue == 0)
 		return
+	else
+		set RecurvedMessenger.LastMsgEventFoundTick to RecurvedController.GlobalTick
+		DebugPrint "recurve: Detected a potentially message worthy event. EventType=%g" eventType
 	endif
 
 	; Show one time message box when maximum major skill increases over the current level are reached
 	if (RecurvedMessenger.TutorialOverlevelShown == 0)
-		if (Recurved.ExcessAttributeProgress > 0 && RecurvedController.IsPlayerLeveling == 0)
-			; only check after next level has been added.
-			if Eval ((ar_Size Recurved.LevelCurves) >= player.GetLevel)
-				if Eval((Recurved.ExcessAttributeProgress + 1) == Recurved.LevelCurves[player.GetLevel]["iLevelUpSkillCount"])
-					set RecurvedMessenger.TutorialOverlevelShown to 1
-					DebugPrint "recurve: Showing TutorialOverlevel messagebox"
-					call rcvShowOverlevelPreventionMessageBox Recurved.ExcessAttributeProgress
-					return
-				endif
-			endif
+		; Used flag to avoid scanning events since this tutorial may never be shown
+		;if Eval(call rcvHasEventAfter Recurved.EventTypeOverLeveled 0)
+		; only check after next level has been added.
+		if (Recurved.IsOverLeveled)
+			set RecurvedMessenger.TutorialOverlevelShown to 1
+			DebugPrint "recurve: Showing TutorialOverlevel messagebox"
+			call rcvShowOverlevelPreventionMessageBox (call rcvGetProgressOverLevel)
+			return
 		endif
 	endif
 
 	; Show one time message box when attribute protection is first enabled (experience requirements for an attribute's major skills is increased exponentially)
-	if (RecurvedMessenger.TutorialAttributeProtectionShown == 0)
+	if (RecurvedMessenger.TutorialAttributeGuardShown == 0)
 		if (Recurved.AttributeFailsafeEnabled == 0)
-			if Eval (call rcvGetIsIncreaseProtectionEnabled)
-				set RecurvedMessenger.TutorialAttributeProtectionShown to 1
-				call rcvShowAttributeProtectionMessageBox "Recurved: Attribute Protection%r%rMaximum bonus achieved for one or more attributes. To help prevent missing out on bonuses for other attributes, experience for any already maxed attributes' major skills have been reduced. This restriction will be lifted when the maximum bonuses for {{MinimumMaxedAttributes}} attributes is achieved." Recurved.MinimumMaxedAttributes
+			if Eval(call rcvHasEventAfter Recurved.EventTypeAttributeGuard 0)
+				set RecurvedMessenger.TutorialAttributeGuardShown to 1
+				call rcvShowAttributeGuardMessageBox "Recurved: Attribute Guard%r%rMaximum bonus achieved for one or more attributes. To help prevent missing out on bonuses for other attributes, experience for any already maxed attributes' major skills have been reduced. This restriction will be lifted when the maximum bonuses for {{MinimumMaxedAttributes}} attributes is achieved." Recurved.MinimumMaxedAttributes
 				return
 			endif
 		endif
@@ -49,22 +57,22 @@ Begin _Function {}
 	if (RecurvedMessenger.TutorialAttributeFailsafeShown == 0)
 		if (Recurved.AttributeFailsafeEnabled)
 			set RecurvedMessenger.TutorialAttributeFailsafeShown to 1
-			call rcvShowAttributeProtectionMessageBox "Recurved: Attribute Failsafe%r%rExperience for all Major Skills is being prevented. This failsafe is triggered by reaching the last Major Skill increase prior to the next level, but not achieving the maximum bonus for {{MinimumMaxedAttributes}} attributes. Increases in Minor Skills are unaffected. To disable this feature, set ini setting MinimumMaxedAttributes to 0." Recurved.MinimumMaxedAttributes
+			call rcvShowAttributeGuardMessageBox "Recurved: Attribute Failsafe%r%rExperience for all Major Skills is being prevented. This failsafe is triggered by reaching the last Major Skill increase prior to the next level, but not achieving the maximum bonus for {{MinimumMaxedAttributes}} attributes. Increases in Minor Skills are unaffected. To disable this feature, set ini setting MinimumMaxedAttributes to 0." Recurved.MinimumMaxedAttributes
 			return
 		endif
 	endif
 
-	; Send Messages for Penalized Major Skills for Attribute Protection
-	if (Recurved.AttributeProtectionDisabled == 0)
+	; Send Messages for Penalized Major Skills for Attribute Guard
+	if (Recurved.AttributeGuardDisabled == 0)
 		; If it's been 30 seconds of game time (.2 ticks * 150 = 30) since the last tick, or this is the first time
 		; then show the protected skill message
-		;DebugPrint "recurve: Checking Protection Messages GlobalTick=%g, LastProtectionMessageTick=%g, LastProtectionMessageTick=%g" RecurvedController.GlobalTick RecurvedMessenger.LastProtectionMessageTick RecurvedMessenger.LastProtectionMessageTick
-		if (RecurvedController.GlobalTick - RecurvedMessenger.LastProtectionMessageTick > RecurvedMessenger.MessageWaitTicks || RecurvedMessenger.LastProtectionMessageTick == 0)
-			let latestSkills := call rcvFindOverridenSkills Recurved.OverrideReasonAttributeProtection
-			; Only show messages for changes that occured within the last RecurvedMessenger.MessageTickWindow seconds
-			if (RecurvedController.GlobalTick - RecurvedMessenger.LastProtectionCheckTick > RecurvedMessenger.MessageTickWindow || RecurvedMessenger.LastProtectionCheckTick == 0)
+		;DebugPrint "recurve: Checking Protection Messages GlobalTick=%g, LastGuardMsgCheckTick=%g, LastGuardMsgCheckTick=%g" RecurvedController.GlobalTick RecurvedMessenger.LastGuardMsgCheckTick RecurvedMessenger.LastGuardMsgCheckTick
+		if (RecurvedController.GlobalTick - RecurvedMessenger.LastGuardMsgCheckTick > RecurvedMessenger.MessageWaitTicks || RecurvedMessenger.LastGuardMsgCheckTick == 0)
+			let latestSkills := call rcvFindOverridenSkills Recurved.OverrideReasonAttributeGuard
+			; Suppress messages for changes that occured within the last RecurvedMessenger.MessageTickWindow seconds
+			if (RecurvedController.GlobalTick - RecurvedMessenger.LastGuardMsgCheckTick > RecurvedMessenger.MessageTickWindow || RecurvedMessenger.LastGuardMsgCheckTick == 0)
 				let RecurvedMessenger.PrevPenalizedAttributes := latestSkills
-				set RecurvedMessenger.LastProtectionCheckTick to RecurvedController.GlobalTick
+				set RecurvedMessenger.LastGuardMsgCheckTick to RecurvedController.GlobalTick
 				return
 			endif
 			; Check for any recent differences, and if found display a message.
@@ -75,38 +83,38 @@ Begin _Function {}
 				let updatedSkills := call rcvFindUpdatedSkills RecurvedMessenger.PrevPenalizedAttributes latestSkills
 				if Eval ((ar_Size updatedSkills) > 0)
 					call rcvShowSkillPenaltyMessage updatedSkills
-					set RecurvedMessenger.LastProtectionMessageTick to RecurvedController.GlobalTick
+					set RecurvedMessenger.LastGuardMsgCheckTick to RecurvedController.GlobalTick
 				endif
 			endif
 			let RecurvedMessenger.PrevPenalizedAttributes := latestSkills
 			let latestSkills := ar_Construct "Array"
-			set RecurvedMessenger.LastProtectionCheckTick to RecurvedController.GlobalTick
+			set RecurvedMessenger.LastGuardMsgCheckTick to RecurvedController.GlobalTick
 		endif
 	endif
 
 	; Send Messages for Soft Capped Minor Skills
 	if (Recurved.MinorSkillSoftCapsDisabled == 0)
-		if (RecurvedController.GlobalTick - RecurvedMessenger.LastSoftCapTick > RecurvedMessenger.MessageWaitTicks || RecurvedMessenger.LastSoftCapTick == 0)
+		if (RecurvedController.GlobalTick - RecurvedMessenger.LastSoftCapMsgShownTick > RecurvedMessenger.MessageWaitTicks || RecurvedMessenger.LastSoftCapMsgShownTick == 0)
 			let latestSkills := call rcvFindSkillsSoftCapped
 			; Only show messages for changes that occured within the last RecurvedMessenger.MessageTickWindow seconds
-			if (RecurvedController.GlobalTick - RecurvedMessenger.LastSoftCapCheckTick > RecurvedMessenger.MessageTickWindow || RecurvedMessenger.LastSoftCapCheckTick == 0)
+			if (RecurvedController.GlobalTick - RecurvedMessenger.LastSoftCapMsgCheckTick > RecurvedMessenger.MessageTickWindow || RecurvedMessenger.LastSoftCapMsgCheckTick == 0)
 				let RecurvedMessenger.PrevSoftcapped := latestSkills
-				set RecurvedMessenger.LastSoftCapCheckTick to RecurvedController.GlobalTick
 				return
 			endif
 			if Eval((ar_Size latestSkills) > 0)
+				set RecurvedMessenger.LastSoftCapMsgCheckTick to RecurvedController.GlobalTick
 				if Eval ((ar_size RecurvedMessenger.PrevSoftcapped) < 1)
 					let RecurvedMessenger.PrevSoftcapped := ar_Construct "Array"
 				endif
 				let updatedSkills := call rcvFindUpdatedSkills RecurvedMessenger.PrevSoftcapped latestSkills
 				if Eval ((ar_Size updatedSkills) > 0)
 					call rcvShowSkillPenaltyMessage updatedSkills
-					set RecurvedMessenger.LastSoftCapTick to RecurvedController.GlobalTick
+					set RecurvedMessenger.LastSoftCapMsgShownTick to RecurvedController.GlobalTick
 				endif
 			endif
 			let RecurvedMessenger.PrevSoftcapped := latestSkills
 			let latestSkills := ar_Construct "Array"
-			set RecurvedMessenger.LastSoftCapCheckTick to RecurvedController.GlobalTick
+			set RecurvedMessenger.LastSoftCapMsgCheckTick to RecurvedController.GlobalTick
 		endif
 	endif
 End

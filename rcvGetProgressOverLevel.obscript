@@ -1,0 +1,22 @@
+scn rcvGetProgressOverLevel
+
+; locals
+array_var levelCurve
+int lvlProgress
+int maxLvLProgress
+
+; output
+int increasesOver
+Begin _Function {}
+	if (Recurved.IsOverLeveled == 0)
+		SetFunctionValue increasesOver
+		return
+	endif
+
+	set lvlProgress to GetPCMajorSkillUps
+		; Attribute progress needed for the current level
+	let levelCurve := call rcvGetLevelCurve player.GetLevel 0 1
+	let maxLvLProgress := levelCurve["iLevelUpSkillCount"]
+	set increasesOver to lvlProgress - maxLvLProgress
+	SetFunctionValue increasesOver
+End

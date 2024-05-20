@@ -1,0 +1,112 @@
+scn rcvRecurveFrame
+
+float fQuestDelayTime
+
+short PlayerRan
+short PlayerStoppedRunning
+
+short isWaiting
+int waitTick
+int frameNo
+short wasDodging
+float fatigue
+float prevFatigue
+
+int runStartTick
+int runStopTick
+int reqRunIntervalTicks
+int runStartEventsAdded
+int maxRunEvents
+
+short printOnce
+Begin _GameMode
+
+	; When game load event occurs, wait for controller to finish it's first update
+	if (GetGameLoaded)
+		; Slow script down until controller is loaded
+		set fQuestDelayTime to 2
+		set isWaiting to 1
+		set waitTick to RecurvedController.GlobalTick
+		if (GetGameRestarted)
+			set waitTick to 0
+			set PlayerStoppedRunning to 0
+			set PlayerRan to 1
+		endif
+		set wasDodging to 0
+		set fatigue to 0
+		set prevFatigue to 0
+		set frameNo to 0
+		return
+	endif
+
+	if (isWaiting)
+		if Eval(call rcvHasEventAfter Recurved.EventTypeControllerUpdate waitTick)
+			; disable waiting flag so this block get's skipped from now on
+			set isWaiting to 0
+			; set block to run every frame
+			set fQuestDelayTime to 0.001
+			let reqRunIntervalTicks := call rcvConvertSecondsToTicks Recurved.RunExpIncContinuousSeconds
+			set maxRunEvents to Recurved.RunExpIncreaseMaxIncreases
+			PrintToConsole "recurve: RecurvedFrame Quest Script starting at global tick %g." RecurvedController.GlobalTick
+		else
+			;DebugPrint "recurve: RecurvedFrame Quest still waiting for ControllerUpdate event after tick %g. Current GlobalTick=%g." waitTick RecurvedController.GlobalTick
+			return
+		endif
+	endif
+
+	; Code below runs every frame after the first RecurvedController update event
+	set frameNo to frameNo + 1
+	set fatigue to player.GetActorValueC 10
+
+	; Combat dodge event
+	if (Recurved.AcrobaticsActionsExpDisabled == 0)
+		if (player.IsInCombat)
+			if (player.IsDodging)
+				if (wasDodging == 0)
+					if (fatigue > 0)
+						set wasDodging to 1
+						DebugPrint "Started dodging with %g fatigue at GlobalTick %g, FrameNo %g." fatigue RecurvedController.GlobalTick frameNo
+					endif
+				endif
+			elseif (wasDodging)
+				set wasDodging to 0
+				call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionCombatDodge 0 ar_Null
+				DebugPrint "recurve: Dodge ended at GlobalTick %g, FrameNo %g." RecurvedController.GlobalTick frameNo
+			endif
+		endif
+	endif
+	
+	if (Recurved.AthleticsActionsExpDisabled == 0)
+		if Eval(call rcvGetIsMoving player 1)
+			if (runStartEventsAdded < maxRunEvents) ; stop adding events once the maximum is hit for bonuses
+				if (runStartTick == 0)
+					set runStartTick to RecurvedController.GlobalTick
+				elseif (RecurvedController.GlobalTick - runStartTick >= reqRunIntervalTicks) ; run interval hit. Add an event and reset the starting time
+					call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionRan PlayerRan ar_Null ; add event signifying character ran for reqRunIntervalTicks
+					set runStartEventsAdded to runStartEventsAdded + 1 ; flag this run cycle as needing a stop event
+					DebugPrint "recurve: Player ran for %g ticks increasing athletics experience for the %g time this cycle. (StartTick=%g, CurrentTick=%g)" reqRunIntervalTicks runStartEventsAdded runStartTick RecurvedController.GlobalTick
+					set runStartTick to RecurvedController.GlobalTick
+				endif
+			endif
+			set runStopTick to 0
+		elseif (runStartEventsAdded) ; if a running started event was added, then wait for the reqRunIntervalTicks before logging a stop event
+			if (runStopTick == 0)
+				set runStopTick to RecurvedController.GlobalTick
+				set runStartTick to 0
+			elseif (RecurvedController.GlobalTick - runStopTick >= reqRunIntervalTicks) ; if stopped running for longer than reqRunIntervalTicks, then add event to mark running has stopped
+				DebugPrint "recurve: Player stopped running for %g ticks, longer than the allowed interval of %g ticks." (RecurvedController.GlobalTick - runStopTick) reqRunIntervalTicks
+				call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionRan PlayerStoppedRunning ar_Null ; add event signifying character ran for reqRunIntervalTicks
+				set runStopTick to 0
+				set runStartEventsAdded to 0
+			endif
+		else
+			set runStartEventsAdded to 0
+		endif
+	endif
+	; ; fatigue regenerating
+	; if (fatigue > prevFatigue)
+	; 	if (printOnce == 0)
+
+	; 	endif
+	; endif
+end

@@ -19,7 +19,7 @@ Begin Function {}
 	loop
 
 	set i to 0
-	set saveIndex to currentIndex
+	set saveIndex to currentIndex - 1
 	DebugPrint "recurve: Nulling previous Recurved.LevelCurves lower than %g" saveIndex
 	while (i < ar_Size Recurved.LevelCurves)
 		if (i < saveIndex)

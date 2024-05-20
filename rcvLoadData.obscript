@@ -12,9 +12,11 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 		return
 	endif
 	
+	DebugPrint "recurve: Loading recurve data."
 	; Capture default skill use increments on startup
 	if isGameRestarted
-		let Recurved.DefaultSkillUseIncrements := call rcvGetSkillUseIncrements		
+		DebugPrint "recurve: Capturing Default Skill Use Increments."
+		call rcvGetDefaultSkillUseIncs 1
 	endif
 
 	; Initialize Recurved.Levels and Recurved.LevelCurves arrays on game load.
@@ -39,13 +41,12 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 			let Recurved.LevelCurves[i] := ar_Null
 			let i += 1
 		loop
-		DebugPrint "recurve: Initializing Recurved.LevelCurves array. Inserted %g null records." i
+		DebugPrint "recurve: Initialized Recurved.LevelCurves array. Inserted %g null records." i
 	endif
-	set i to 0
 	
 	if Eval ((ar_size Recurved.SkillUseOverrides) == -1)
 		let Recurved.SkillUseOverrides := ar_Construct "Array"
-		DebugPrint "recurve: Initializing Recurved.SkillUseOverrides array."
+		DebugPrint "recurve: Initialized Recurved.SkillUseOverrides array."
 	endif
 
 	if Eval ((ar_Size Recurved.PrimaryAttribBonuses) == -1)
@@ -55,7 +56,7 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 			let Recurved.PrimaryAttribBonuses[i] := 0
 			let i += 1
 		loop
-		DebugPrint "recurve: Initializing Recurved.PrimaryAttribBonuses array."
+		DebugPrint "recurve: Initialized Recurved.PrimaryAttribBonuses array."
 	endif
 
 	if Eval ((ar_Size Recurved.SecondaryAttribBonuses) == -1)
@@ -65,7 +66,19 @@ Begin _Function { isGameLoaded isGameRestarted } ; Initializes and loads Recurve
 			let Recurved.SecondaryAttribBonuses[i] := 0
 			let i += 1
 		loop
-		DebugPrint "recurve: Initializing Recurved.SecondaryAttribBonuses array."
+		DebugPrint "recurve: Initialized Recurved.SecondaryAttribBonuses array."
+	endif
+
+	if Eval((ar_Size RecurvedMessenger.Effects) < 4)
+		if Eval((ar_Size RecurvedMessenger.Effects) < 0)
+			let RecurvedMessenger.Effects := ar_Construct "Array"
+		endif
+		let i := (ar_Size RecurvedMessenger.Effects)
+		while (i < 4)
+			let RecurvedMessenger.Effects[i] := ar_Construct "Array"
+			let i += 1
+		loop
+		DebugPrint "recurve: Initialized RecurvedMessenger.Effects array."
 	endif
 
 	; Null and previous level and level curve array values that are no longer needed

@@ -1,0 +1,28 @@
+scn rcvApplyActionEventsExp
+
+array_var actions
+int i
+
+; inputs
+int searchAfterTick
+; output
+int eventsApplied
+Begin Function { searchAfterTick }
+	let actions := call rcvGetEventAfter Recurved.EventTypeExpActionQueued searchAfterTick 0
+	let eventsApplied := ar_Size actions
+
+	; apply in reverse order since events are ordered most recent first
+	set i to eventsApplied
+	while (i > 0)
+		let i -= 1
+		if Eval(actions[i]["data1"] != Recurved.ActionRan)
+			call rcvApplyActionExtraExp actions[i]["data1"]
+		else
+			call rcvAddAthleticsRunOverride actions[i]["data2"]
+		endif
+	loop
+	; if (eventsApplied)
+	; 	DebugPrint "recurve: Applied %g ExpActionQueued events from Event History at GlobalTick %g." eventsApplied RecurvedController.GlobalTick
+	; endif
+	SetFunctionValue eventsApplied
+End

@@ -1,0 +1,42 @@
+; Populates Recurved.DefaultSkillUseIncrements if not yet initialized then gets a copy of use increments for all skills with the Recurved.AllExperienceMultiplier applied.
+scn rcvGetDefaultSkillUseIncs
+
+float expMulti
+int i
+
+; inputs
+short forceRefresh
+;output
+array_var defaultUseIncs
+Begin _Function { forceRefresh }
+	set expMulti to 1
+	if Eval((ar_Size Recurved.DefaultSkillUseIncrements) < 1 || forceRefresh)
+		let Recurved.DefaultSkillUseIncrements := call rcvGetSkillUseIncrements
+	endif
+	if (Recurved.AllExperienceMultiplier > 0)
+		set expMulti to Recurved.AllExperienceMultiplier
+		if (forceRefresh)
+			DebugPrint "recurve: Recurved.AllExperienceMultiplier is set. Multiplying all use increments by %.2f." expMulti
+		endif
+	endif
+	if (Recurved.OutputFormulas && forceRefresh)
+		PrintToConsole "recurve: Increasing Default Skill Use Increments by Recurved.AllExperienceMultiplier of %.2f." expMulti
+		PrintToConsole "recurve: Formula: [Modified Default Exp Per Use] = [Experience Per Use] * [AllExperienceMultiplier]"
+	endif
+	let defaultUseIncs := ar_Construct "Array"
+	while (i < ar_Size Recurved.DefaultSkillUseIncrements)
+		let defaultUseIncs[i] := ar_Construct "Array"
+		if (i > 11)
+			let defaultUseIncs[i][0] := Recurved.DefaultSkillUseIncrements[i][0] * expMulti
+			let defaultUseIncs[i][1] := Recurved.DefaultSkillUseIncrements[i][1] * expMulti
+			if (Recurved.OutputFormulas && forceRefresh)
+				PrintToConsole "recurve:   Skill: %g - %v" i i
+				PrintToConsole "recurve:   Use Increment 1: %.4f = %.4f * %.4f" defaultUseIncs[i][0] Recurved.DefaultSkillUseIncrements[i][0] expMulti
+				PrintToConsole "recurve:   Use Increment 2: %.4f = %.4f * %.4f" defaultUseIncs[i][1] Recurved.DefaultSkillUseIncrements[i][1] expMulti
+			endif
+		endif
+		set i to i + 1
+	loop
+
+	SetFunctionValue defaultUseIncs
+End

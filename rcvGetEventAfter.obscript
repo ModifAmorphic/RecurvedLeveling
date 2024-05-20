@@ -2,44 +2,55 @@ scn rcvGetEventAfter
 
 int i
 int eventCount
-int adjAfterTick
+array_var event
 
 ; inputs
 int eventType
 int afterTick
-; outputs
-array_var event
-Begin _Function { eventType afterTick } ; Gets the most recent event that has occured after the tick
+short stopOnFirstHit ; Stops searching after the a single event is found.
+; output
+array_var eventResult
+Begin _Function { eventType afterTick stopOnFirstHit } ; Gets the most recent event that has occured after the tick
     let eventCount := ar_Size Recurved.EventHistory
-    set adjAfterTick to afterTick
-    ;DebugPrint "recurve: Scanning %g events for Global Tick Reset event that occured after event type %g's tick of %g" eventCount eventType afterTick
-    ; Check if there was a Global rest that occured after the "afterTick" and if so, adjust the adjAfterTick
-    ; to reflect that offset
-    set i to 0
-    while (i < eventCount)
-        if Eval(Recurved.EventHistory[i]["eventType"] == Recurved.EventTypeGlobalTickReset)
-            if Eval(adjAfterTick < Recurved.EventHistory[i]["data"])
-                let adjAfterTick := 0 - afterTick
-                ;DebugPrint "recurve: Found Global Tick reset event. Adjusted tick search to %g" adjAfterTick
-            endif
-            break
-        endif
-        let i += 1
-    loop
+    ;set adjAfterTick to afterTick
+    ; ;DebugPrint "recurve: Scanning %g events for Global Tick Reset event that occured after event type %g's tick of %g" eventCount eventType afterTick
+    ; ; Check if there was a Global rest that occured after the "afterTick" and if so, adjust the adjAfterTick
+    ; ; to reflect that offset
+    ; set i to 0
+    ; while (i < eventCount)
+    ;     if Eval(Recurved.EventHistory[i]["eventType"] == Recurved.EventTypeGlobalTickReset)
+    ;         if Eval(afterTick < Recurved.EventHistory[i]["data1"])
+    ;             let adjAfterTick := 0 - afterTick
+    ;             ;DebugPrint "recurve: Found Global Tick reset event. Adjusted tick search to %g" adjAfterTick
+    ;         endif
+    ;         break
+    ;     endif
+    ;     let i += 1
+    ; loop
 
-    ;DebugPrint "recurve: Scanning %g events event type %g that occured after tick %g" eventCount eventType adjAfterTick
+    ;DebugPrint "recurve: Scanning %g events event type %g that occured after tick %g" eventCount eventType afterTick
+    if (stopOnFirstHit == 0)
+        let eventResult := ar_Construct "Array"
+    endif
     set i to eventCount
     while (i > 0)
         let i -= 1
-        if Eval(Recurved.EventHistory[i]["tick"] > adjAfterTick)
+        if Eval(Recurved.EventHistory[i]["tick"] > afterTick)
+            ;DebugPrint "recurve: EventHistory EventType: %g, searched EventType: %g." Recurved.EventHistory[i]["eventType"] eventType
             if Eval(Recurved.EventHistory[i]["eventType"] == eventType)
-                let event := ar_Copy Recurved.EventHistory[i]
-                ;DebugPrint "recurve: Found event type %g that occured at tick %g" eventType Recurved.EventHistory[i]["tick"]
-                break
+                if (stopOnFirstHit)
+                    let eventResult := ar_Copy Recurved.EventHistory[i]
+                    ;DebugPrint "recurve: Found event type %g that occured at tick %g" eventType Recurved.EventHistory[i]["tick"]
+                    break
+                else
+                    let event := ar_Copy Recurved.EventHistory[i]
+                    ar_Append eventResult event
+                    ;DebugPrint "recurve: Added event type %g that occured at tick %g to results." eventType Recurved.EventHistory[i]["tick"]
+                endif
             endif
         else
             break
         endif
     loop
-    SetFunctionValue event
+    SetFunctionValue eventResult
 End

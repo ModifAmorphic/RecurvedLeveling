@@ -1,0 +1,14 @@
+scn rcvResetSkillUseOverrides
+int i
+array_var tmpCopy
+
+Begin Function {}
+	let tmpCopy := ar_Construct "Array"
+	while (i < ar_Size Recurved.SkillUseOverrides)
+		if Eval(Recurved.SkillUseOverrides[i]["reason"] == Recurved.OverrideReasonRunning)
+			ar_Append tmpCopy Recurved.SkillUseOverrides[i]
+		endif
+		set i to i + 1
+	loop
+	let Recurved.SkillUseOverrides := tmpCopy
+End

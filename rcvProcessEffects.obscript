@@ -9,14 +9,19 @@ short shouldContinue
 ;inputs
 short forceRefresh
 Begin _Function { forceRefresh }
+	; init effectType as unset
+	set effectType to -1
+	
 	; Check if Recurved Effects have been disabled or refresh is forced then
 	; remove any all effects if any were added previously
 	if (Recurved.RecurvedEffectsDisabled || forceRefresh == 1)
 		if (RecurvedMessenger.IsEffectsAdded)
 			set RecurvedMessenger.IsEffectsAdded to 0
 			let skillCodes := ar_Construct "Array"
-			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectFailsafe
 			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectSoftcap
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectAttributeGuard
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectAttributesFailsafe
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectOverlevel
 		endif
 		; Return for both disabled or forceRefreshes. Removing and adding spell in same pass 
 		; doesn't correctly register the spell.
@@ -24,51 +29,67 @@ Begin _Function { forceRefresh }
 	endif
 
 	; Check if there's been any level up or skill up events since the last time we checked
-	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastEffectCheckTick
+	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastEffectEventFoundTick
 	if (shouldContinue == 0)
-		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastEffectCheckTick
+		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastEffectEventFoundTick
 		if (shouldContinue == 0)
-			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeProtection RecurvedMessenger.LastMsgCheckTick
+			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeGuard RecurvedMessenger.LastEffectEventFoundTick
 		endif
 	endif
-	set RecurvedMessenger.LastEffectCheckTick to RecurvedController.GlobalTick
 	if (shouldContinue == 0 && forceRefresh == 0)
 		return
+	else
+		set RecurvedMessenger.LastEffectEventFoundTick to RecurvedController.GlobalTick
 	endif
 
 	; Add effect when attribute protection is first enabled (experience requirements for an attribute's major skills is increased exponentially)
-	if (Recurved.AttributeProtectionDisabled == 0)
+	if (Recurved.AttributeGuardDisabled == 0)
 		let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.OverrideReasonOverlevel
+		set effectType to RecurvedMessenger.EffectOverlevel
 		if Eval((ar_Size overrides) < 1)
-			let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.OverrideReasonAttributeProtection
+			let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.OverrideReasonFailsafe
+			set effectType to RecurvedMessenger.EffectAttributesFailsafe
+			if Eval((ar_Size overrides) < 1)
+				let overrides := call rcvFindSkillUseOverrides Recurved.SkillUseOverrides Recurved.OverrideReasonAttributeGuard
+				set effectType to RecurvedMessenger.EffectAttributeGuard
+			endif
 		endif
+			
 		set i to 0
 		if Eval ((ar_Size overrides) > 0)
 			let skillCodes := ar_Construct "Array"
 			while (i < ar_Size overrides)
-				ar_Append skillCodes overrides[i]["skillCode"]
+				if (effectType != RecurvedMessenger.EffectOverlevel)
+					ar_Append skillCodes overrides[i]["skillCode"]
+				elseif Eval(player.IsClassSkillC overrides[i]["skillCode"])
+					; only add major skills for overlevel. All skills are effected, but only so many effects can be listed
+					ar_Append skillCodes overrides[i]["skillCode"]
+				endif
 				let i += 1
 			loop
-			set effectType to RecurvedMessenger.EffectAttributeProtection
-			if (Recurved.AttributeFailsafeEnabled)
-				set effectType to RecurvedMessenger.EffectFailsafe
-			endif
+			DebugPrint "recurve: Processing potential attribute guards for %g skill codes. effectType=%g" (ar_Size overrides) effectType
 			call rcvUpdateEffects skillCodes effectType
-			set RecurvedMessenger.IsEffectsAdded to 1
 			set RecurvedMessenger.IsAttributeEffectsAdded to 1
 		elseif (RecurvedMessenger.IsAttributeEffectsAdded)
 			; if no overrides then remove any effects if they were added previously
 			let skillCodes := ar_Construct "Array"
-			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectFailsafe
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectOverlevel
+			call rcvUpdateEffects skillCodes RecurvedMessenger.EffectAttributesFailsafe
 			set RecurvedMessenger.IsAttributeEffectsAdded to 0
 			DebugPrint "recurve: Removed all Attribute Protection / Failsafe effects."
 		endif
+	elseif (RecurvedMessenger.IsAttributeEffectsAdded) ; remove existing effects in case any were active before attribute guard was disabled
+		let skillCodes := ar_Construct "Array"
+		call rcvUpdateEffects skillCodes RecurvedMessenger.EffectOverlevel
+		call rcvUpdateEffects skillCodes RecurvedMessenger.EffectAttributesFailsafe
+		set RecurvedMessenger.IsAttributeEffectsAdded to 0
 	endif
 	set i to 0
 
 	; Add effect for any minor skill that is currently at or over its softcap
-	if (Recurved.MinorSkillSoftCapsDisabled == 0)
+	if (Recurved.MinorSkillSoftCapsDisabled == 0 && effectType != RecurvedMessenger.EffectOverlevel)
 		let softCapSkills := call rcvFindSkillsSoftCapped
+		DebugPrint "recurve: Processing potential softcaps for %g skill codes. effectType=%g" (ar_Size softCapSkills) effectType
 		if Eval((ar_Size softCapSkills) > 0)
 			let skillCodes := ar_Construct "Array"
 			while (i < ar_Size softCapSkills)
@@ -85,6 +106,12 @@ Begin _Function { forceRefresh }
 			set RecurvedMessenger.IsSoftcapEffectsAdded to 0
 			DebugPrint "recurve: Removed all soft cap effects."
 		endif
+	elseif (RecurvedMessenger.IsSoftcapEffectsAdded) 
+		; remove existing soft cap effects in case any were active before softcaps were disabled or overlevel was enabled
+		let skillCodes := ar_Construct "Array"
+		call rcvUpdateEffects skillCodes RecurvedMessenger.EffectSoftcap
+		set RecurvedMessenger.IsSoftcapEffectsAdded to 0
+		DebugPrint "recurve: Removed all soft cap effects."
 	endif
 	set i to 0
 

@@ -64,7 +64,7 @@ Begin Function { healthDamage attacker }
 
 			set damageRatio to (damage / Recurved.ExpNormalizedReceivedDamage) / defTypeExpReduction
 			
-			let defaultUseIncrement := Recurved.DefaultSkillUseIncrements[armorSkill][0]
+			let defaultUseIncrement := call rcvGetDefaultSkillUseInc armorSkill 0
 			set useIncrement to GetSkillUseIncrementC armorSkill 0
 			; Calculate how the use increment has been modified in case any softcaps or overrides are applied
 			set useExpMod to 1.0
@@ -87,7 +87,5 @@ Begin Function { healthDamage attacker }
 			endif
 			let i += 1
 		loop
-	else
-		DebugPrint "recurve: No experience change detected for light or heavy armor. No bonus exp awarded."
 	endif
 End

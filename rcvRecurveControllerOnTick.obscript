@@ -1,5 +1,7 @@
 scn rcvRecurveControllerOnTick ; Called on every fQuestDelayTime "tick" of the GameMode
 
+int prunedEvents
+
 ;inputs
 short isGameRestarted
 short isGameLoaded
@@ -7,9 +9,12 @@ short isGameLoaded
 short hasUpdate
 Begin _Function { isGameRestarted isGameLoaded }
 	set RecurvedController.GlobalTick to RecurvedController.GlobalTick + 1
-
-	if isGameRestarted
-		set RecurvedController.fQuestDelayTime to .2
+	
+	; load ini and set constants on load
+	if isGameLoaded
+		call rcvSetConstants
+		call rcvLoadIni
+		call rcvSetConstants ; set constants again to insure they're still set as expected after loading the ini
 	endif
 	
 	; Preserve load and restart statuses for later
@@ -27,14 +32,27 @@ Begin _Function { isGameRestarted isGameLoaded }
 	endif
 
 	if (RecurvedController.GlobalTick - RecurvedController.lastEventPurge > Recurved.EventExpirationTicks && RecurvedController.hasLoadedSinceUpdate == 0)
-		DebugPrint "Pruning events older than %g ticks. Last Event Pruning was at %g ticks. Current tick is %g." Recurved.EventExpirationTicks RecurvedController.lastEventPurge RecurvedController.GlobalTick
-		call rcvPruneEvents 0
+		let prunedEvents := call rcvPruneEvents 0
 		set RecurvedController.lastEventPurge to RecurvedController.GlobalTick
 	endif
+	
+	set RecurvedController.fQuestDelayTime to Recurved.RecurvedControllerInterval
+	
+	; If tutorial is not yet flagged as complete, then check to see if that's changed
+	if (RecurvedController.IsTutorialComplete == 0)
+		let RecurvedController.IsTutorialComplete := !(call rcvGetIsInTutorial isGameLoaded)
+		; if (RecurvedController.IsTutorialComplete == 0)
+		; 	return  ; Exit early if still in tutorial!!
+		; endif
+	endif
+	;;; End Tutorial Check
 
 	; Only mark update if new updates or game loads
 	if RecurvedController.hasLoadedSinceUpdate || RecurvedController.UpdateFlag
-		set hasUpdate to 1
+		if (RecurvedController.IsTutorialComplete)
+			set hasUpdate to 1
+		endif
 	endif
+
 	SetFunctionValue hasUpdate
 End

@@ -12,22 +12,15 @@ int skillLevel
 float fSkillUseMinorMult
 float fSkillUseFactor
 float fSkillUseExp
-float allExpMultiplier
-; inputs
-short useAllExpMultiplier
+
 ; ouput
 array_var skills
-Begin Function { useAllExpMultiplier } ; Gets list of current skills split in to major and minor lists
+Begin Function { } ; Gets list of current skills split in to major and minor lists
 
 	let skills := ar_Construct "StringMap"
 	let skills["major"] := ar_Construct "Array"
 	let skills["minor"] := ar_Construct "Array"
 	let skills["all"] := ar_Construct "Array"
-	if (useAllExpMultiplier)
-		set allExpMultiplier to Recurved.AllExperienceMultiplier
-	else
-		set allExpMultiplier to 1
-	endif
 
 	; set first 11 skills to null so they are indexed by skillcode
 	while (i < 12)
@@ -62,8 +55,8 @@ Begin Function { useAllExpMultiplier } ; Gets list of current skills split in to
 		set fSkillUseExp to GetGameSetting "fSkillUseExp"
 		let skills[skillType][i]["baseExpReq"] := fSkillUseMinorMult * (fSkillUseFactor * skillLevel) ^ fSkillUseExp
 		let skills[skillType][i]["useIncrements"] := ar_Construct "Array"
-		let skills[skillType][i]["useIncrements"][0] := GetSkillUseIncrementC skillCode 0 * 1
-		let skills[skillType][i]["useIncrements"][1] := GetSkillUseIncrementC skillCode 1 * 1
+		let skills[skillType][i]["useIncrements"][0] := (GetSkillUseIncrementC skillCode 0)
+		let skills[skillType][i]["useIncrements"][1] := (GetSkillUseIncrementC skillCode 1)
 
 		if isClassSkill == 0
 			let skills[skillType][i]["softCap"] := call rcvGetSkillSoftCap skillCode

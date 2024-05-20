@@ -1,5 +1,6 @@
 scn rcvGetLevelCurve
 
+int adjLevel
 int lvlIndex
 int i
 array_var newCurve
@@ -7,12 +8,19 @@ array_var newCurve
 ; inputs
 int level
 short forceRefresh
+short ignoreOverlevel
 ; out
 array_var curve
-Begin Function { level forceRefresh }
-	set lvlIndex to level - 1
+Begin Function { level forceRefresh ignoreOverlevel }
 
-	if Eval((ar_Size Recurved.LevelCurves) < level)
+	; when overleveled, return the next level curve since that's what the game is using
+	set adjLevel to level
+	if (level == player.GetLevel && ignoreOverlevel == 0)
+		set adjLevel to adjLevel + Recurved.IsOverLeveled
+	endif
+	set lvlIndex to adjLevel - 1
+
+	if Eval((ar_Size Recurved.LevelCurves) < adjLevel)
 		let i := (ar_Size Recurved.LevelCurves)
 		if (i < 0)
 			set i to 0
@@ -23,10 +31,10 @@ Begin Function { level forceRefresh }
 			let i += 1
 		loop
 		; add the missing level curve
-		let newCurve := call rcvBuildLevelCurve level
+		let newCurve := call rcvBuildLevelCurve adjLevel
 		ar_Append Recurved.LevelCurves newCurve
 	elseif (forceRefresh)
-		let Recurved.LevelCurves[lvlIndex] := call rcvBuildLevelCurve level
+		let Recurved.LevelCurves[lvlIndex] := call rcvBuildLevelCurve adjLevel
 	endif
 	let curve := Recurved.LevelCurves[lvlIndex]
 	SetFunctionValue curve

@@ -4,23 +4,22 @@ scn rcvSetSkillUseIncrements
 int skillCode
 float useIncrement0
 float useIncrement1
-float setUseInc1Before
-float setUseInc1After
+; float setUseInc1Before
+; float setUseInc1After
+
 ; input param(s)
 array_var useIncrements
-
-
 Begin Function { useIncrements }
 
 	set skillCode to 12
 	while (skillCode < 33)
-		set setUseInc1Before to GetSkillUseIncrementC skillCode 1
+		;set setUseInc1Before to GetSkillUseIncrementC skillCode 1
 		let useIncrement0 := useIncrements[skillCode][0]
 		SetSkillUseIncrementC useIncrement0 skillCode 0
 		let useIncrement1 := useIncrements[skillCode][1]
 		SetSkillUseIncrementC useIncrement1 skillCode 1
-		set setUseInc1After to GetSkillUseIncrementC skillCode 1
-		DebugPrint "recurve: Set Skill %g use increments. useInc0=%.2f, useInc1=%.2f, setUseInc1Before=%.2f, setUseInc1After=%.2f" skillCode useIncrement0 useIncrement1 setUseInc1Before setUseInc1After
+		;set setUseInc1After to GetSkillUseIncrementC skillCode 1
+		DebugPrint "recurve: Set Skill %g use increments to: useInc0=%.2f, useInc1=%.2f. (%v)" skillCode useIncrement0 useIncrement1 skillCode
 		let skillCode := skillCode + 1
 	loop
 

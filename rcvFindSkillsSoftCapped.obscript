@@ -11,7 +11,7 @@ Begin _Function {} ; Gets an array of skills that are currently soft capped
 	let skills := ar_Construct "Array"
 	let softCappedSkills := ar_Construct "Array"
 
-	let curve := call rcvGetLevelCurve player.GetLevel 0
+	let curve := call rcvGetLevelCurve player.GetLevel 0 0
 	let skills := curve["skills"]
 	while (i < ar_Size skills)
 		if Eval(skills[i]["softCapEnabled"] == 1)
@@ -21,7 +21,6 @@ Begin _Function {} ; Gets an array of skills that are currently soft capped
 			let skill["softCapMulti"] := skills[i]["softCapMulti"]
 			let skill["useIncModifier"] := skills[i]["softCapMulti"]
 			let skill["exp"] := GetPlayerSkillUseC skills[i]["skillCode"]
-			let skill["penaltyReason"] := Recurved.PenaltyTypeSoftcap
 			;DebugPrint "recurved: Adding soft capped skill %g with %g experience to softCappedSkills array." skill["skillCode"] skill["exp"]
 			ar_Append softCappedSkills skill
 		endif

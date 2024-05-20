@@ -10,7 +10,6 @@ float speed
 float damage
 float dps
 float useIncMult
-float useIncMod
 float useIncExp
 float expExtraWeaponMulti
 
@@ -34,8 +33,7 @@ Begin _Function { }
     if (weaponType == 4)
         return
     endif
-    DebugPrint "Getting LevelCurve"
-    let levelCurve := call rcvGetLevelCurve Player.GetLevel 0
+    let levelCurve := call rcvGetLevelCurve Player.GetLevel 0 0
     if (weaponType < 2)
         set skillCode to 14 ; Blade
         let normalizedDps := levelCurve["normalizedWeaponExp"]["melee"]["dps"]
@@ -82,8 +80,7 @@ Begin _Function { }
 
     ; invert the multiplier because the the algo to determine use increments divides by this number instead multiplies
     if (useIncMult)
-        set useIncMod to 1 / useIncMult
         ; Add the new override
-	    call rcvAddSkillUseIncOverride skillCode useIncMod useIncMod Recurved.OverrideReasonWeapon
+	    call rcvAddSkillUseIncOverride skillCode useIncMult useIncMult Recurved.OverrideReasonWeapon
     endif
 End

@@ -1,0 +1,61 @@
+; Gets whether or not an override is the only use increment modifier currently applied
+scn rcvGetIsOverrideExclusive
+
+;locals
+float useIncMult1
+float useIncMult2
+float defaultUseInc1
+float defaultUseInc2
+float currentUseInc1
+float currentUseInc2
+float calcUseInc1
+float calcUseInc2
+
+int compareResult
+
+; inputs
+int skillCode
+array_var override
+; output
+short exclusiveStatus
+; -1 - override param empty and default use increment is not applied
+;  0 - not exclusive
+;  1 - exclusive
+;  2 - no override but default use increment applied
+Begin _Function { skillCode override }
+	let defaultUseInc1 := (call rcvGetDefaultSkillUseInc skillCode 0) 
+	let defaultUseInc2 := (call rcvGetDefaultSkillUseInc skillCode 1) 
+	let currentUseInc1 := (GetSkillUseIncrementC skillCode 0)
+	let currentUseInc2 := (GetSkillUseIncrementC skillCode 1)
+	;DebugPrint "recurve: rcvGetIsOverrideExclusive: defaultUseInc1=%.7f, currentUseInc1=%.7f | defaultUseInc2=%.7f, currentUseInc2=%.7f" defaultUseInc1 currentUseInc1 defaultUseInc2 currentUseInc2
+	if Eval((ar_Size override) < 1)
+		if (currentUseInc1 == defaultUseInc1 && currentUseInc2 == defaultUseInc2)
+			set exclusiveStatus to 2
+		endif
+		SetFunctionValue exclusiveStatus
+		return
+	endif
+
+	let useIncMult1 := override["useIncModifiers"][0]
+	let useIncMult2 := override["useIncModifiers"][1]
+
+	; Back out overrides from current used to see if it matches the default use increments.
+	if (useIncMult1 > 0)
+		set calcUseInc1 to currentUseInc1 / useIncMult1
+	endif
+	if (useIncMult2 > 0)
+		set calcUseInc2 to currentUseInc2 / useIncMult2
+	endif
+	
+	let compareResult := call rcvCompareFloats calcUseInc1 defaultUseInc1
+	if (compareResult == 0)
+		let compareResult := call rcvCompareFloats calcUseInc2 defaultUseInc2
+		if (compareResult == 0)
+			set exclusiveStatus to 1
+		endif
+	endif
+
+	;DebugPrint "recurve: rcvGetIsOverrideExclusive: exclusiveStatus=%g. defaultUseInc1=%.7f, calcUseInc1=%.7f | defaultUseInc2=%.7f, calcUseInc2=%.7f" exclusiveStatus defaultUseInc1 calcUseInc1 defaultUseInc2 calcUseInc2
+	
+	SetFunctionValue exclusiveStatus
+End

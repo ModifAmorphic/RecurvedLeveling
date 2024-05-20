@@ -5,21 +5,23 @@ int i
 Begin _Function { }
 	DebugPrint "recurve: Processing level up to level %g." player.GetLevel
 	; Apply any attribute progress overages to the new level
-	if (Recurved.ExcessAttributeProgress > 0)
-		DebugPrint "recurve: Setting level progress to previous level excess of %g." Recurved.ExcessAttributeProgress
-		SetPCMajorSkillUps Recurved.ExcessAttributeProgress
-	endif
+	; Removed because MajorSkillUps are no longer reset back on every skill up over the progress level
+	; if (Recurved.ExcessAttributeProgress > 0)
+	; 	DebugPrint "recurve: Setting level progress to previous level excess of %g." Recurved.ExcessAttributeProgress
+	; 	SetPCMajorSkillUps Recurved.ExcessAttributeProgress
+	; endif
 	; reset excess attribute progress
-	set Recurved.ExcessAttributeProgress to 0
+	;set Recurved.ExcessAttributeProgress to 0
 	; Carry over any left over progress points from the previous level and apply.
 	if (Recurved.RemainingAttributeProgressDisabled == 0)
 		call rcvSetLevelProgress 1
-		; reset attribute bonus data
-		while (i < 7)
-			let Recurved.PrimaryAttribBonuses[i] := 0
-			let Recurved.SecondaryAttribBonuses[i] := 0
-			let i += 1
-		loop
+		; (removed) reset attribute bonus data
+		;; Cleared during to prelevel. These attribute bonuses are now for the current level and should be preserved
+		; while (i < 7)
+		; 	let Recurved.PrimaryAttribBonuses[i] := 0
+		; 	let Recurved.SecondaryAttribBonuses[i] := 0
+		; 	let i += 1
+		; loop
 	endif
 	set Recurved.AttributeFailsafeEnabled to 0
 	; set current level
@@ -34,5 +36,9 @@ Begin _Function { }
 	; refresh with health normalization changes
 	let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
 
+	; remove older levels and curves
 	call rcvNullPreviousLevels
+
+	; record the event in history
+	call rcvAddEvent Recurved.EventTypeLevelUp (player.GetLevel) 0 ar_Null
 End

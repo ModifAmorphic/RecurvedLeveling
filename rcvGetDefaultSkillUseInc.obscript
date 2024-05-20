@@ -1,0 +1,19 @@
+; Populates Recurved.DefaultSkillUseIncrements if not yet initialized then gets a copy of use increments for all skills with the Recurved.AllExperienceMultiplier applied.
+scn rcvGetDefaultSkillUseInc
+
+float expMulti
+
+; inputs
+int skillCode
+short incrementNo
+;output
+float useIncrement
+Begin _Function { skillCode incrementNo }
+	set expMulti to 1
+	if Eval((ar_Size Recurved.DefaultSkillUseIncrements) < 1)
+		let Recurved.DefaultSkillUseIncrements := call rcvGetSkillUseIncrements
+	endif
+	let useIncrement := Recurved.DefaultSkillUseIncrements[skillCode][incrementNo] * expMulti
+
+	SetFunctionValue useIncrement
+End

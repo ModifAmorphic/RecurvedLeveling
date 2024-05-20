@@ -1,4 +1,4 @@
-scn rcvAddSkillIncreaseProtection
+scn rcvUpdateAttributeGuards
 
 ; Overage prevention
 float skillIncsForMaxAttrib ; skill increases required for a maximized attribute bonus
@@ -18,9 +18,9 @@ int maxedAttributes
 int unmaxedAttributes
 int maxedAttrProgressReq
 array_var levelCurve
-array_var failsafeSkills
-array_var protectedSkills
-int removedProtections
+array_var cappedSkills
+array_var limitedSkills
+int removedGuards
 
 ; inputs
 int skillCode       ; Actor value code for the skill
@@ -32,20 +32,21 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	set skillsCapped to 0
 	
 	; if disabled, ensure any existing protections are removed then get out of here
-	if Recurved.AttributeProtectionDisabled
-		let removedProtections := call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
-		let skillsCapped -= removedProtections
+	if Recurved.AttributeGuardDisabled
+		let removedGuards := call rcvDeleteSkillOverrides Recurved.OverrideReasonFailsafe
+		let removedGuards += call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeGuard
+		let skillsCapped -= removedGuards
 		SetFunctionValue skillsCapped
-		DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." removedProtections
+		DebugPrint "recurve: Removed %g skill use overrides due to Attribute Guard being disabled." removedGuards
 		return
 	endif
 
 	set isMajorSkill to player.IsClassSkillC skillCode
 	set attributeCode to GetSkillGoverningAttributeC skillCode
 	let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
-	let levelCurve := call rcvGetLevelCurve player.GetLevel 0
+	let levelCurve := call rcvGetLevelCurve player.GetLevel 0 0
 
-	DebugPrint "recurve: Attribute Protection processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
+	DebugPrint "recurve: Attribute Guard processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
 	; Get a list of attributes whose progress is maxed (or will be maxed with this increase)
 	let maxedAttrProgress := ar_Construct "Array"
 	set i to 0
@@ -56,7 +57,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 			let progressPoints += skillIncrease
 		endif
 		; include any bonus, bonus progress if enabled
-		if (isMajorSkill)
+		if (isMajorSkill && skillIncrease > 0)
 			if (Recurved.AttributeBonusDisabled == 0 && i == attributeCode)
 				let progressPoints += levelCurve["MajorAttributeBonus"]
 			endif
@@ -64,7 +65,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 				let progressPoints += levelCurve["SecondaryAttributeBonus"]
 			endif
 		endif
-		;DebugPrint "recurve: Calculated skill %g will set progress points to %g for attribute %g." skillCode progressPoints i
+		DebugPrint "recurve: Calculated skill %g's incoming increase of %g will set progress points to %g for attribute %g." skillCode skillIncrease progressPoints i
 		if (progressPoints >= 10)
 			ar_Append maxedAttrProgress i
 		endif
@@ -96,35 +97,33 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	
 	; calculate skill increases required to max one attribute
 	let skillIncsForMaxAttrib := 10 / (levelCurve["MajorAttributeBonus"] + 1)
-	; Perform overage protection if level progress exceeds or equals the amount of increases 
+	; Enable attribute guard if level progress exceeds or equals the amount of increases 
 	;; required to max one attribute and the amount of currently maxed attribute bonuses is less 
 	;; than the required amount.
 	DebugPrint "recurve: lvlProgress=%g, skillIncsForMaxAttrib=%.2f, maxedAttrProgressCount=%g, maxedAttrProgressReq=%g" lvlProgress skillIncsForMaxAttrib maxedAttrProgressCount maxedAttrProgressReq
 	if Eval ((lvlProgress >= (Floor skillIncsForMaxAttrib)) && (maxedAttrProgressCount < maxedAttrProgressReq))
 		
 		; If character is about to level without reaching 3 maxed attributes, enable attribute leveling failsafe
-		let failsafeSkills := call rcvAddAttributesFailsafe addLvlProgress
+		let cappedSkills := call rcvAddAttributesFailsafe addLvlProgress
 
         set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
-		if Eval ((ar_Size failsafeSkills) > 0)
-			; debug message for failsafes
-			let skillsCapped := ar_Size failsafeSkills
+		if Eval ((ar_Size cappedSkills) > 0)
+			; debug message for attribute guard
+			let skillsCapped := ar_Size cappedSkills
 			DebugPrint "Leveling failsafe enabled. Only %g of %g Attributes had reached max increase values for the level. Level progress %g/%g" maxedAttrProgressCount maxedAttrProgressReq lvlProgress maxLvlProgress
 		else
-			; If failsafe not triggered, then apply the progressive overage prevention
-			let protectedSkills := call rcvAddSkillIncProtectionPenalties maxedAttrProgress lvlProgress skillIncsForMaxAttrib levelCurve
-			let skillsCapped := ar_Size protectedSkills
+			; If attribute failsafe not triggered, then apply the progressive guard prevention
+			let limitedSkills := call rcvAddAttributeGuards maxedAttrProgress lvlProgress skillIncsForMaxAttrib levelCurve
+			let skillsCapped := ar_Size limitedSkills
 		endif
 		set isProtectionApplied to 1
-		call rcvAddEvent Recurved.EventTypeAttributeProtection skillsCapped
+		call rcvAddEvent Recurved.EventTypeAttributeGuard skillsCapped 0 ar_Null
 	endif
 	
 	if (isProtectionApplied == 0) ; If no protection applied, then unlock any capped skills
-		let removedProtections := call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeProtection
-		let skillsCapped -= removedProtections
-		DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." removedProtections
+		let removedGuards := call rcvDeleteSkillOverrides Recurved.OverrideReasonAttributeGuard
+		let skillsCapped -= removedGuards
+		DebugPrint "recurve: Removed %g skill use overrides due to overage protection no longer being enforced." removedGuards
 	endif
 	SetFunctionValue skillsCapped
-	;DebugPrint "recurve: Dumping array Recurved.SkillUseOverrides after processing"
-	;ar_Dump Recurved.SkillUseOverrides
 End

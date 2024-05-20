@@ -1,12 +1,12 @@
 scn rcvConvertSecondsToTicks
 
 ; inputs
-int seconds
+float seconds
 ; output
 int ticks
-Begin _Function { seconds }
-	if (RecurvedController.fQuestDelayTime > 0)
-		set ticks to seconds / RecurvedController.fQuestDelayTime
+Begin _Function { seconds } ; Converts seconds to ticks, rounding up if needed
+	if (Recurved.RecurvedControllerInterval > 0)
+		set ticks to Ceil (seconds / Recurved.RecurvedControllerInterval)
 	endif
 	SetFunctionValue ticks
 End

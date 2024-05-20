@@ -9,7 +9,7 @@ int afterTick
 short hasEvent
 Begin _Function { eventType afterTick } ; Returns 1 if the a recent event was found that occured after afterTick
 
-    let event := call rcvGetEventAfter eventType afterTick
+    let event := call rcvGetEventAfter eventType afterTick 1
     let hasEvent := ((ar_Size event) > 0)
 
     SetFunctionValue hasEvent

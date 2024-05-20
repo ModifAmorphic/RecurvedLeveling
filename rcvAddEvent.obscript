@@ -4,28 +4,41 @@ array_var newEvent
 
 ; inputs
 int eventType
-int data
-Begin _Function { eventType data }
+int data1
+int data2
+array_var dataArray
+Begin _Function { eventType data1 data2 dataArray }
     let newEvent := ar_Construct "StringMap"
     let newEvent["eventType"] := eventType
     let newEvent["tick"] := RecurvedController.GlobalTick
-    let newEvent["data"] := data
+    let newEvent["data1"] := data1
+    let newEvent["data2"] := data2
+    let newEvent["dataArray"] := dataArray
     ar_Append Recurved.EventHistory newEvent
 
-    if (eventType == Recurved.EventTypeGameRestarted)
-        DebugPrint "recurve: New Event added { eventType=%g (GameRestarted), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
-    elseif(eventType == Recurved.EventTypeGameLoaded)
-        DebugPrint "recurve: New Event added { eventType=%g (GameLoaded), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
-    elseif(eventType == Recurved.EventTypeGlobalTickReset)
-        DebugPrint "recurve: New Event added { eventType=%g (GlobalTickReset), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
-    elseif(eventType == Recurved.EventTypeLevelUp)
-        DebugPrint "recurve: New Event added { eventType=%g (LevelUp), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
-    elseif(eventType == Recurved.EventTypeSkillChange)
-        DebugPrint "recurve: New Event added { eventType=%g (SkillChange), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
-    elseif(eventType == Recurved.EventTypeAttributeProtection)
-        DebugPrint "recurve: New Event added { eventType=%g (AttributeProtection), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
-    else
-        DebugPrint "recurve: New Event added { eventType=%g (Unknown), tick=%g, data=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data"]
+    if (Recurved.DebugEnabled)
+        if (eventType == Recurved.EventTypeGameRestarted)
+            DebugPrint "recurve: New Event added { eventType=%g (GameRestarted), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeGameLoaded)
+            DebugPrint "recurve: New Event added { eventType=%g (GameLoaded), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeGlobalTickReset)
+            DebugPrint "recurve: New Event added { eventType=%g (GlobalTickReset), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeLevelUpProgressReached)
+            DebugPrint "recurve: New Event added { eventType=%g (LevelUpProgressReached), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeLevelUp)
+            DebugPrint "recurve: New Event added { eventType=%g (LevelUp), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeSkillChange)
+            DebugPrint "recurve: New Event added { eventType=%g (SkillChange), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeControllerUpdate)
+            DebugPrint "recurve: New Event added { eventType=%g (ControllerUpdate), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeExpActionQueued)
+            DebugPrint "recurve: New Event added { eventType=%g (ExpActionQueued), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeOverLeveled)
+            DebugPrint "recurve: New Event added { eventType=%g (OverLeveled), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        elseif(eventType == Recurved.EventTypeAttributeGuard)
+            DebugPrint "recurve: New Event added { eventType=%g (AttributeGuard), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        else
+            DebugPrint "recurve: New Event added { eventType=%g (Unknown), tick=%g, data1=%g, data2=%g }" newEvent["eventType"] newEvent["tick"] newEvent["data1"] newEvent["data2"]
+        endif
     endif
-
 End

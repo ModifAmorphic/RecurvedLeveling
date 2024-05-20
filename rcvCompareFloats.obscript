@@ -1,0 +1,72 @@
+scn rcvCompareFloats
+
+;locals
+float val1Abs
+float val1
+long val1Comparer
+float val2
+float val2Abs
+long val2Comparer
+long maxLong
+
+int maxExponent
+int maxExponent1
+int maxExponent2
+int remainder
+;inputs
+float value1
+float value2
+
+; outputs
+short result
+Begin _Function {value1 value2}
+	set maxLong to 16777216
+	
+	; determine maximum shift left val1Abs
+	set val1Abs to Abs value1
+	;DebugPrint "absolute value of %.7f is %.7f" value1 val1Abs
+	if (val1Abs > 0)
+		set maxExponent1 to Log10 (maxLong / val1Abs)
+		;DebugPrint "maxExponent1 = %g = Log (%g / %.7f)" maxExponent1 maxLong val1Abs
+	endif
+	
+	; determine maximum shift left for value2
+	set val2Abs to Abs value2
+	if (val2Abs > 0)
+		set maxExponent2 to Log10 (maxLong / val2Abs)
+	endif
+
+	; pick the smallest left (10^x) shift
+	set maxExponent to maxExponent1
+	if (maxExponent1 > maxExponent2)
+		set maxExponent to maxExponent2
+	endif
+
+	; Shift values left
+	let val1 := value1 * 10^maxExponent
+	let val2 := value2 * 10^maxExponent
+
+	; round up if needed
+	set val1Comparer to val1
+	if (val1 >= (val1Comparer + .5))
+		set val1Comparer to val1Comparer + 1
+		;DebugPrint "recurve: Rounded up comparison value1 from %.7f to %g" val1 val1Comparer
+	endif
+	set val2Comparer to val2
+	if (val2 >= (val2Comparer + .5))
+		set val2Comparer to val2Comparer + 1
+		;DebugPrint "recurve: Rounded up comparison value2 from %.7f to %g" val2 val2Comparer
+	endif
+	
+	if (val1Comparer < val2Comparer)
+		set result to -1
+	elseif (val1Comparer == val2Comparer)
+		set result to 0
+	else
+		set result to 1
+	endif
+	
+	;DebugPrint "recurve: Compared values (%.4f, %.4f) as %g and %g with 10^%g. Result was %g." value1 value2 val1Comparer val2Comparer maxExponent result
+	
+	SetFunctionValue result
+End

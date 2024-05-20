@@ -8,7 +8,11 @@ short isEnabled
 Begin _Function {}
 	foreach overrideItem <- Recurved.SkillUseOverrides
 		let override := overrideItem["value"]
-		if Eval(override["reason"] == Recurved.OverrideReasonAttributeProtection)
+		if Eval(override["reason"] == Recurved.OverrideReasonAttributeGuard)
+			set isEnabled to 1
+			break
+		endif
+		if Eval(override["reason"] == Recurved.OverrideReasonFailsafe)
 			set isEnabled to 1
 			break
 		endif

@@ -1,0 +1,78 @@
+scn rcvApplyActionExtraExp
+
+int skillCode
+array_var levelCurve
+int useIncNo
+float useIncMult
+;fatigue
+float fatigue
+float fatigueUse
+; acrobatics dodge fatigue settings
+; float fFatigueJumpBase
+; float fFatigueJumpMult
+; float fPerkJumpFatigueExpertMult
+; float fActorStrengthEncumbranceMult
+; int encumbrance
+; int maxEncumbrance
+
+; inputs
+short actionType ; Recurved.ActionXXX type
+Begin _Function { actionType }
+	let levelCurve := call rcvGetLevelCurve player.GetLevel 0 0
+	; Add use increment for the action
+	if (actionType == Recurved.ActionAttack)
+		set useIncNo to 0
+		set skillCode to 13
+		set useIncMult to Recurved.AthleticsAttackExpMulti
+		let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionAttack]
+	elseif (actionType == Recurved.ActionPowerAttack)
+		set useIncNo to 1
+		set skillCode to 13
+		set useIncMult to Recurved.AthleticsAttackExpMulti
+		let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionPowerAttack]
+	elseif (actionType == Recurved.ActionCombatDodge)
+		set useIncNo to 1
+		set skillCode to 26
+		set useIncMult to Recurved.AcrobaticsDodgeExpMulti
+		set fatigueUse to (-1)
+		;; Calculation not needed, as dodge events are added after dodge is finished and only if enough fatigue use didn't exceed remaining fatigue
+		; let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionCombatDodge]
+		; set fFatigueJumpMult to GetGameSetting "fFatigueJumpMult"
+		; ; fFatigueJumpMult is 0 in vanilla, so only bother encumbrance math if it's actually set
+		; if (fFatigueJumpMult > 0)
+		; 	set fFatigueJumpBase to GetGameSetting "fFatigueJumpBase"
+		; 	set fActorStrengthEncumbranceMult to GetGameSetting "fActorStrengthEncumbranceMult"
+		; 	set encumbrance to player.GetActorValueC 11
+		; 	let maxEncumbrance := (player.GetActorValueC 0) * fActorStrengthEncumbranceMult
+		; 	set fPerkJumpFatigueExpertMult to 1
+		; 	; Only get acrobatics expert perk value if expert level or higher, otherwise leave at 1
+		; 	if Eval((player.GetAVSkillMasteryLevelC skillCode) > 1)
+		; 		set fPerkJumpFatigueExpertMult to GetGameSetting "fPerkJumpFatigueExpertMult"
+		; 	endif
+		; 	set fatigueUse to (fFatigueJumpBase + fFatigueJumpMult * encumbrance / maxEncumbrance) * fPerkJumpFatigueExpertMult
+		; 	DebugPrint "recurve: Formula: fatigueUse = (fFatigueJumpBase + fFatigueJumpMult * encumbrance / maxEncumbrance) * fPerkJumpFatigueExpertMult"
+		; 	DebugPrint "recurve:  Result: %.2f = (%.2f + %.2f * %g / %g) * %.2f" fatigueUse fFatigueJumpBase fFatigueJumpMult encumbrance maxEncumbrance fPerkJumpFatigueExpertMult
+		;endif
+	elseif (actionType == Recurved.ActionJumpAttack)
+		set useIncNo to 1
+		set skillCode to 26
+		set useIncMult to Recurved.AcrobaticsJumpAttackExpMulti
+		let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionJumpAttack]
+	else
+		PrintToConsole "recurve: (WARN) An attempt to add extra experience for unknown action type %g was made." actionType
+		return
+	endif
+
+	set fatigue to player.GetActorValueC 10
+
+	if (fatigueUse > fatigue)
+		DebugPrint "recurve: %g fatigue burn for use of skill %g exceeds current fatigue level of %g. No bonus EXP granted." fatigueUse skillCode fatigue
+		return
+	endif
+	if (useIncMult <= 0)
+		set useIncMult to 1
+	endif
+
+	IncrementPlayerSkillUseC skillCode useIncNo useIncMult
+	DebugPrint "recurve: Added %.2f type %g use increments to skill %g. Fatigue Remaining %.2f > Fatigue Burn %.2f" useIncMult useIncNo skillCode fatigue fatigueUse
+End

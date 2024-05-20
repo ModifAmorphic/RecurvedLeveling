@@ -1,31 +1,36 @@
 scn rcvRecurveMessenger
 
 float fQuestDelayTime
-short isGameLoaded
+short isWaiting
+int waitTick
 
 ; Flags for showing tutorial messages only once
-short TutorialAttributeProtectionShown
+short TutorialAttributeGuardShown
 short TutorialAttributeFailsafeShown
 short TutorialOverlevelShown
 
+; Message Tracking
+; to avoid constantly checking for skill level / softcap / protection changes when none have have occured
 ;; Amount of time to wait between sending messages
 int MessageWaitTicks
 ; Only show a message if the change triggering the message happened withing the last X ticks
 int MessageTickWindow
-; Vars for tracking previous protection messages
-int LastProtectionMessageTick
-int LastProtectionCheckTick
-array_var PrevPenalizedAttributes
+;; Last time a message worthy event was found
+int LastMsgEventFoundTick
+;; Last time the checked for potential guard message needing display
+int LastGuardMsgCheckTick
+;; Last time the Attribute Guard Message was shown
+int LastGuardMsgShownTick
+;; Last time checked for potential softcap message needing display
+int LastSoftCapMsgCheckTick
+;; Last time the Soft Cap Message was shown
+int LastSoftCapMsgShownTick
 
-; Vars for tracking previous softcap messages
-int LastSoftCapTick
-int LastSoftCapCheckTick
+array_var PrevPenalizedAttributes
 array_var PrevSoftcapped
 
 ; Tracks last time a skill check happened
-;; to avoid constantly checking for skill level / softcap / protection changes when none could have occured
-int LastMsgCheckTick
-int LastEffectCheckTick
+int LastEffectEventFoundTick
 
 ; Flags set whenever an effects are added. Used to clean up effects if effects where disabled
 short IsEffectsAdded
@@ -33,8 +38,9 @@ short IsAttributeEffectsAdded
 short IsSoftcapEffectsAdded
 
 ;Effect Constants
-int EffectFailsafe
-int EffectAttributeProtection
+int EffectOverlevel
+int EffectAttributesFailsafe
+int EffectAttributeGuard
 int EffectSoftcap
 
 short isFirstPass
@@ -47,45 +53,44 @@ short ForceEffectsRefresh
 Begin _GameMode
 	set fQuestDelayTime to 2
 	
-	if (GetGameRestarted)
-		let PrevPenalizedAttributes := ar_Construct "Array"
-		let PrevSoftcapped := ar_Construct "Array"
+	; When game load event occurs, wait for controller to finish it's first update
+	if (GetGameLoaded)
+		set isWaiting to 1
+		set waitTick to RecurvedController.GlobalTick
+		if (GetGameRestarted)
+			let PrevPenalizedAttributes := ar_Construct "Array"
+			let PrevSoftcapped := ar_Construct "Array"
+			set waitTick to 0
+		endif
+		return
 	endif
-	; Allow other quests to start before checking on messaging
-	set isGameLoaded to GetGameLoaded
-	if (isGameLoaded)
-		
+
+	if (isWaiting)
+		if Eval(call rcvHasEventAfter Recurved.EventTypeControllerUpdate waitTick)
+			; disable waiting flag so this block get's skipped from now on
+			set isWaiting to 0
+			set isFirstPass to 1
+			PrintToConsole "recurve: RecurvedMessenger Quest Script starting at global tick %g." RecurvedController.GlobalTick
+		else
+			return
+		endif
+	endif
+
+	if (isFirstPass)
 		; Only show a message every 15 seconds
 		let MessageWaitTicks := call rcvConvertSecondsToTicks Recurved.MessageWaitSeconds
 		; only show a message 
 		let MessageTickWindow := call rcvConvertSecondsToTicks Recurved.MessageWindowSeconds
-		set LastProtectionMessageTick to 0
-		set LastSoftCapTick to 0	
-		set LastProtectionCheckTick to 0	
-		set LastSoftCapCheckTick to 0
-		if Eval((ar_Size Effects) < 1)
-			let Effects := ar_Construct "Array"
-			let Effects[EffectFailsafe] := ar_Construct "Array"
-			let Effects[EffectAttributeProtection] := ar_Construct "Array"
-			let Effects[EffectSoftcap] := ar_Construct "Array"
-		endif
+		set LastMsgEventFoundTick to 0
+		set LastGuardMsgCheckTick to 0
+		set LastGuardMsgShownTick to 0
+		set LastSoftCapMsgCheckTick to 0
+		set LastSoftCapMsgShownTick to 0
+		set LastEffectEventFoundTick to 0
 		set isFirstPass to 1
-		DebugPrint "recurve: Recurved Messeger Initialized"
-		return
-	endif
-
-	; don't start checking for messages until tutorial is over
-	if (RecurvedController.IsTutorialComplete == 0)
-		return
-	endif
-
-	if (isFirstPass)
+		DebugPrint "recurve: Recurved Messenger Initialized"
 		set ForceEffectsRefresh to 1
-		; if Eval (LastConfiguredMagicEffect != (MagicEffectFromChars Recurved.MagicEffectDisplayAbbr))
-		; 	let LastConfiguredMagicEffect := MagicEffectFromChars Recurved.MagicEffectDisplayAbbr
-		; 	set ForceEffectsRefresh to 1
-		; endif
-
+		
 		;; If DARK effect configured, then change the name and icon
 		if Eval((sv_Compare "DARK" Recurved.MagicEffectDisplayAbbr) == 0)
 			;let iconPath := GetMagicEffectIcon DRSK

@@ -4,10 +4,11 @@ Begin Function {}
 
 ; ### Main Toggles
 
-;; Major Overage Prevention temporarily slows major skill increases for governing attributes 
-;;; that have reached the max for the current level until 3 attributes have been maxed.
-;;; Disabling this allows Major Attributes to always increase.
-set Recurved.AttributeProtectionDisabled to 0
+;; Attribute Guard helps guard against runaway Major Skill increases. Attribute Guard temporarily 
+;;; slows experience for major skill increases that have reached their max attribute bonus 
+;;; until all 3 attributes have been maxed.
+;;; Disabling this allows Major Attributes to always increase unimpeded.
+set Recurved.AttributeGuardDisabled to 0
 
 ;; Disables soft caps on minor skills
 set Recurved.MinorSkillSoftCapsDisabled to 0
@@ -29,7 +30,7 @@ set Recurved.RemainingAttributeProgressDisabled to 0
 ;;; are adjusted to allow for larger attribute gains early on.
 set Recurved.EnduranceHealthNormalizationDisabled to 0
 
-;; Disables bonus experience on damage recieved for Light and Heavy Armor skills.
+;; Disables bonus experience on damage recieved for Block and Light and Heavy Armor skills.
 set Recurved.ArmorExpFromDamageDisabled to 0
 
 ;; Disables normalization of on hit experience for Blade and Blunt weapons.
@@ -41,6 +42,9 @@ set Recurved.WeaponExpNormalizedDisabled to 0
 
 ;; Disables extra experience gained from Magicka spent.
 set Recurved.SpellExpFromMagickaDisabled to 0
+
+;; Disables extra experience for Acrobatic actions jump attack and dodge
+set Recurved.AcrobaticsActionsExpDisabled to 0
 
 ;; Stops "Recurved Effects" for skill experience penalties from being added to the Active Effects tab in game
 set Recurved.RecurvedEffectsDisabled to 0
@@ -119,6 +123,51 @@ set Recurved.ExpExtraWeaponMulti to 1
 ;;;; [Max Bonus Exp] = ([Base Exp Req] / ([Skill Level]) * SpellExpFromMagickaModifier
 set Recurved.SpellExpFromMagickaModifier to 2.0
 
+;;; Multiplies the Acrobatic skill experience gained from performing jump attacks, which this mod grants experience for
+;;; if AcrobaticsActionsExpDisabled is not set. This bonus action uses the second use increment normally reserved 
+;;; only for falls (default is 3 exp). Values less than 1 decrease the experience. Values greater than 1 increase.
+;;;;   0  - Ignored. "set AcrobaticsActionsExpDisabled to 1" if you want to disable experience for additonal acrobatic actions
+;;;; < 1  - Reduces experience (multiplicative)
+;;;; = 1  - No change (uses second acrobatics use increment)
+;;;; > 1  - Increases experience (multiplicative)
+set Recurved.AcrobaticsJumpAttackExpMulti to 1.0
+
+;;; Multiplies the Acrobatic skill experience gained from dodging, which this mod grants experience for
+;;; if AcrobaticsActionsExpDisabled is not set. This bonus action uses the second use increment normally reserved
+;;; only for falls (default is 3 exp). Values less than 1 decrease the experience. Values greater than 1 increase.
+;;;;   0  - Ignored. "set AcrobaticsActionsExpDisabled to 1" if you want to disable experience for additonal acrobatic actions
+;;;; < 1  - Reduces experience (multiplicative)
+;;;; = 1  - No change (uses second acrobatics use increment)
+;;;; > 1  - Increases experience (multiplicative)
+set Recurved.AcrobaticsDodgeExpMulti to 1.0
+
+;;; Multiplies the Athletics skill experience gained from attacking granted by this mod
+;;; if AthleticsActionsExpDisabled is not set. This bonus action uses the athletic skills type's first use increment for regular attacks
+;;; and the second for power attacks. Values less than 1 decrease the experience. Values greater than 1 increase.
+;;;;   0  - Ignored. "set AthleticsActionsExpDisabled to 1" if you want to disable experience for additonal athletics actions
+;;;; < 1  - Reduces experience (multiplicative)
+;;;; = 1  - No change (uses second athletics use increment)
+;;;; > 1  - Increases experience (multiplicative)
+set Recurved.AthleticsAttackExpMulti to 3.0
+
+;;; Athletics Run Experience Settings
+;;; ------------------------------------
+;;;; How long a character must run prior athletic experience increasing.
+set Recurved.RunExpIncContinuousSeconds to 4
+
+;;;; Controls how much athletics experience is increased for each RunExpIncContinuousSeconds hit. Each increase
+;;;; adds to the running total of RunExperienceMultipliers. Athletics use increments are then multiplied by the
+;;;; totaled RunExperienceMultiplier, thus the "Multiplier" suffix.
+;;;;;    0  - Ignored. "set AthleticsActionsExpDisabled to 1" if you want to disable.
+;;;;; >= 0.1  - Added for every RunExpIncContinuousSeconds cycle, then used to multiply experience gains.
+;;;;;           Example: A setting of .2 would multiply athletics experience by 100% after for 5 x RunExpIncContinuousSeconds.
+;;;;;                    .2 + .2 + .2 + .2 + .2 = 1  ; = 100% increase after 10 seconds
+set Recurved.RunExperienceMultiplier to .4
+
+;;;; Maximum amount of times a RunExperienceMultiplier will be applied in one continuous run.
+set Recurved.RunExpIncreaseMaxIncreases to 5
+;;; ------------------------------------
+
 ;;; Multiplies experience gain for every skill in the game by this amount.
 ;;; Originaly added this to QA my mod, as leveling a character through 50 levels multiple times
 ;;; at the normal pace get's old.
@@ -146,11 +195,6 @@ set Recurved.CarrySecondaryAttributeBonusForward to 0
 ;;; 1  : No effect
 ;;; 2+ : Multiplies the amount of experience by the SoftCapMulti value
 set Recurved.SoftCapMulti to 5.0
-
-;; Controls what percentage, rounded down, of each remaining attribute progress is brought over to the next level.
-;;; Vanilla does not bring any unused points over to the next level.
-;;; Set between .1 (ten percent) to 1 (all points)
-set Recurved.RemainingAttributeProgressPerc to 1.0
 
 ;; This section controls when level tiers start and end.
 set Recurved.Tier1StartLevel to 1
@@ -256,6 +300,9 @@ set Recurved.MessageWindowSeconds to 5
 set Recurved.OutputFormulas to 1
 
 ; ## Internal Settings ##
+; How often the controller checks for updates
+set Recurved.RecurvedControllerInterval to .5
 set Recurved.EventExpirationSeconds to 180
+set Recurved.EventsProcessingTickModulus to 2
 
 End

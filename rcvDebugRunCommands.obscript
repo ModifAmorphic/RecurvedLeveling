@@ -4,7 +4,8 @@ short isOverLevel
 int setHealth
 string_var effectName
 string_var formId
-
+int i
+int x
 ; ref abilitySpell
 ; ref abilityDrainEffect
 ; int effectIndex
@@ -25,8 +26,37 @@ Begin _Function {}
     if (Recurved.DumpActiveEffects > 0)
         ar_Dump player.GetActiveEffectCodes
     endif
+    if (Recurved.DumpRecurvedEffects)
+        PrintToConsole "recurve: Dump %g RecurvedMessenger.Effects" (ar_Size RecurvedMessenger.Effects)
+	    ar_Dump RecurvedMessenger.Effects
+        set i to 0
+        while (i < ar_size RecurvedMessenger.Effects)
+            PrintToConsole "recurve: Dump RecurvedMessenger.Effects[%g]" i
+            set x to 0
+            while (x < ar_Size RecurvedMessenger.Effects[i])
+                ar_Dump RecurvedMessenger.Effects[i][x]
+                let x += 1
+            loop
+            PrintToConsole "recurve: End Dump RecurvedMessenger.Effects[%g]" i
+            let i += 1
+        loop
+        DebugPrint "recurve: End Dump RecurvedMessenger.Effects"
+    endif
     if (Recurved.RefreshCurrentLevel)
         let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
+    endif
+    if (Recurved.DumpSkillUseOverrides)
+        ; let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
+	    ar_Dump Recurved.SkillUseOverrides
+        set i to 0
+        while (i < ar_size Recurved.SkillUseOverrides)
+            ar_Dump Recurved.SkillUseOverrides[i]
+            PrintToConsole "recurve: Dump SkillUseOverrides useInc"
+            ar_Dump Recurved.SkillUseOverrides[i]["useInc"]
+            PrintToConsole "recurve: Dump SkillUseOverrides useIncModifiers"
+            ar_Dump Recurved.SkillUseOverrides[i]["useIncModifiers"]
+            let i += 1
+        loop
     endif
     if (Recurved.ResetSkillUseOverrides)
         ; let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
@@ -36,48 +66,42 @@ Begin _Function {}
         ; apply attribute overage protection
         if (isOverLevel == 0)
             call rcvAddWeaponUseIncMod
-            call rcvAddSkillIncreaseProtection ((call rcvGetMajorSkills)[0]["code"]) 0
+            call rcvUpdateAttributeGuards ((call rcvGetMajorSkills)[0]["code"]) 0
         endif
         set RecurvedController.UpdateFlag to 1
     endif
-
-    ; if (Recurved.SlowAttributeSkills > -1)
-    ;     ; ; player.AddSpell 0001CE5C
-    ;     ; let abilityDrainEffect := DRAT
-    ;     ; ;SetName effectName, abilityDrainEffect 
-    ;     ; let abilitySpell := rcvAttributeProtection
-    ;     ; ;RemoveAllEffectItems abilitySpell
-    ;     ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
-    ;     ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills rcvAttributeProtection effectIndex
-    ;     ; set effectIndex to AddFullEffectItem DRAT 0 0 0 0 rcvAttributeProtection
-    ;     ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) rcvAttributeProtection effectIndex
-        
-    ;     ; player.AddSpell abilitySpell
-    ;     ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
-        
-    ;     ;; cloning
-    ;     ; let effectName := ActorValueToStringC Recurved.SlowAttributeSkills
-    ;     ; let effectName := effectName + " Skill Progress Slowed"
-    ;     ; let abilityDrainEffect := DRAT
-    ;     ; let abilitySpell := CloneForm rcvAttributeProtection
-    ;     ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
-    ;     ; SetNthEffectItemActorValueC Recurved.SlowAttributeSkills abilitySpell effectIndex
-    ;     ; SetName effectName abilitySpell
-    ;     ; player.AddSpell abilitySpell
-    ;     ; let formId := GetFormIDString abilitySpell
-    ;     ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
-    ;     ; ;second effect
-    ;     ; let effectName := ActorValueToStringC (Recurved.SlowAttributeSkills + 1)
-    ;     ; let effectName := effectName + " Skill Progress Slowed"
-    ;     ; let abilityDrainEffect := DRAT
-    ;     ; let abilitySpell := CloneForm rcvAttributeProtection
-    ;     ; set effectIndex to AddFullEffectItem abilityDrainEffect 0 0 0 0 abilitySpell
-    ;     ; SetNthEffectItemActorValueC (Recurved.SlowAttributeSkills + 1) abilitySpell effectIndex
-    ;     ; SetName effectName abilitySpell
-    ;     ; player.AddSpell abilitySpell
-    ;     ; let formId := GetFormIDString abilitySpell
-    ;     ; DebugPrint "recurve: Added spell %n (%z) with effect %n." abilitySpell formId abilityDrainEffect
-    ; endif
+    ; Attempts removal of all effects, regardless of active status
+    ;; then sets messenger to force an effect refresh
+    if (Recurved.ResetRecurvedEffects)
+        PrintToConsole "recurve: Removing all active Recurved Leveling effects and forcing refesh of effects next RecurvedMessenger cycle."
+        let i := (ar_Size RecurvedMessenger.Effects)
+        PrintToConsole "recurve: Found %g Recurved Effect categories to remove all spells from." (i)
+        while (i > 0 )
+            let i -= 1
+            set x to 0
+            PrintToConsole "recurve: Removing spell effects for effect category %g." i
+            while (x < ar_Size RecurvedMessenger.Effects[i])
+                PrintToConsole "recurve: Calling RemoveSpellNS on effect spell %q%n%q and flagged as inactive in Recurved effects list." RecurvedMessenger.Effects[i][x]["spell"]
+                player.RemoveSpellNS RecurvedMessenger.Effects[i][x]["spell"]
+                let RecurvedMessenger.Effects[i][x]["active"] := 0
+                let x += 1
+            loop
+        loop
+        set RecurvedMessenger.IsSoftcapEffectsAdded to 0
+        set RecurvedMessenger.IsAttributeEffectsAdded to 0
+        set RecurvedMessenger.IsEffectsAdded to 0
+        ; abandons all dynamically created spells and starts over. They'll still exist in the save file
+        ; until there is a way to get rid of temp spells        
+        if (Recurved.ResetRecurvedEffects == 2)
+            let RecurvedMessenger.Effects := ar_Construct "Array"
+            let RecurvedMessenger.Effects[RecurvedMessenger.EffectOverlevel] := ar_Construct "Array"
+			let RecurvedMessenger.Effects[RecurvedMessenger.EffectAttributesFailsafe] := ar_Construct "Array"
+			let RecurvedMessenger.Effects[RecurvedMessenger.EffectAttributeGuard] := ar_Construct "Array"
+			let RecurvedMessenger.Effects[RecurvedMessenger.EffectSoftcap] := ar_Construct "Array"
+            PrintToConsole "recurve: Dynamic Spell Effects reset. Try not to do this often, as dynmically created objects remain in your save file and can contribute to bloat."
+        endif
+        set RecurvedMessenger.ForceEffectsRefresh to 1
+    endif
     if (Recurved.GetNormalizedEndurance)
         PrintToConsole "recurve: Normalized Endurance: %.4f" Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedValue"]
         PrintToConsole "recurve: Normalized Increase: %g" Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedIncrease"]
@@ -99,9 +123,11 @@ Begin _Function {}
     set Recurved.DumpCurrentLevel to 0
     set Recurved.DumpLevelCurve to 0
     set Recurved.DumpActiveEffects to 0
+    set Recurved.DumpRecurvedEffects to 0
+    set Recurved.DumpSkillUseOverrides to 0
     set Recurved.ResetSkillUseOverrides to 0
+    set Recurved.ResetRecurvedEffects to 0
     set Recurved.RefreshCurrentLevel to 0
-    ;set Recurved.SlowAttributeSkills to -1
     set Recurved.GetNormalizedEndurance to 0
     set Recurved.SetNormalizedEndurance to 0
     set Recurved.SetHealth to 0

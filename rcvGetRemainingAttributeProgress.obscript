@@ -64,10 +64,8 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
             if (pointsRemain < 0)
                 set pointsRemain to 0
             endif
-            ; Apply the RemainingAttributeProgressPerc value
-            let pointsRemain := Floor (pointsRemain * Recurved.RemainingAttributeProgressPerc)
             let remainingProgress[p]["progressPoints"] := pointsRemain
-            DebugPrint "recurve: Calculated %g points remaining for attribute %g after removing %g secondary bonus points from %g and adjusting the result by RemainingAttributeProgressPerc %.2f." (remainingProgress[p]["progressPoints"]) i bonusPoints rawPointsRemain Recurved.RemainingAttributeProgressPerc
+            DebugPrint "recurve: Calculated %g points remaining for attribute %g after removing %g secondary bonus points from %g." (remainingProgress[p]["progressPoints"]) i bonusPoints rawPointsRemain
             let p += 1
         endif
         let i += 1

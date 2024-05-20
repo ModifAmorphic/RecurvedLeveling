@@ -30,12 +30,14 @@ Begin _Function {  }
         endif
     endif
     set i to 0
-    while (i < 8)
+    while (i < 7)
         let level["attributes"][i] := ar_Construct "StringMap"
         let attribute := level["attributes"][i]
         let attribute["code"] := i
         let attribute["value"] := player.GetBaseAV3C i
 		let attribute["skillProgress"] := GetPCAttributeBonusC i
+        let attribute["primaryBonus"] := Recurved.PrimaryAttribBonuses[i]
+        let attribute["secondaryBonus"] := Recurved.SecondaryAttribBonuses[i]
         let attribute["increase"] := 0
         if (isPrevLvlRecorded)
             if Eval ((ar_Size prevLevel["attributes"]) > i)
@@ -47,7 +49,7 @@ Begin _Function {  }
         if (i == Recurved.EnduranceAvc)
             if Eval (isAttrbIncreaseSet && attribute["increase"] > 0)
                 ; get level curve for the prior level, which was the curve used to reach this level
-                let levelCurve := call rcvGetLevelCurve (player.GetLevel - 1) 0
+                let levelCurve := call rcvGetLevelCurve (player.GetLevel - 1) 0 1
                 let maxEndIncrease := levelCurve["iLevelUpMults"][9]["value"]
                 let normalizedSetting := levelCurve["EnduranceNormalizeAmount"]
                 let normalizedIncrease := (attribute["increase"] / maxEndIncrease) * normalizedSetting
@@ -75,8 +77,6 @@ Begin _Function {  }
         endif
 		let i += 1
     loop
-
-    let level["skills"] := call rcvGetSkills 1
-
+    let level["skills"] := call rcvGetSkills
     SetFunctionValue level
 End

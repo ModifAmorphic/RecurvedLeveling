@@ -1,0 +1,76 @@
+scn rcvGetIsMoving
+
+; inputs
+;
+;; 0 - Any Movement
+;; 1 - Running exclusively
+;; 2 - Running and jumping or dodging
+int moveType 
+
+;output 
+ref actor
+short isMoving
+Begin _Function { actor moveType }
+	set isMoving to 1
+	;; Check for any movement
+	if (moveType == 0)
+		if (actor.IsMovingForward == 0)
+			if (actor.IsMovingBackward == 0)
+				if (actor.IsMovingLeft == 0)
+					if (actor.IsMovingRight == 0)
+						set isMoving to 0
+					endif
+				endif
+			endif
+		endif
+		SetFunctionValue isMoving
+		return
+	endif
+	;; Exclusively running
+	if (moveType == 1)
+		if (actor.IsRunning == 0)
+			set isMoving to 0
+			SetFunctionValue isMoving
+			return
+		endif
+		if (actor.IsMovingForward == 0)
+			if (actor.IsMovingBackward == 0)
+				if (actor.IsMovingLeft == 0)
+					if (actor.IsMovingRight == 0)
+						set isMoving to 0
+					endif
+				endif
+			endif
+		endif
+		if (isMoving)
+			if (actor.IsJumping)
+				set isMoving to 0
+			elseif (actor.IsDodging)
+				set isMoving to 0
+			endif
+		endif
+		SetFunctionValue isMoving
+		return
+	endif
+	;; Running and anything else
+	if (moveType == 2)
+		if (actor.IsRunning == 0)
+			set isMoving to 0
+			SetFunctionValue isMoving
+			return
+		endif
+		if (actor.IsMovingForward == 0)
+			if (actor.IsMovingBackward == 0)
+				if (actor.IsMovingLeft == 0)
+					if (actor.IsMovingRight == 0)
+						set isMoving to 0
+					endif
+				endif
+			endif
+		endif
+		SetFunctionValue isMoving
+		return
+	endif
+
+	SetFunctionValue isMoving
+End

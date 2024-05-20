@@ -10,7 +10,7 @@ int curvesAmt
 
 int i
 int attributeCode
-int remainingPoints
+;int remainingPoints
 
 int progressPoints
 ;int preLvlAdj
@@ -38,7 +38,7 @@ Begin _Function { isPostLevel } ; Sets attribute progress points based on remain
 	if (isPostLevel == 0)
 		; this should ever happen
 		if (levelsAmt < 1 || curvesAmt < 1) && (levelsAmt > player.GetLevel - 1) && (curvesAmt > player.GetLevel - 1)
-			PrintToConsole "recurve: Character reached maximum progress for the level but no data was available to apply attribute progress carryover from the current levels. Total recorded levels: %g, Total Curves: %g." levelsAmt curvesAmt
+			PrintToConsole "recurve: (WARN) Character reached maximum progress for the level but no data was available to apply attribute progress carryover from the current levels. Total recorded levels: %g, Total Curves: %g." levelsAmt curvesAmt
 			return
 		endif
 	else
@@ -68,7 +68,7 @@ Begin _Function { isPostLevel } ; Sets attribute progress points based on remain
 	; endif
 
 	if (isPostLevel == 0)
-		let prevCurve := call rcvGetLevelCurve player.GetLevel 0
+		let prevCurve := call rcvGetLevelCurve player.GetLevel 0 1
 		let levelData := Recurved.Levels[player.GetLevel - 1]
 		DebugPrint "recurve: Character reached maximum progress for the level. Preemptively applying any left over attribute points to the next level."
 		let attrBonusPoints := call rcvGetAttributeProgressPreLevel levelData prevCurve
@@ -76,22 +76,29 @@ Begin _Function { isPostLevel } ; Sets attribute progress points based on remain
 			let attributeCode := attrBonusPoints[i]["attributeCode"]
 			let progressPoints := attrBonusPoints[i]["progressPoints"]
 			; capture pre level progress so it can be backed out in post calculations
-			let levelData["attributes"][attributeCode]["preLevelCarryOver"] := remainingPoints
+			let levelData["attributes"][attributeCode]["preLvlAppliedProgress"] := progressPoints
 			SetPCAttributeBonusC attributeCode progressPoints
 			DebugPrint "recurve: Set Attribute %g bonus to %g" attributeCode progressPoints
 			let i += 1
 		loop
+		; reset attribute bonuses since they're captured in level data on pre level up
+		set i to 0
+		while (i < 7)
+			let Recurved.PrimaryAttribBonuses[i] := 0
+			let Recurved.SecondaryAttribBonuses[i] := 0
+			let i += 1
+		loop
 	else
-
-		let prevCurve := call rcvGetLevelCurve (player.GetLevel - 1) 0
+		let prevCurve := call rcvGetLevelCurve (player.GetLevel - 1) 0 0
 		DebugPrint "recurve: Character leveled. Applying any left over attribute points to the current level."
 		let levelData := Recurved.Levels[player.GetLevel - 2]
 		let attrBonusPoints := call rcvGetAttributeProgressPostLevel levelData prevCurve
+		set i to 0
 		while (i < ar_Size attrBonusPoints)
 			let attributeCode := attrBonusPoints[i]["attributeCode"]
 			let progressPoints := attrBonusPoints[i]["progressPoints"]
 			SetPCAttributeBonusC attributeCode progressPoints
-			DebugPrint "recurve: Set Attribute %g bonus to %g" attributeCode progressPoints
+			DebugPrint "recurve: Set Attribute %g bonus to %g." attributeCode progressPoints
 			let i += 1
 		loop
 	endif

@@ -1,0 +1,57 @@
+scn rcvAddAthleticsRunOverride
+
+short isExclusive
+int skillCode
+float useIncMult1
+float useIncMult2
+float useInc1
+float useInc2
+array_var runOverride
+
+; inputs
+short isActorRunning
+Begin _Function { isActorRunning }
+	; Don't add overrides when overleveled
+	if (Recurved.IsOverLeveled)
+		return
+	endif
+	set skillCode to 13
+
+	let runOverride := call rcvFindSkillUseOverride skillCode Recurved.OverrideReasonRunning
+	let isExclusive := call rcvGetIsOverrideExclusive skillCode runOverride
+
+	if (isActorRunning)
+		set useIncMult1 to 1 + Recurved.RunExperienceMultiplier
+		set useIncMult2 to 1 + Recurved.RunExperienceMultiplier
+		; check if there's an existing override to add to
+		if Eval((ar_Size runOverride) > 0)
+			let useIncMult1 := runOverride["useIncModifiers"][0] + Recurved.RunExperienceMultiplier
+			let useIncMult2 := runOverride["useIncModifiers"][1] + Recurved.RunExperienceMultiplier
+		endif
+		call rcvAddSkillUseIncOverride skillCode useIncMult1 useIncMult2 Recurved.OverrideReasonRunning
+		; If this was the only override applied, then set the use increment 
+		; without forcing a controller update
+		if (isExclusive)
+			let useInc1 := useIncMult1 * (call rcvGetDefaultSkillUseInc skillCode 0)
+			let useInc2 := useIncMult2 * (call rcvGetDefaultSkillUseInc skillCode 1)
+			SetSkillUseIncrementC useInc1 skillCode 0
+			SetSkillUseIncrementC useInc2 skillCode 1
+			DebugPrint "recurve: Increased Athletics base use increments by %.2f and %.2f to %.3f and %.3f." useIncMult1 useIncMult2 useInc1 useInc2
+		endif
+	else
+		; if stopped running, then remove the override
+		call rcvDeleteSkillOverrides Recurved.OverrideReasonRunning
+		; If this was the only override applied, then reset use increment back to the default
+		; without forcing a controller update
+		if (isExclusive)
+			SetSkillUseIncrementC (call rcvGetDefaultSkillUseInc skillCode 0) skillCode 0
+			SetSkillUseIncrementC (call rcvGetDefaultSkillUseInc skillCode 1) skillCode 1
+		endif
+	endif
+
+	; If there were other overrides in place, then trigger a controller update to recalculate
+	;; use icrements
+	if (isExclusive < 1)
+		set RecurvedController.UpdateFlag to 1
+	endif
+End

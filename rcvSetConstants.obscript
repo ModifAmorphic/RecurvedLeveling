@@ -23,12 +23,10 @@ Begin Function {} ; Set constants
 	set Recurved.LightArmorIndex to 2
 	;; override reasons
     set Recurved.OverrideReasonOverlevel to 0
-    set Recurved.OverrideReasonAttributeProtection to 1
-    set Recurved.OverrideReasonWeapon to 2
-	;; Penalty Reasons
-	set Recurved.PenaltyTypeSoftcap to 0
-	set Recurved.PenaltyTypeAttributeProtection to 1
-	set Recurved.PenaltyTypeOverleveled to 2
+    set Recurved.OverrideReasonFailsafe to 1
+	set Recurved.OverrideReasonAttributeGuard to 2
+	set Recurved.OverrideReasonWeapon to 3
+	set Recurved.OverrideReasonRunning to 4
 	;; Events
 	set Recurved.EventTypeGameRestarted to 0
 	set Recurved.EventTypeGameLoaded to 1
@@ -36,10 +34,22 @@ Begin Function {} ; Set constants
 	set Recurved.EventTypeLevelUpProgressReached to 3
 	set Recurved.EventTypeLevelUp to 4
 	set Recurved.EventTypeSkillChange to 5
-	set Recurved.EventTypeAttributeProtection to 6
+	set Recurved.EventTypeControllerUpdate to 6
+	set Recurved.EventTypeExpActionQueued to 7
+	set Recurved.EventTypeOverLeveled to 8
+	set Recurved.EventTypeAttributeGuard to 9
+	;; Action Types
+	set Recurved.ActionRan to 0
+	set Recurved.ActionAttack to 1
+	set Recurved.ActionBlock to 2
+	set Recurved.ActionPowerAttack to 3
+	set Recurved.ActionJumpAttack to 4
+	set Recurved.ActionCombatDodge to 5
+
     ;; Messenger constants
-    set RecurvedMessenger.EffectFailsafe to 0
-	set RecurvedMessenger.EffectAttributeProtection to 1
-	set RecurvedMessenger.EffectSoftcap to 2
+	set RecurvedMessenger.EffectOverlevel to 0
+    set RecurvedMessenger.EffectAttributesFailsafe to 1
+	set RecurvedMessenger.EffectAttributeGuard to 2
+	set RecurvedMessenger.EffectSoftcap to 3
 
 End
