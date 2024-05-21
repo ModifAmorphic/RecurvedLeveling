@@ -77,7 +77,7 @@ Begin _GameMode
 	endif
 	
 	if (Recurved.AthleticsActionsExpDisabled == 0)
-		if Eval(call rcvGetIsMoving player 1)
+		if Eval(call rcvGetIsMoving player 1 1) ; running forward only
 			if (runStartEventsAdded < maxRunEvents) ; stop adding events once the maximum is hit for bonuses
 				if (runStartTick == 0)
 					set runStartTick to RecurvedController.GlobalTick
@@ -89,11 +89,11 @@ Begin _GameMode
 				endif
 			endif
 			set runStopTick to 0
-		elseif (runStartEventsAdded) ; if a running started event was added, then wait for the reqRunIntervalTicks before logging a stop event
+		elseif (runStartEventsAdded) ; if a running started event was added, then wait for the reqRunIntervalTicks / 2 before logging a stop event
 			if (runStopTick == 0)
 				set runStopTick to RecurvedController.GlobalTick
 				set runStartTick to 0
-			elseif (RecurvedController.GlobalTick - runStopTick >= reqRunIntervalTicks) ; if stopped running for longer than reqRunIntervalTicks, then add event to mark running has stopped
+			elseif (RecurvedController.GlobalTick - runStopTick >= reqRunIntervalTicks / 2) ; if stopped running for longer than reqRunIntervalTicks / 2, then add event to mark running has stopped
 				DebugPrint "recurve: Player stopped running for %g ticks, longer than the allowed interval of %g ticks." (RecurvedController.GlobalTick - runStopTick) reqRunIntervalTicks
 				call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionRan PlayerStoppedRunning ar_Null ; add event signifying character ran for reqRunIntervalTicks
 				set runStopTick to 0

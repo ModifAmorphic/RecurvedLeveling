@@ -13,8 +13,9 @@ int maxLvlProgress
 short isMajorSkill
 short isProtectionApplied
 array_var maxedAttrProgress
+array_var maxedAttributes
 int maxedAttrProgressCount
-int maxedAttributes
+int maxedAttributesCount
 int unmaxedAttributes
 int maxedAttrProgressReq
 array_var levelCurve
@@ -49,8 +50,15 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	DebugPrint "recurve: Attribute Guard processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
 	; Get a list of attributes whose progress is maxed (or will be maxed with this increase)
 	let maxedAttrProgress := ar_Construct "Array"
+	let maxedAttributes := call rcvGetMaxedAttributes 0
 	set i to 0
 	while (i < 7)
+		; skip already maxed attributes
+		if Eval((ar_Find i maxedAttributes) >= 0)
+			DebugPrint "recurve: Excluding maxed attribute %v {%g} from attribute guard calculations." i i
+			let i += 1
+			continue
+		endif
 		set progressPoints to GetPCAttributeBonusC i
 		; Add the incoming skill increase
 		if (i == attributeCode)
@@ -81,8 +89,8 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	
 	; If Recurved.MinimumMaxedAttributes is set to higher than the number of unmaxed attributes remaining,
 	; then lower the amount of maxed attribute progress to the remaining amount.
-	let maxedAttributes := (ar_size (call rcvGetMaxedAttributes 0))
-	set unmaxedAttributes to 7 - maxedAttributes
+	let maxedAttributesCount := ar_size maxedAttributes
+	set unmaxedAttributes to 7 - maxedAttributesCount
 	set maxedAttrProgressReq to Recurved.MinimumMaxedAttributes
 	if (unmaxedAttributes < maxedAttrProgressReq)
 		DebugPrint "recurve: There are %g remaining unmaxed attributes which is lower than the %g attributes MinimumMaxedAttributes is configured for. Lowering mimimum amount to unmaxed value." unmaxedAttributes Recurved.MinimumMaxedAttributes
@@ -108,7 +116,6 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 
         set maxLvlProgress to GetGameSetting "iLevelUpSkillCount"
 		if Eval ((ar_Size cappedSkills) > 0)
-			; debug message for attribute guard
 			let skillsCapped := ar_Size cappedSkills
 			DebugPrint "Leveling failsafe enabled. Only %g of %g Attributes had reached max increase values for the level. Level progress %g/%g" maxedAttrProgressCount maxedAttrProgressReq lvlProgress maxLvlProgress
 		else

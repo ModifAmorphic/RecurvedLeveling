@@ -57,7 +57,7 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
             while (m < ar_Size levelCurve["iLevelUpMults"])
                 let lvlMult := levelCurve["iLevelUpMults"][m]
                 ; Select the lowest used value to subtract from total progress made
-                if Eval (lvlMult["value"] == attributeIncrease)
+                if Eval (lvlMult["value"] >= attributeIncrease)
                     set pointsSpent to m + 1
                     break
                 endif
@@ -76,6 +76,7 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
 			set vanillaAttribBonus to 0
 		endif
 		if (Recurved.OutputFormulas)
+			PrintToConsole "recurve:        pointsSpent=%g           - Attribute bonus points spent on Attribute increase" pointsSpent
 			PrintToConsole "recurve:        currentAttributeBonus=%g - Attribute bonuses awarded since required Major Skill Ups for this new level were reached" currentAttributeBonus
 			PrintToConsole "recurve:        preLvlPointsApplied=%g   - Points that were carried forward from the previous level to the new level" preLvlPointsApplied
 			PrintToConsole "recurve:        skillProgress=%g         - Total attribute bonus points earned in the previous level" preLvlPointsApplied
@@ -220,5 +221,4 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
 	endif
     SetFunctionValue attributePoints
 End
-
 

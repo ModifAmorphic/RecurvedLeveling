@@ -45,6 +45,9 @@ Begin _Function {}
     if (Recurved.RefreshCurrentLevel)
         let Recurved.Levels[player.GetLevel - 1] := call rcvGetCurrentLevel
     endif
+    if (Recurved.RefreshCurrentLevelCurve)
+        call rcvGetLevelCurve player.GetLevel 1 1
+    endif
     if (Recurved.DumpSkillUseOverrides)
         ; let majorSKillCode := (call rcvGetMajorSkills)[0]["code"]
 	    ar_Dump Recurved.SkillUseOverrides
@@ -128,6 +131,7 @@ Begin _Function {}
     set Recurved.ResetSkillUseOverrides to 0
     set Recurved.ResetRecurvedEffects to 0
     set Recurved.RefreshCurrentLevel to 0
+    set Recurved.RefreshCurrentLevelCurve to 0
     set Recurved.GetNormalizedEndurance to 0
     set Recurved.SetNormalizedEndurance to 0
     set Recurved.SetHealth to 0

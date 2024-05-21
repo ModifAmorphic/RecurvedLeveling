@@ -1,19 +1,23 @@
 scn rcvGetIsMoving
 
 ; inputs
-;
 ;; 0 - Any Movement
 ;; 1 - Running exclusively
 ;; 2 - Running and jumping or dodging
 int moveType 
-
+;; 0 - Backwards
+;; 1 - Forward
+;; 2 - Left
+;; 3 - Right
+;; 4 - Any Direction
+int direction
 ;output 
 ref actor
 short isMoving
-Begin _Function { actor moveType }
+Begin _Function { actor moveType direction }
 	set isMoving to 1
 	;; Check for any movement
-	if (moveType == 0)
+	if (direction == 4)
 		if (actor.IsMovingForward == 0)
 			if (actor.IsMovingBackward == 0)
 				if (actor.IsMovingLeft == 0)
@@ -23,54 +27,45 @@ Begin _Function { actor moveType }
 				endif
 			endif
 		endif
-		SetFunctionValue isMoving
-		return
-	endif
-	;; Exclusively running
-	if (moveType == 1)
-		if (actor.IsRunning == 0)
+	elseif (direction == 1)
+		if (actor.IsMovingForward == 0)
 			set isMoving to 0
-			SetFunctionValue isMoving
-			return
 		endif
-		if (actor.IsMovingForward == 0)
-			if (actor.IsMovingBackward == 0)
-				if (actor.IsMovingLeft == 0)
-					if (actor.IsMovingRight == 0)
-						set isMoving to 0
-					endif
-				endif
-			endif
-		endif
-		if (isMoving)
-			if (actor.IsJumping)
-				set isMoving to 0
-			elseif (actor.IsDodging)
-				set isMoving to 0
-			endif
-		endif
-		SetFunctionValue isMoving
-		return
-	endif
-	;; Running and anything else
-	if (moveType == 2)
-		if (actor.IsRunning == 0)
+	elseif (direction == 0)
+		if (actor.IsMovingBackward == 0)
 			set isMoving to 0
-			SetFunctionValue isMoving
-			return
 		endif
-		if (actor.IsMovingForward == 0)
-			if (actor.IsMovingBackward == 0)
-				if (actor.IsMovingLeft == 0)
-					if (actor.IsMovingRight == 0)
-						set isMoving to 0
-					endif
-				endif
-			endif
+	elseif (direction == 2)
+		if (actor.IsMovingLeft == 0)
+			set isMoving to 0
 		endif
+	elseif (direction == 3)
+		if (actor.IsMovingRight == 0)
+			set isMoving to 0
+		endif
+	endif
+	; no other checks needed for any movement type or if isMoving has already failed
+	if (moveType == 0 || isMoving == 0)
 		SetFunctionValue isMoving
 		return
 	endif
 
+	;; Rest of the checks require running, so check that first and exit early if not running
+	if (actor.IsRunning == 0)
+		set isMoving to 0
+		SetFunctionValue isMoving
+		return
+	endif
+
+	;; Check for exclusive running
+	if (moveType == 1)
+		if (actor.IsJumping)
+			set isMoving to 0
+		elseif (actor.IsDodging)
+			set isMoving to 0
+		endif
+	endif
+	
+	;; For move type 2, running or jumping, not failing any of the earlier checks is an automatic success
 	SetFunctionValue isMoving
 End

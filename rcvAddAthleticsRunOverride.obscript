@@ -4,8 +4,14 @@ short isExclusive
 int skillCode
 float useIncMult1
 float useIncMult2
+float existingUseIncMult1
+float existingUseIncMult2
+float newUseIncMult1
+float newUseIncMult2
 float useInc1
 float useInc2
+float defaultUseInc1
+float defaultUseInc2
 array_var runOverride
 
 ; inputs
@@ -25,19 +31,39 @@ Begin _Function { isActorRunning }
 		set useIncMult2 to 1 + Recurved.RunExperienceMultiplier
 		; check if there's an existing override to add to
 		if Eval((ar_Size runOverride) > 0)
-			let useIncMult1 := runOverride["useIncModifiers"][0] + Recurved.RunExperienceMultiplier
-			let useIncMult2 := runOverride["useIncModifiers"][1] + Recurved.RunExperienceMultiplier
+			let existingUseIncMult1 := runOverride["useIncModifiers"][0]
+			let existingUseIncMult2 := runOverride["useIncModifiers"][1]
+			set useIncMult1 to useIncMult1 - 1
+			set useIncMult2 to useIncMult2 - 1
 		endif
-		call rcvAddSkillUseIncOverride skillCode useIncMult1 useIncMult2 Recurved.OverrideReasonRunning
+		set newUseIncMult1 to useIncMult1 + existingUseIncMult1
+		set newUseIncMult2 to useIncMult2 + existingUseIncMult2
+		call rcvAddSkillUseIncOverride skillCode newUseIncMult1 newUseIncMult2 Recurved.OverrideReasonRunning
 		; If this was the only override applied, then set the use increment 
 		; without forcing a controller update
 		if (isExclusive)
-			let useInc1 := useIncMult1 * (call rcvGetDefaultSkillUseInc skillCode 0)
-			let useInc2 := useIncMult2 * (call rcvGetDefaultSkillUseInc skillCode 1)
+			let defaultUseInc1 := (call rcvGetDefaultSkillUseInc skillCode 0)
+			let defaultUseInc2 := (call rcvGetDefaultSkillUseInc skillCode 1)
+			
+			let useInc1 := defaultUseInc1 * newUseIncMult1
+			let useInc2 := defaultUseInc2 * newUseIncMult2
 			SetSkillUseIncrementC useInc1 skillCode 0
 			SetSkillUseIncrementC useInc2 skillCode 1
-			DebugPrint "recurve: Increased Athletics base use increments by %.2f and %.2f to %.3f and %.3f." useIncMult1 useIncMult2 useInc1 useInc2
+			DebugPrint "recurve: Increased Athletics use increment multipliers from %.2f and %.2f to %.2f and %.2f. Increased use increments to %.2f and %.2f" existingUseIncMult1 existingUseIncMult2 newUseIncMult1 newUseIncMult2 useInc1 useInc2
+			if (Recurved.OutputFormulas)
+				PrintToConsole "recurve:  Formula: [Athletics Use Increment #] = [Default Use Increment #] * ([Existing Run Multiplier] + [Recurved.RunExperienceMultiplier])"
+				PrintToConsole "recurve: Result 1: %.4f = %.2f * (%.2f + %.2f)" useInc1 defaultUseInc1 existingUseIncMult1 useIncMult1
+				PrintToConsole "recurve: Result 2: %.4f = %.2f * (%.2f + %.2f)" useInc2 defaultUseInc2 existingUseIncMult2 useIncMult2
+			endif
+		else
+			DebugPrint "recurve: Increased Athletics use increment multipliers from %.2f and %.2f to %.2f and %.2f." existingUseIncMult1 existingUseIncMult2 newUseIncMult1 newUseIncMult2
+			if (Recurved.OutputFormulas)
+				PrintToConsole "recurve:  Formula: [Athletics Use Increment Mult #] = [Existing Run Multiplier] + [Recurved.RunExperienceMultiplier]"
+				PrintToConsole "recurve: Result 1: %.4f = %.2f + %.2f" useIncMult1 defaultUseInc1 existingUseIncMult1 
+				PrintToConsole "recurve: Result 2: %.4f = %.2f + %.2f" useIncMult2 defaultUseInc2 existingUseIncMult2
+			endif
 		endif
+		
 	else
 		; if stopped running, then remove the override
 		call rcvDeleteSkillOverrides Recurved.OverrideReasonRunning

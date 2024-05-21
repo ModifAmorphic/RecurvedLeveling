@@ -16,7 +16,7 @@ Begin _Function { isLuckIncluded }
     endif
 	while (i <= x)
         set attributeValue to player.GetBaseAV3C i
-        if (attributeValue == 100)
+        if (attributeValue >= 100)
             ar_Append attributes i
         endif
         let i += 1

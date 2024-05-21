@@ -377,6 +377,7 @@ int DumpLevel
 short DumpCurrentLevel
 int DumpLevelCurve
 short RefreshCurrentLevel
+short RefreshCurrentLevelCurve
 short DumpActiveEffects
 short DumpRecurvedEffects
 short DumpSkillUseOverrides
