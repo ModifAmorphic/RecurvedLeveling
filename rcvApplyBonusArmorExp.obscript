@@ -3,8 +3,9 @@ scn rcvApplyBonusArmorExp
 array_var skills
 int i
 int armorSkill
-float damage
-ref attackerWeapon
+;long damage
+long normalizedDamage
+;ref attackerWeapon
 float damageRatio
 float defTypeExpReduction
 float bonusExp
@@ -13,14 +14,12 @@ float useIncrement
 float useExpMod
 float bonusUses
 string_var skillName
+array_var levelCurve
 ; inputs
 ref attacker
+float rawDamage
 float healthDamage
-Begin Function { healthDamage attacker }
-
-	if (Recurved.ExpNormalizedReceivedDamage <= 0)
-        return
-	endif
+Begin Function { attacker rawDamage healthDamage }
 
 	; Determine attack damage
 	;; Doesn't always work (humanoides for example)
@@ -32,20 +31,22 @@ Begin Function { healthDamage attacker }
 	; endif
 	;; Just always check for a weapon to use as damage first, then check attacker's damage
 	;; If all else fails, use the health damage received.
-	set attackerWeapon to attacker.GetEquippedObject 16
-	if (attackerWeapon)
-		set damage to GetAttackDamage attackerWeapon
-	endif
-	if (damage == 0)
-		set damage to attacker.GetAttackDamage
-	endif
-	if (damage == 0 )
-		DebugPrint "recurve: Could not determine attacker's attack damage. Using health damage received (%.2f) instead." healthDamage
-		set damage to healthDamage
-	endif
-	let damage := abs damage
-	if (damage <= Recurved.ExpNormalizedReceivedDamage)
-		DebugPrint "recurve: Attack damage (%.2f) is less than ExpNormalizedReceivedDamage (%.2f). No bonus exp awarded." damage Recurved.ExpNormalizedReceivedDamage
+	; set attackerWeapon to attacker.GetEquippedObject 16
+	; if (attackerWeapon)
+	; 	set damage to GetAttackDamage attackerWeapon
+	; endif
+	; if (damage == 0)
+	; 	set damage to attacker.GetAttackDamage
+	; endif
+	; if (damage == 0 )
+	; 	DebugPrint "recurve: Could not determine attacker's attack damage. Using health damage received (%.2f) instead." healthDamage
+	; 	set damage to healthDamage
+	; endif
+	;let damage := abs damage
+	let levelCurve := call rcvGetLevelCurve player.GetLevel 0 0
+	let normalizedDamage := levelCurve["normalizedWeaponExp"]["melee"]["damage"]
+	if (rawDamage <= normalizedDamage)
+		DebugPrint "recurve: Raw Attack damage (%.2f) is less than ExpNormalizedReceivedDamage (%.2f). No bonus exp awarded." rawDamage normalizedDamage
 		return
 	endif
 
@@ -62,7 +63,7 @@ Begin Function { healthDamage attacker }
 				set defTypeExpReduction to 5.0
 			endif
 
-			set damageRatio to (damage / Recurved.ExpNormalizedReceivedDamage) / defTypeExpReduction
+			set damageRatio to (rawDamage / normalizedDamage) / defTypeExpReduction
 			
 			let defaultUseIncrement := call rcvGetDefaultSkillUseInc armorSkill 0
 			set useIncrement to GetSkillUseIncrementC armorSkill 0
@@ -80,9 +81,9 @@ Begin Function { healthDamage attacker }
 
 			if (Recurved.DebugEnabled || Recurved.OutputFormulas)
 				let skillName := ActorValueToStringC armorSkill
-				PrintToConsole "recurve: Attacker %n attacked with %g damage resulting in %.2f bonus experience by applying %.2f use increments to skill %z (%g)" attacker damage bonusExp bonusUses skillName armorSkill
-				PrintToConsole "recurve Formula: bonusExp = useIncrement0 * ((damage / Recurved.ExpNormalizedReceivedDamage) / defTypeExpReduction) * useExpMod"
-				PrintToConsole "recurve  Result: %.2f = %.2f * ((%.2f / %.2f) / %.2f) * %.2f" bonusExp useIncrement damage Recurved.ExpNormalizedReceivedDamage defTypeExpReduction useExpMod
+				PrintToConsole "recurve: Attacker %n attacked with %g rawDamage resulting in %.2f bonus experience by applying %.2f use increments to skill %z (%g)" attacker rawDamage bonusExp bonusUses skillName armorSkill
+				PrintToConsole "recurve: Formula: bonusExp = useIncrement0 * ((rawDamage / normalizedDamage) / defTypeExpReduction) * useExpMod"
+				PrintToConsole "recurve:  Result: %.2f = %.2f * ((%.2f / %.2f) / %.2f) * %.2f" bonusExp useIncrement rawDamage normalizedDamage defTypeExpReduction useExpMod
 				sv_Destruct skillName
 			endif
 			let i += 1

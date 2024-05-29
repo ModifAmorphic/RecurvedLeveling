@@ -1,0 +1,37 @@
+scn rcvGetTicksRan
+
+int i
+int spanCount
+int runStartedAt
+short isRunSpanOpen
+
+
+; inputs
+array_var runSpans      ; Spans of runs between starting and stop ticks
+
+; outputs
+int ticksRan			; Total amount of ticks the character ran over all spans 
+Begin Function { runSpans }
+	set ticksRan to 0
+	let spanCount := ar_Size runSpans
+	if (spanCount < 1)
+		SetFunctionValue ticksRan
+		return
+	endif
+		
+	while (i < spanCount)
+		if Eval(runSpans[i][0])
+			let runStartedAt := runSpans[i][1]
+			set isRunSpanOpen to 1
+		else
+			let ticksRan += runSpans[i][1] - runStartedAt
+			set isRunSpanOpen to 0
+		endif
+		set i to i + 1
+	loop
+	if (isRunSpanOpen)
+		set ticksRan to ticksRan + RecurvedController.GlobalTick - runStartedAt
+	endif
+	
+	SetFunctionValue ticksRan
+End

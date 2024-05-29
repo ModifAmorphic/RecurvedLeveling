@@ -163,6 +163,9 @@ float SpellExpFromMagickaModifier
 ;;;; = 1  - No change (uses second acrobatics use increment)
 ;;;; > 1  - Increases experience (multiplicative)
 float AcrobaticsJumpAttackExpMulti
+;;; Jump attack bonus calculations add the multiplier from weapon experience normalization by default. Set this
+;;; setting to 1 to not include extra experience from weapon normalization.
+short AcrobaticsJumpAttackWeaponExpDisabled
 
 ;;; Multiplies the Acrobatic skill experience gained from dodging, which this mod grants experience for
 ;;; if AcrobaticsActionsExpDisabled is not set. This bonus action uses the second use increment normally reserved
@@ -181,6 +184,9 @@ float AcrobaticsDodgeExpMulti
 ;;;; = 1  - No change (uses second athletics use increment)
 ;;;; > 1  - Increases experience (multiplicative)
 float AthleticsAttackExpMulti
+;;; Athletics attack bonus calculations add the multiplier from weapon experience normalization by default. Set this
+;;; setting to 1 to not include extra experience from weapon normalization.
+short AthleticsAttackWeaponExpDisabled
 
 ;;; Athletics Run Experience Settings
 ;;; ------------------------------------
@@ -335,15 +341,11 @@ array_var DefaultSkillUseIncrements
 ; Persistant Arrays for tracking Levels
 array_var Levels
 array_var LevelCurves
-; Skils that are temporarily capped once their governing attribute has enough progress points.
+; Skill Use Multipliers used to adjust skill use increments for different scenarios. Should really have been
+;; renamed to SkillUseMultipliers but the name override is everywhere now
 array_var SkillUseOverrides
 
-; ; Flag for when character has a level pending
-; short LevelPending
-; Flag for delayed rest of level progress back to the maximum
-;short DelayedResetLevelProgress
-
-; Flag for delayed rest of level progress back to the maximum
+; Flag for marking when a character is overleveled and will gain no more experience in any skills
 short IsOverLeveled
 
 ;; Flag for when attribute guard is enable. Used for messaging
@@ -355,6 +357,11 @@ array_var SecondaryAttribBonuses
 
 ; Used for tracking last known experience values to add bonus armor skill experience
 array_var DefenseEquipExp
+
+; If weapon bonus exp is enabled, stores latest known values Weapon Use Increments that also would exist in SkillUseOverrides.
+;; Used so the SkillUseOverrides array doesn't need to be searched for events using these values often
+float WeaponUseInc1Mult
+float WeaponUseInc2Mult
 
 ; Array of schools and their magicka values per novice, apprentice, journeyman, expert 
 ; for calculating exp bonuses

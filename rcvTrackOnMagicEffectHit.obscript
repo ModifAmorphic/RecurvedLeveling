@@ -1,0 +1,30 @@
+scn rcvTrackOnMagicEffectHit
+
+string_var effectName
+int effectedCode
+;inputs 
+ref target
+int effectCode
+Begin Function { target effectCode }
+    if (RecurvedFrame.FrameNo == 0)
+        return
+    endif
+    if (RecurvedHitTracker.FrameNo != RecurvedFrame.FrameNo)
+        call rcvTrackerReset 1
+    endif
+    if (RecurvedHitTracker.Target != target)
+        if Eval((ar_Find target RecurvedHitTracker.AoeTargets) < 0)
+            ar_Append RecurvedHitTracker.AoeTargets target
+        endif
+    else
+        set RecurvedHitTracker.Target to target
+    endif
+    ar_Append RecurvedHitTracker.Effects effectCode
+    let effectName := GetMagicEffectNameC effectCode
+    let effectedCode := GetMagicEffectOtherActorValueC effectCode
+    ;DebugPrint "recurve: FrameNo: %g. OnMagicEffectHit: Associating Effect: %z on Target %n with open hit tracking event. Effected attribute/skill/other: %v" RecurvedFrame.FrameNo effectCode target effectedCode
+    if (effectedCode == 8 && IsMagicEffectDetrimentalC effectCode)
+        set RecurvedHitTracker.HasEffectTargetsHealth to 1
+    endif
+    sv_Destruct effectName
+End

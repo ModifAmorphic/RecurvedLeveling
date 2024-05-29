@@ -1,0 +1,27 @@
+scn rcvTrackerReset
+
+short trackNew
+Begin Function { trackNew }
+        ;DebugPrint "recurve: Tracking potential new hit event at frame %g" RecurvedFrame.FrameNo
+        if (RecurvedHitTracker.IsOpen)
+            DebugPrint "recurve: (WARN) Last hit tracking at frame %g was left open." RecurvedHitTracker.FrameNo
+        endif
+        set RecurvedHitTracker.FrameNo to 0
+        set RecurvedHitTracker.IsOpen to 0
+        if (trackNew)
+            set RecurvedHitTracker.FrameNo to RecurvedFrame.FrameNo
+            set RecurvedHitTracker.IsOpen to 1
+        endif
+        set RecurvedHitTracker.Target to 0
+        let RecurvedHitTracker.AoeTargets := ar_Construct "Array"
+        set RecurvedHitTracker.Attacker to 0
+        set RecurvedHitTracker.Weapon to 0
+        set RecurvedHitTracker.Spell to 0
+        set RecurvedHitTracker.HealthDamage to 0
+        set RecurvedHitTracker.DamageAbsorbed to 0
+        set RecurvedHitTracker.DamageReflected to 0
+        set RecurvedHitTracker.AttackType to 0
+        set RecurvedHitTracker.WeaponType to 0
+        let RecurvedHitTracker.Effects := ar_Construct "Array"
+        set RecurvedHitTracker.HasEffectTargetsHealth to 0
+End

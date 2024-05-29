@@ -25,7 +25,6 @@ Begin _Function { isActorRunning }
 
 	let runOverride := call rcvFindSkillUseOverride skillCode Recurved.OverrideReasonRunning
 	let isExclusive := call rcvGetIsOverrideExclusive skillCode runOverride
-
 	if (isActorRunning)
 		set useIncMult1 to 1 + Recurved.RunExperienceMultiplier
 		set useIncMult2 to 1 + Recurved.RunExperienceMultiplier
@@ -72,6 +71,7 @@ Begin _Function { isActorRunning }
 		if (isExclusive)
 			SetSkillUseIncrementC (call rcvGetDefaultSkillUseInc skillCode 0) skillCode 0
 			SetSkillUseIncrementC (call rcvGetDefaultSkillUseInc skillCode 1) skillCode 1
+			DebugPrint "recurve: Removed Athletics running use increment overrides."
 		endif
 	endif
 

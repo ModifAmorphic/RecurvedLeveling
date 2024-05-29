@@ -1,0 +1,37 @@
+scn rcvTrackOnHealthDamage
+
+ref target
+float reflect
+; inputs
+float damage
+ref attacker
+Begin _Function { damage attacker }
+	if (RecurvedFrame.FrameNo == 0)
+        return
+    endif
+	set target to GetSelf
+	;DebugPrint "recurve: RecurvedHitTracker.FrameNo: %g, RecurvedFrame.FrameNo: %g. OnHealthDamage: Damage: %g. Attacker: %n, RecurvedHitTracker.Attacker: %n. Target: %n, RecurvedHitTracker.Target." RecurvedHitTracker.FrameNo RecurvedFrame.FrameNo damage attacker RecurvedHitTracker.Attacker target RecurvedHitTracker.Target
+	if (RecurvedHitTracker.FrameNo == RecurvedFrame.FrameNo)
+		if (attacker == RecurvedHitTracker.Attacker)
+			if (target == RecurvedHitTracker.Target)
+				set RecurvedHitTracker.HealthDamage to damage
+				if (RecurvedHitTracker.IsOpen)
+					call rcvTrackHitComplete
+				endif
+			endif
+		; if Target and Attacker reversed, then assume reflect damage
+		;; Reflect damage happens before attacker damage
+		elseif (attacker == RecurvedHitTracker.Target) 
+			if (target == RecurvedHitTracker.Attacker)
+				;DebugPrint "recurve: Found reflection damage %g" damage
+				set RecurvedHitTracker.DamageReflected to damage
+				set reflect to attacker.GetActorValue ReflectDamage
+				;DebugPrint "recurve: Reflect damage %g percent" reflect
+				if (reflect >= 100)
+					; If Damage reflected equals or exceeds raw damage then assume 100% of damage reflected
+					call rcvTrackHitComplete
+				endif
+			endif
+		endif
+	endif
+End

@@ -221,4 +221,3 @@ Begin _Function { lastLevel levelCurve } ; Gets any attribute progress remaining
 	endif
     SetFunctionValue attributePoints
 End
-

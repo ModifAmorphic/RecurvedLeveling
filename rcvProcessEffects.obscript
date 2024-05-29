@@ -29,11 +29,14 @@ Begin _Function { forceRefresh }
 	endif
 
 	; Check if there's been any level up or skill up events since the last time we checked
-	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastEffectEventFoundTick
+	let shouldContinue := call rcvHasEventAfter Recurved.EventTypeControllerUpdate RecurvedMessenger.LastEffectEventFoundTick
 	if (shouldContinue == 0)
-		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastEffectEventFoundTick
+		let shouldContinue := call rcvHasEventAfter Recurved.EventTypeSkillChange RecurvedMessenger.LastEffectEventFoundTick
 		if (shouldContinue == 0)
-			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeGuard RecurvedMessenger.LastEffectEventFoundTick
+			let shouldContinue := call rcvHasEventAfter Recurved.EventTypeLevelUp RecurvedMessenger.LastEffectEventFoundTick
+			if (shouldContinue == 0)
+				let shouldContinue := call rcvHasEventAfter Recurved.EventTypeAttributeGuard RecurvedMessenger.LastEffectEventFoundTick
+			endif
 		endif
 	endif
 	if (shouldContinue == 0 && forceRefresh == 0)
@@ -84,7 +87,6 @@ Begin _Function { forceRefresh }
 		call rcvUpdateEffects skillCodes RecurvedMessenger.EffectAttributesFailsafe
 		set RecurvedMessenger.IsAttributeEffectsAdded to 0
 	endif
-	set i to 0
 
 	; Add effect for any minor skill that is currently at or over its softcap
 	if (Recurved.MinorSkillSoftCapsDisabled == 0 && effectType != RecurvedMessenger.EffectOverlevel)
@@ -92,6 +94,7 @@ Begin _Function { forceRefresh }
 		DebugPrint "recurve: Processing potential softcaps for %g skill codes. effectType=%g" (ar_Size softCapSkills) effectType
 		if Eval((ar_Size softCapSkills) > 0)
 			let skillCodes := ar_Construct "Array"
+			set i to 0
 			while (i < ar_Size softCapSkills)
 				ar_Append skillCodes softCapSkills[i]["skillCode"]
 				let i += 1

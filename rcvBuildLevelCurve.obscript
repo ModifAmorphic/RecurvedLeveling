@@ -254,7 +254,7 @@ Begin _Function { level }
 	;; Precalculate fatigue use if possible to avoid having to do it on every action.
 	;;; Left out block and bow since they don't use fatigue after hitting novice and didn't seem worth the effort
 	;;; TODO: Add spellcasts? Fatigue usage is really low. Might not be worth bothering with the fatigue check (or precheck)
-	if (Recurved.AthleticsActionsExpDisabled == 0)
+	if (Recurved.AthleticsActionsExpDisabled == 0 || Recurved.AcrobaticsActionsExpDisabled == 0)
 		set weapon to Player.GetEquippedObject 16
 		if (weapon)
 			; Set fatigue use for melee weapons
@@ -267,9 +267,7 @@ Begin _Function { level }
 				let levelCurve["actionFatigueUse"][Recurved.ActionPowerAttack] := (fFatigueAttackWeaponBase + fFatigueAttackMult * weaponWeight) * fPowerAttackFatiguePenalty
 				; Use weapon attack fatigue for calculating jump attack usage since the "jump" part is already removed from total fatigue
 				;; by the time we check for a "jump attack"
-				if (Recurved.AcrobaticsActionsExpDisabled == 0)
-					let levelCurve["actionFatigueUse"][Recurved.ActionJumpAttack] := levelCurve["actionFatigueUse"][Recurved.ActionAttack]
-				endif
+				let levelCurve["actionFatigueUse"][Recurved.ActionJumpAttack] := levelCurve["actionFatigueUse"][Recurved.ActionAttack]
 			endif
 		endif
 	endif

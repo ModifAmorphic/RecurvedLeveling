@@ -4,6 +4,7 @@ int skillCode
 array_var levelCurve
 int useIncNo
 float useIncMult
+float weapIncMult
 ;fatigue
 float fatigue
 float fatigueUse
@@ -18,61 +19,72 @@ float fatigueUse
 ; inputs
 short actionType ; Recurved.ActionXXX type
 Begin _Function { actionType }
+	if (Recurved.IsOverLeveled)
+		return
+	endif
 	let levelCurve := call rcvGetLevelCurve player.GetLevel 0 0
+	set fatigue to player.GetActorValueC 10
 	; Add use increment for the action
 	if (actionType == Recurved.ActionAttack)
 		set useIncNo to 0
 		set skillCode to 13
-		set useIncMult to Recurved.AthleticsAttackExpMulti
+		; Add weapon experience multiplier if both settings are not disabled
+		if (Recurved.AthleticsAttackWeaponExpDisabled == 0 && Recurved.WeaponExpNormalizedDisabled == 0)
+			set weapIncMult to Recurved.WeaponUseInc1Mult - 1
+		endif
+		set useIncMult to Recurved.AthleticsAttackExpMulti + weapIncMult
 		let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionAttack]
+		if (Recurved.OutputFormulas && useIncMult > 0)
+			PrintToConsole "recurve: Attack Action applying %.2f %v Use %g Increments if remaining fatigue exceeds fatigue use."  useIncMult skillCode (useIncNo + 1)
+			PrintToConsole "recurve: Fatigue:  Fatigue Use: %g, Fatigue Remaining: %g" fatigueUse fatigue
+			PrintToConsole "recurve: Formula:  [Bonus Use Increments] = Recurved.AthleticsAttackExpMulti + [Normalized Weapon Exp Multiplier]"
+			PrintToConsole "recurve:  Result:  %.3f = %.3f + %.3f" useIncMult Recurved.AthleticsAttackExpMulti weapIncMult
+		endif
 	elseif (actionType == Recurved.ActionPowerAttack)
 		set useIncNo to 1
 		set skillCode to 13
-		set useIncMult to Recurved.AthleticsAttackExpMulti
+		; Add weapon experience multiplier if both settings are not disabled
+		if (Recurved.AthleticsAttackWeaponExpDisabled == 0 && Recurved.WeaponExpNormalizedDisabled == 0)
+			set weapIncMult to Recurved.WeaponUseInc2Mult - 1
+		endif
+		set useIncMult to Recurved.AthleticsAttackExpMulti + weapIncMult
 		let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionPowerAttack]
+		if (Recurved.OutputFormulas && useIncMult > 0)
+			PrintToConsole "recurve: Power Attack Action applying %.2f %v Use %g Increments if remaining fatigue exceeds fatigue use."  useIncMult skillCode (useIncNo + 1)
+			PrintToConsole "recurve: Fatigue:  Fatigue Use: %g, Fatigue Remaining: %g" fatigueUse fatigue
+			PrintToConsole "recurve: Formula:  [Bonus Use Increments] = Recurved.AthleticsAttackExpMulti + [Normalized Weapon Exp Multiplier]"
+			PrintToConsole "recurve:  Result:  %.3f = %.3f + %.3f" useIncMult Recurved.AthleticsAttackExpMulti weapIncMult
+		endif
 	elseif (actionType == Recurved.ActionCombatDodge)
 		set useIncNo to 1
 		set skillCode to 26
 		set useIncMult to Recurved.AcrobaticsDodgeExpMulti
 		set fatigueUse to (-1)
-		;; Calculation not needed, as dodge events are added after dodge is finished and only if enough fatigue use didn't exceed remaining fatigue
-		; let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionCombatDodge]
-		; set fFatigueJumpMult to GetGameSetting "fFatigueJumpMult"
-		; ; fFatigueJumpMult is 0 in vanilla, so only bother encumbrance math if it's actually set
-		; if (fFatigueJumpMult > 0)
-		; 	set fFatigueJumpBase to GetGameSetting "fFatigueJumpBase"
-		; 	set fActorStrengthEncumbranceMult to GetGameSetting "fActorStrengthEncumbranceMult"
-		; 	set encumbrance to player.GetActorValueC 11
-		; 	let maxEncumbrance := (player.GetActorValueC 0) * fActorStrengthEncumbranceMult
-		; 	set fPerkJumpFatigueExpertMult to 1
-		; 	; Only get acrobatics expert perk value if expert level or higher, otherwise leave at 1
-		; 	if Eval((player.GetAVSkillMasteryLevelC skillCode) > 1)
-		; 		set fPerkJumpFatigueExpertMult to GetGameSetting "fPerkJumpFatigueExpertMult"
-		; 	endif
-		; 	set fatigueUse to (fFatigueJumpBase + fFatigueJumpMult * encumbrance / maxEncumbrance) * fPerkJumpFatigueExpertMult
-		; 	DebugPrint "recurve: Formula: fatigueUse = (fFatigueJumpBase + fFatigueJumpMult * encumbrance / maxEncumbrance) * fPerkJumpFatigueExpertMult"
-		; 	DebugPrint "recurve:  Result: %.2f = (%.2f + %.2f * %g / %g) * %.2f" fatigueUse fFatigueJumpBase fFatigueJumpMult encumbrance maxEncumbrance fPerkJumpFatigueExpertMult
-		;endif
 	elseif (actionType == Recurved.ActionJumpAttack)
 		set useIncNo to 1
 		set skillCode to 26
-		set useIncMult to Recurved.AcrobaticsJumpAttackExpMulti
+		; Add weapon experience multiplier if both settings are not disabled
+		if (Recurved.AcrobaticsJumpAttackWeaponExpDisabled == 0 && Recurved.WeaponExpNormalizedDisabled == 0)
+			set weapIncMult to Recurved.WeaponUseInc1Mult - 1
+		endif
+		set useIncMult to Recurved.AcrobaticsJumpAttackExpMulti + weapIncMult
 		let fatigueUse := levelCurve["actionFatigueUse"][Recurved.ActionJumpAttack]
+		if (Recurved.OutputFormulas && useIncMult > 0)
+			PrintToConsole "recurve: Attack Action applying %.2f %v Use %g Increments if remaining fatigue exceeds fatigue use."  useIncMult skillCode (useIncNo + 1)
+			PrintToConsole "recurve: Fatigue:  Fatigue Use: %g, Fatigue Remaining: %g" fatigueUse fatigue
+			PrintToConsole "recurve: Formula:  [Bonus Use Increments] = Recurved.ActionJumpAttack + [Normalized Weapon Exp Multiplier]"
+			PrintToConsole "recurve:  Result:  %.3f = %.3f + %.3f" useIncMult Recurved.AcrobaticsJumpAttackExpMulti weapIncMult
+		endif
 	else
 		PrintToConsole "recurve: (WARN) An attempt to add extra experience for unknown action type %g was made." actionType
 		return
 	endif
 
-	set fatigue to player.GetActorValueC 10
-
 	if (fatigueUse > fatigue)
-		DebugPrint "recurve: %g fatigue burn for use of skill %g exceeds current fatigue level of %g. No bonus EXP granted." fatigueUse skillCode fatigue
+		DebugPrint "recurve: %g fatigue burn for use of skill %v {%g} exceeds current fatigue level of %g. No bonus EXP granted." fatigueUse skillCode skillCode fatigue
 		return
+	elseif (useIncMult > 0)
+		IncrementPlayerSkillUseC skillCode useIncNo useIncMult
+		DebugPrint "recurve: Added %.2f type %g use increments to skill %v {%g}. Fatigue Remaining %.2f > Fatigue Burn %.2f" useIncMult useIncNo skillCode skillCode fatigue fatigueUse
 	endif
-	if (useIncMult <= 0)
-		set useIncMult to 1
-	endif
-
-	IncrementPlayerSkillUseC skillCode useIncNo useIncMult
-	DebugPrint "recurve: Added %.2f type %g use increments to skill %g. Fatigue Remaining %.2f > Fatigue Burn %.2f" useIncMult useIncNo skillCode fatigue fatigueUse
 End

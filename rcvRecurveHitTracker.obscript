@@ -1,0 +1,54 @@
+scn rcvRecurveHitTracker
+
+float fQuestDelayTime
+
+; constants
+int AttackTypeUnknown
+int AttackTypeMeleeWeapon
+int AttackTypeStaff
+int AttackTypeBowWeapon
+int AttackTypeHandToHand
+int AttackTypeMagic
+int AttackTypeReflect
+
+; Hit tracking
+;; Used to tie together OnHit and OnHitWith events so we can know what weapon a attacker used to
+;; hit a target with
+long FrameNo
+ref Attacker
+ref Target
+array_var AoeTargets
+ref Weapon
+ref Spell
+float RawDamage
+float HealthDamage
+float DamageAbsorbed
+float DamageReflected
+int AttackType
+int WeaponType
+int SpellType
+array_var Effects
+short HasEffectTargetsHealth
+short IsOpen
+
+
+Begin GameMode
+	set fQuestDelayTime to 1
+	if (GetGameRestarted)
+		; set constant values
+		set AttackTypeUnknown to 0
+		set AttackTypeMeleeWeapon to 1
+		set AttackTypeStaff to 2
+		set AttackTypeBowWeapon to 3
+		set AttackTypeHandToHand to 4
+		set AttackTypeMagic to 5
+		set AttackTypeReflect to 6
+
+		; Subscribe to on restart
+		SetEventHandler "OnMagicEffectHit" rcvTrackOnMagicEffectHit
+		SetEventHandler "OnMagicApply" rcvTrackOnHitEvents
+		SetEventHandler "OnHitWith" rcvTrackOnHitEvents
+		SetEventHandler "OnHit" rcvTrackOnHitEvents
+		SetEventHandler "OnHealthDamage" rcvTrackOnHealthDamage
+	endif
+end

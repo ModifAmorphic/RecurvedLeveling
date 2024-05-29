@@ -1,7 +1,5 @@
 scn rcvRecurveControllerOnUpdate ; Called when there is an "Update" to be processed during a RecurveController GameMode tick
 
-short isOverLevel
-
 ; inputs
 short hasRestartedSinceUpdate
 short isGameRestarted
@@ -18,6 +16,8 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 		set RecurvedController.lastEventPurge to 0
 		set RecurvedController.lastActionsFoundOn to 0
 		set RecurvedController.lastPreLevelUpCheck to 0
+		DebugPrint "Increasing Marksman by +5 temporarily."
+		;player.ModActorValue "Marksman" 5
 	endif
 	
 	; Load data on game load event
@@ -38,13 +38,12 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 		; Subscribe to Skill Up Events on restart
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
 		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
-		SetEventHandler "OnMagicApply" rcvOnMagicApplySubscriber "second"::PlayerRef
+		;SetEventHandler "OnMagicApply" rcvOnMagicApplySubscriber "second"::PlayerRef
 		;; Seems to cause crashes. Doesn't seem worth it to avoid a few
 		;; strings in save files.
 		; SetEventHandler "SaveGame" rcvSaveGameSubscriber
 		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
-		;SetEventHandler "OnHit" rcvOnHitSubscriber "first"::PlayerRef
-		SetEventHandler "OnHealthDamage" rcvOnHealthDamageSubscriber ;"object"::PlayerRef
+		;SetEventHandler "OnHealthDamage" rcvOnHealthDamageSubscriber ;"object"::PlayerRef
 		DebugPrint "recurve: Subscribed event handlers."
 		; add the restarted event
 		call rcvAddEvent Recurved.EventTypeGameRestarted RecurvedController.GlobalTick 0 ar_Null

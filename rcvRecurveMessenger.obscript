@@ -17,12 +17,8 @@ int MessageWaitTicks
 int MessageTickWindow
 ;; Last time a message worthy event was found
 int LastMsgEventFoundTick
-;; Last time the checked for potential guard message needing display
-int LastGuardMsgCheckTick
 ;; Last time the Attribute Guard Message was shown
 int LastGuardMsgShownTick
-;; Last time checked for potential softcap message needing display
-int LastSoftCapMsgCheckTick
 ;; Last time the Soft Cap Message was shown
 int LastSoftCapMsgShownTick
 
@@ -82,9 +78,7 @@ Begin _GameMode
 		; only show a message 
 		let MessageTickWindow := call rcvConvertSecondsToTicks Recurved.MessageWindowSeconds
 		set LastMsgEventFoundTick to 0
-		set LastGuardMsgCheckTick to 0
 		set LastGuardMsgShownTick to 0
-		set LastSoftCapMsgCheckTick to 0
 		set LastSoftCapMsgShownTick to 0
 		set LastEffectEventFoundTick to 0
 		set isFirstPass to 1

@@ -8,7 +8,6 @@ float damage
 ref attacker
 Begin _Function { damage attacker }
 	set target to GetSelf
-	;DebugPrint "Target is %n" target
 	if (target != player && attacker != player)
 		return
 	endif
@@ -28,11 +27,10 @@ Begin _Function { damage attacker }
 		return
 	endif
 	
-	if (Recurved.AthleticsActionsExpDisabled == 0)
-		; Only attacks on the ground count torwards athletics exp
+	if (Recurved.AthleticsActionsExpDisabled == 0 && Recurved.AthleticsAttackExpMulti > 0)
+		; Only attacks on the ground count towards athletics exp
 		if (player.IsInAir == 0)
 			if (player.IsPowerAttacking)
-				DebugPrint "recurved: Attacking Fatigue: %.2f" player.GetFatiguePercentage
 				call rcvApplyActionExtraExp Recurved.ActionPowerAttack
 			else
 				call rcvApplyActionExtraExp Recurved.ActionAttack
@@ -41,11 +39,10 @@ Begin _Function { damage attacker }
 		endif
 	endif
 
-	if (Recurved.AcrobaticsActionsExpDisabled == 0)
+	if (Recurved.AcrobaticsActionsExpDisabled == 0 && Recurved.AcrobaticsJumpAttackExpMulti > 0)
 		if (player.IsInAir)
 			call rcvApplyActionExtraExp Recurved.ActionJumpAttack ; Add jump attack experience
 		endif
 	endif
-	
 	
 End

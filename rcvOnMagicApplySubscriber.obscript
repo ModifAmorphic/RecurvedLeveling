@@ -4,7 +4,6 @@ scn rcvOnMagicApplySubscriber
 ref caster
 ref spellCast 
 Begin _Function { spellCast caster }
-	
 	if (Recurved.SpellExpFromMagickaDisabled)
 		;DebugPrint "recurve: Spell experience from magicka is disabled. SpellExpFromMagickaDisabled=%g" Recurved.SpellExpFromMagickaDisabled
 		return

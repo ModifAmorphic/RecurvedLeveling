@@ -78,6 +78,8 @@ Begin _GameMode
 	if (GlobalTick % Recurved.EventsProcessingTickModulus)
 		if Eval(call rcvApplyActionEventsExp lastActionsFoundOn)
 			set lastActionsFoundOn to GlobalTick
+		else ; If nothing found, still advance found on to avoid searching through the same events over and over.
+			set lastActionsFoundOn to GlobalTick - 1 ; Minus one in case the event was added after the check, but before the next tick
 		endif
 	endif
 

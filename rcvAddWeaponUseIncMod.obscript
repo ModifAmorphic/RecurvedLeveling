@@ -17,6 +17,8 @@ Begin _Function { }
 
     ; Disabled, return
     if (Recurved.WeaponExpNormalizedDisabled)
+        set Recurved.WeaponUseInc1Mult to 1
+        set Recurved.WeaponUseInc2Mult to 1
         return
     endif
     
@@ -77,10 +79,12 @@ Begin _Function { }
 	;DebugPrint "recurve: Normalizing weapon type %g. Adding skill use override mod of %.4f for skill %g." weaponType useIncMod skillCode
     ; Remove any existing weapon use overrides
     call rcvDeleteSkillOverrides Recurved.OverrideReasonWeapon
-
-    ; invert the multiplier because the the algo to determine use increments divides by this number instead multiplies
+    set Recurved.WeaponUseInc1Mult to 1
+    set Recurved.WeaponUseInc2Mult to 1
     if (useIncMult)
         ; Add the new override
 	    call rcvAddSkillUseIncOverride skillCode useIncMult useIncMult Recurved.OverrideReasonWeapon
+        set Recurved.WeaponUseInc1Mult to useIncMult
+        set Recurved.WeaponUseInc2Mult to useIncMult
     endif
 End

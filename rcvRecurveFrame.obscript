@@ -2,40 +2,59 @@ scn rcvRecurveFrame
 
 float fQuestDelayTime
 
-short PlayerRan
+short PlayerStartedRunning
 short PlayerStoppedRunning
 
+; init vars
 short isWaiting
 int waitTick
-int frameNo
+
+long FrameNo
+; dodging vars
 short wasDodging
 float fatigue
 float prevFatigue
 
-int runStartTick
-int runStopTick
+; running vars
 int reqRunIntervalTicks
 int runStartEventsAdded
 int maxRunEvents
+int runSpansStart
+int runSpansStop
+int ticksRan
+int runEventsAdded
+int lastSpanType
+float ranForPerc
+array_var runSpans
+array_var runSpan
 
-short printOnce
+
 Begin _GameMode
 
 	; When game load event occurs, wait for controller to finish it's first update
 	if (GetGameLoaded)
 		; Slow script down until controller is loaded
-		set fQuestDelayTime to 2
+		set fQuestDelayTime to 1
 		set isWaiting to 1
 		set waitTick to RecurvedController.GlobalTick
 		if (GetGameRestarted)
 			set waitTick to 0
 			set PlayerStoppedRunning to 0
-			set PlayerRan to 1
+			set PlayerStartedRunning to 1
 		endif
 		set wasDodging to 0
 		set fatigue to 0
 		set prevFatigue to 0
-		set frameNo to 0
+		set FrameNo to 0
+		let runSpans := ar_Construct "Array"
+		let runSpan := ar_Null
+		set runStartEventsAdded to 0
+		set runSpansStart to 0
+		set runSpansStop to 0
+		set ticksRan to 0
+		set runEventsAdded to 0
+		set lastSpanType to 0
+		set ranForPerc to 0
 		return
 	endif
 
@@ -55,58 +74,81 @@ Begin _GameMode
 	endif
 
 	; Code below runs every frame after the first RecurvedController update event
-	set frameNo to frameNo + 1
+	set FrameNo to FrameNo + 1
 	set fatigue to player.GetActorValueC 10
 
-	; Combat dodge event
-	if (Recurved.AcrobaticsActionsExpDisabled == 0)
+	;; Track Dodging, adding events when in combat with available fatigue
+	if (Recurved.AcrobaticsActionsExpDisabled == 0 && Recurved.AcrobaticsDodgeExpMulti > 0)
 		if (player.IsInCombat)
 			if (player.IsDodging)
 				if (wasDodging == 0)
 					if (fatigue > 0)
 						set wasDodging to 1
-						DebugPrint "Started dodging with %g fatigue at GlobalTick %g, FrameNo %g." fatigue RecurvedController.GlobalTick frameNo
+						DebugPrint "Started dodging with %g fatigue at GlobalTick %g, FrameNo %g." fatigue RecurvedController.GlobalTick FrameNo
 					endif
 				endif
 			elseif (wasDodging)
 				set wasDodging to 0
 				call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionCombatDodge 0 ar_Null
-				DebugPrint "recurve: Dodge ended at GlobalTick %g, FrameNo %g." RecurvedController.GlobalTick frameNo
+				DebugPrint "recurve: Dodge ended at GlobalTick %g, FrameNo %g." RecurvedController.GlobalTick FrameNo
 			endif
 		endif
 	endif
 	
-	if (Recurved.AthleticsActionsExpDisabled == 0)
+	;; Track Running and add events based on run status
+	if (Recurved.AthleticsActionsExpDisabled == 0 && Recurved.AthleticsAttackExpMulti > 0)
+		; Add a run start event whenever the runSpansStart is set, regardless if the character is running.
+		;; If not running, a PlayerStoppedRunning span will be added immediately
+		if (runSpansStart == 0)
+			let runSpans := ar_Construct "Array"
+			set runSpansStart to RecurvedController.GlobalTick
+			set runSpansStop to runSpansStart + reqRunIntervalTicks
+			let runSpan := ar_Construct "Array"
+			let runSpan[0] := PlayerStartedRunning
+			let runSpan[1] := RecurvedController.GlobalTick
+			set lastSpanType to PlayerStartedRunning
+			ar_Append runSpans runSpan
+			let runSpan := ar_Null
+			;DebugPrint "recurve: Started new run cycle. runSpansStart=%g, runSpansStop=%g" runSpansStart runSpansStop
+		endif
 		if Eval(call rcvGetIsMoving player 1 1) ; running forward only
-			if (runStartEventsAdded < maxRunEvents) ; stop adding events once the maximum is hit for bonuses
-				if (runStartTick == 0)
-					set runStartTick to RecurvedController.GlobalTick
-				elseif (RecurvedController.GlobalTick - runStartTick >= reqRunIntervalTicks) ; run interval hit. Add an event and reset the starting time
-					call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionRan PlayerRan ar_Null ; add event signifying character ran for reqRunIntervalTicks
-					set runStartEventsAdded to runStartEventsAdded + 1 ; flag this run cycle as needing a stop event
-					DebugPrint "recurve: Player ran for %g ticks increasing athletics experience for the %g time this cycle. (StartTick=%g, CurrentTick=%g)" reqRunIntervalTicks runStartEventsAdded runStartTick RecurvedController.GlobalTick
-					set runStartTick to RecurvedController.GlobalTick
-				endif
-			endif
-			set runStopTick to 0
-		elseif (runStartEventsAdded) ; if a running started event was added, then wait for the reqRunIntervalTicks / 2 before logging a stop event
-			if (runStopTick == 0)
-				set runStopTick to RecurvedController.GlobalTick
-				set runStartTick to 0
-			elseif (RecurvedController.GlobalTick - runStopTick >= reqRunIntervalTicks / 2) ; if stopped running for longer than reqRunIntervalTicks / 2, then add event to mark running has stopped
-				DebugPrint "recurve: Player stopped running for %g ticks, longer than the allowed interval of %g ticks." (RecurvedController.GlobalTick - runStopTick) reqRunIntervalTicks
-				call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionRan PlayerStoppedRunning ar_Null ; add event signifying character ran for reqRunIntervalTicks
-				set runStopTick to 0
-				set runStartEventsAdded to 0
+			if (lastSpanType == PlayerStoppedRunning) ; if last addition was a stop, then add a the new start of a running spand
+				let runSpan := ar_Construct "Array"
+				let runSpan[0] := PlayerStartedRunning
+				let runSpan[1] := RecurvedController.GlobalTick
+				;DebugPrint "recurve: Added START running span at tick %g." RecurvedController.GlobalTick
+				ar_Append runSpans runSpan
+				let runSpan := ar_Null
+				set lastSpanType to PlayerStartedRunning
 			endif
 		else
-			set runStartEventsAdded to 0
+			if (lastSpanType == PlayerStartedRunning)
+				let runSpan := ar_Construct "Array"
+				let runSpan[0] := PlayerStoppedRunning
+				let runSpan[1] := RecurvedController.GlobalTick
+				ar_Append runSpans runSpan
+				let runSpan := ar_Null
+				;DebugPrint "recurve: Added STOP running span at tick %g." RecurvedController.GlobalTick
+				set lastSpanType to PlayerStoppedRunning
+			endif
+		endif
+		
+		if (RecurvedController.GlobalTick >= runSpansStop)
+			let ticksRan := call rcvGetTicksRan runSpans
+			set ranForPerc to ticksRan / reqRunIntervalTicks
+			if (ranForPerc >= .8 && runEventsAdded < maxRunEvents)
+				call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionRan PlayerStartedRunning ar_Null ; add event signifying character ran
+				set runEventsAdded to runEventsAdded + 1 
+				DebugPrint "recurve: Player ran for %g percent of the last %g ticks increasing athletics experience for the %g time this cycle. ticksRan=%g, reqRunIntervalTicks=%g" (ranForPerc * 100) reqRunIntervalTicks runEventsAdded ticksRan reqRunIntervalTicks
+			elseif (ranForPerc >= .6)
+				;DebugPrint "recurve: Player ran for %g percent of the last %g ticks, resulting in no changes to experience this cycle. ticksRan=%g, reqRunIntervalTicks=%g" (ranForPerc * 100) reqRunIntervalTicks runEventsAdded ticksRan reqRunIntervalTicks
+			elseif (runEventsAdded > 0)
+				call rcvAddEvent Recurved.EventTypeExpActionQueued Recurved.ActionRan PlayerStoppedRunning ar_Null ; add event signifying character stopped running
+				DebugPrint "recurve: Player ran for %g percent of the last %g ticks, less than the required threshold. Removing %g run experience increases." (ranForPerc * 100) reqRunIntervalTicks runEventsAdded
+				set runEventsAdded to 0
+			endif
+			; no matter the outcome above, reset the runSpansStart and trigger a new runSpans cycle
+			set runSpansStart to 0
 		endif
 	endif
-	; ; fatigue regenerating
-	; if (fatigue > prevFatigue)
-	; 	if (printOnce == 0)
-
-	; 	endif
-	; endif
 end

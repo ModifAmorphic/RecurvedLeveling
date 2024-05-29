@@ -1,0 +1,67 @@
+scn rcvTrackHitComplete
+
+Begin _Function {  }
+    set RecurvedHitTracker.IsOpen to 0
+    ; ignore hits that don't have the player as the attacker or target
+
+    if (RecurvedHitTracker.Attacker != player)
+        if (RecurvedHitTracker.Target != player)
+            return
+        endif
+    endif
+
+    DebugPrint "recurve: Hit Tracked"
+    DebugPrint "recurve:   FrameNo: %g" RecurvedHitTracker.FrameNo
+    DebugPrint "recurve:   Attacker: %n" RecurvedHitTracker.Attacker
+    DebugPrint "recurve:   Target: %n" RecurvedHitTracker.Target
+    DebugPrint "recurve:   Weapon: %n" RecurvedHitTracker.Weapon
+    DebugPrint "recurve:     WeaponType: %g" RecurvedHitTracker.WeaponType
+    DebugPrint "recurve:   Spell: %n" RecurvedHitTracker.Spell
+    DebugPrint "recurve:     SpellType: %g" RecurvedHitTracker.SpellType
+    DebugPrint "recurve:   HealthDamage: %g" RecurvedHitTracker.HealthDamage
+    DebugPrint "recurve:   DamageAbsorbed: %g" RecurvedHitTracker.DamageAbsorbed
+    DebugPrint "recurve:   DamageReflected: %g" RecurvedHitTracker.DamageReflected
+    DebugPrint "recurve:   IsOpen: %g" RecurvedHitTracker.IsOpen
+    DebugPrint "recurve:   AttackType: %g" RecurvedHitTracker.AttackType
+    DebugPrint "recurve:   RawDamage: %g" RecurvedHitTracker.RawDamage
+    
+    
+
+    ; Player is the attacker
+    if (RecurvedHitTracker.Attacker == player)
+        ; Player attacked with a melee weapon
+        if (RecurvedHitTracker.AttackType == RecurvedHitTracker.AttackTypeMeleeWeapon)
+            if (Recurved.AthleticsActionsExpDisabled == 0 && Recurved.AthleticsAttackExpMulti > 0)
+                ; Only attacks on the ground count towards athletics exp
+                if (player.IsInAir == 0)
+                    if (player.IsPowerAttacking)
+                        call rcvApplyActionExtraExp Recurved.ActionPowerAttack
+                    else
+                        call rcvApplyActionExtraExp Recurved.ActionAttack
+                    endif
+                    return
+                endif
+            endif
+            if (Recurved.AcrobaticsActionsExpDisabled == 0 && Recurved.AcrobaticsJumpAttackExpMulti > 0)
+                if (player.IsInAir)
+                    call rcvApplyActionExtraExp Recurved.ActionJumpAttack ; Add jump attack experience
+                endif
+            endif
+        elseif (RecurvedHitTracker.AttackType == RecurvedHitTracker.AttackTypeMagic)
+            if Eval(call rcvGetIsRecurvedSpell RecurvedHitTracker.Spell)
+		        return
+	        endif
+            call rcvApplyBonusMagicaExp RecurvedHitTracker.Spell RecurvedHitTracker.Attacker
+        endif
+    ; Player is the Target of an attack
+    elseif (RecurvedHitTracker.Target == player)
+        ; Player Getting Hit with a non-spell attack
+        if (RecurvedHitTracker.AttackType == RecurvedHitTracker.AttackTypeMeleeWeapon || RecurvedHitTracker.AttackType == RecurvedHitTracker.AttackTypeHandToHand || RecurvedHitTracker.AttackType == RecurvedHitTracker.AttackTypeBowWeapon)
+            if (Recurved.ArmorExpFromDamageDisabled == 0)
+                call rcvApplyBonusArmorExp RecurvedHitTracker.Attacker RecurvedHitTracker.RawDamage RecurvedHitTracker.HealthDamage
+                call rcvCaptureDefenseEquipExp
+                return
+            endif
+        endif
+    endif
+End

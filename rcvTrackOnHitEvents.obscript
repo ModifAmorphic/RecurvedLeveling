@@ -1,0 +1,111 @@
+scn rcvTrackOnHitEvents
+
+string_var eventName
+int effectCount
+
+; inputs
+ref ref1
+ref ref2
+
+;; Handles events
+; OnHitWith - Hit with a weapon
+; OnHit
+; OnMagicApply
+Begin _Function { ref1 ref2 }
+
+    if (RecurvedFrame.FrameNo == 0)
+        return
+    endif
+    let eventName := GetCurrentEventName
+    ;DebugPrint "recurve: FrameNo: %g. %z: Param1: %n, Param2: %n, IsOpen: %g" RecurvedFrame.FrameNo eventName ref1 ref2 RecurvedHitTracker.IsOpen
+
+    ; Weapon Events (Same Frame)
+    ;; 1 - OnHitWith
+    ;; 2 - OnHit
+    ;; 3 - OnHealthDamage
+    if Eval((sv_Compare "onhitwith" eventName) == 0)
+        ; ref1=target ref2=weapon
+        call rcvTrackerReset 1
+        set RecurvedHitTracker.Target to ref1
+        set RecurvedHitTracker.Weapon to ref2
+        ;DebugPrint "recurve: FrameNo: %g. %z: Associating Target: %n, Weapon: %n with open hit tracking event." RecurvedFrame.FrameNo eventName ref1 ref2
+        sv_Destruct eventName
+        return
+    endif
+
+    ; Magic Events (Same Frame)
+    ;; 1 - OnMagicEffectHit (rcvOnMagicEffectHitTracker)
+    ;; 2 - OnMagicApply
+    ;; 3 - OnHealthDamage (If applicable)
+    if Eval((sv_Compare "onmagicapply" eventName) == 0)
+        ; magicItem:ref caster:ref
+        ; if (ref2 != player && RecurvedHitTracker.Target != player)
+        ;     sv_Destruct eventName
+        ;     call rcvTrackerReset 0
+        ;     return
+        ; endif
+        set RecurvedHitTracker.Attacker to ref2
+        set RecurvedHitTracker.SpellType to GetSpellType ref1
+        set RecurvedHitTracker.Spell to ref1
+        set RecurvedHitTracker.AttackType to RecurvedHitTracker.AttackTypeMagic
+        let effectCount := GetMagicItemEffectCount RecurvedHitTracker.Spell
+        ;DebugPrint "recurve: FrameNo: %g. %z: Associating Attacker(Caster): %n, Magic Item: %n with open hit tracking event." RecurvedFrame.FrameNo eventName RecurvedHitTracker.Attacker RecurvedHitTracker.Spell
+        sv_Destruct eventName
+        if Eval((ar_Size RecurvedHitTracker.Effects) == effectCount)
+            call rcvTrackHitComplete
+        endif
+        return
+    endif
+
+    if Eval((sv_Compare "onhit" eventName) == 0)
+        ; ref1=target ref2=attacker 
+        ; if (RecurvedHitTracker.Target != ref1) ; TODO: Can multiple hits happen on the same frame? AOE?
+        ;     DebugPrint "recurve: (WARN) FrameNo: %g. %z: Multiple hits in same frame. Unable to track. Tracked Attacker %n, New Attacker %n. Exiting tracking." RecurvedFrame.FrameNo eventName RecurvedHitTracker.Target ref1
+        ;     set RecurvedHitTracker.IsOpen to 0
+        ;     return
+        ; endif
+        if (ref1 == 0 || ref2 == 0)
+            sv_Destruct eventName
+            return
+        endif
+
+        if (RecurvedHitTracker.IsOpen == 0 && RecurvedHitTracker.FrameNo != RecurvedFrame.FrameNo)
+            call rcvTrackerReset 1
+        elseif (RecurvedHitTracker.FrameNo != RecurvedFrame.FrameNo)
+            ;DebugPrint "recurve: FrameNo: %g does not match current frameNo %g." RecurvedHitTracker.FrameNo RecurvedFrame.FrameNo
+            call rcvTrackerReset 0
+            sv_Destruct eventName
+            return
+            ; set RecurvedHitTracker.FrameNo to RecurvedFrame.FrameNo
+            ; set RecurvedHitTracker.IsOpen to 1
+        endif
+        
+        set RecurvedHitTracker.Target to ref1
+        set RecurvedHitTracker.Attacker to ref2
+
+        if (RecurvedHitTracker.Spell)
+            set RecurvedHitTracker.AttackType to RecurvedHitTracker.AttackTypeMagic
+        elseif (RecurvedHitTracker.Weapon)
+            set RecurvedHitTracker.WeaponType to GetWeaponType RecurvedHitTracker.Weapon
+            if (RecurvedHitTracker.WeaponType <= 4)
+                set RecurvedHitTracker.AttackType to RecurvedHitTracker.AttackTypeMeleeWeapon
+            elseif (RecurvedHitTracker.WeaponType == 5)
+                set RecurvedHitTracker.AttackType to RecurvedHitTracker.AttackTypeStaff
+            elseif (RecurvedHitTracker.WeaponType == 6)
+                set RecurvedHitTracker.AttackType to RecurvedHitTracker.AttackTypeBowWeapon
+            endif
+        else
+            set RecurvedHitTracker.AttackType to RecurvedHitTracker.AttackTypeHandToHand
+        endif
+
+        if (RecurvedHitTracker.Weapon)
+            set RecurvedHitTracker.RawDamage to GetAttackDamage RecurvedHitTracker.Weapon
+        elseif (RecurvedHitTracker.AttackType == RecurvedHitTracker.AttackTypeHandToHand)
+            set RecurvedHitTracker.RawDamage to ref2.GetAttackDamage
+        endif
+
+        ;DebugPrint "recurve: FrameNo: %g. %z: Associated Attacker %n with open hit tracking event. Set AttackType to %g." RecurvedFrame.FrameNo eventName RecurvedHitTracker.Attacker RecurvedHitTracker.AttackType
+    endif
+
+    sv_Destruct eventName
+End

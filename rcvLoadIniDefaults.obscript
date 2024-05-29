@@ -85,7 +85,7 @@ set Recurved.MinimumMaxedAttributes to 3
 ;;; To summarize, a lower (but higher than zero) ExpNormalizedReceivedDamage value will grant more experience overall.
 ;;; 0  - Disables Exp increases from damage received
 ;;; 1+ - Increases experience for attacks higher than this value
-set Recurved.ExpNormalizedReceivedDamage to 3
+set Recurved.ExpNormalizedReceivedDamage to 8
 
 ;;; When WeaponExpNormalized is enabled, allows for additional fine tuning of the experience bonus gained from higher dps weapons.
 ;;; <= 0 : Ignored "set Recurved.WeaponExpNormalizedDisabled to 1" if you want to disable bonus weapon experience.
@@ -93,29 +93,6 @@ set Recurved.ExpNormalizedReceivedDamage to 3
 ;;;  = 1 : No change to bonus experience (Default)
 ;;;  > 1 : Increased bonus experience
 set Recurved.ExpExtraWeaponMulti to 1
-
-; ;;; Base weapon speed to normalize all other weapon speeds to in order to calculate the 
-; ;;; experience per hit. Per hit experience increases as weapon speed decreases,
-; ;;; causing all weapons to generate the same amount of experience over time.
-; ;;; By default, set to the fastest weapon (daggers) - 1.4 attacks per second.
-; ;;; [Normalized Weapon Skill Exp Per Use] = ExpNormalizedWeaponSpeed / (Equipped Weapon Speed) * [Weapon Skill Exp Per Use]
-; set Recurved.ExpNormalizedWeaponSpeed to 1.4
-
-; ;;; Damage to normalize weapons against for experience gains. Higher damage weapons earn more 
-; ;;; exp per hit to componsate for less attacks prior to target death. Works in combination with
-; ;;; ExpNormalizedWeaponSpeed to calculate a base DPS in which all other weapons are normalized 
-; ;;; against. The lower the value, the higher the experience increase will be for higher dps weapons.
-; ;;; [Weapon Exp Per Hit] = (Equipped Weapon Damage x Speed) /  (ExpNormalizedWeaponDamage * ExpNormalizedWeaponSpeed) * [Normalized Weapon Skill Exp Per Use]
-; ;;; By default, set to the worst weapon (rusty dagger) - 3 damage.
-; ;;;; 0  - Disables Exp increases from damage
-; ;;;; 1+ - Damage to normalize exp gains against.
-; set Recurved.ExpNormalizedWeaponDamage to 3.0
-
-; ;;; Similar to ExpNormalizedWeaponDamage but for bows. Only uses damage in the comparison, as all
-; ;;; bows have the same speed. Bows with higher damage will grant more exp per hit.
-; ;;;; 0  - Disables Exp increases from damage
-; ;;;; 1+ - Damage to normalize exp gains against.
-; set Recurved.ExpNormalizedBowDamage to 8.0
 
 ;;; A dial for turning up or down spell experience from magicka spent. Doubles the experience
 ;;;; every time the amount doubles. Example: Setting to 10 doubles the experience bonus from 5.
@@ -126,29 +103,37 @@ set Recurved.SpellExpFromMagickaModifier to 2.0
 ;;; Multiplies the Acrobatic skill experience gained from performing jump attacks, which this mod grants experience for
 ;;; if AcrobaticsActionsExpDisabled is not set. This bonus action uses the second use increment normally reserved 
 ;;; only for falls (default is 3 exp). Values less than 1 decrease the experience. Values greater than 1 increase.
-;;;;   0  - Ignored. "set AcrobaticsActionsExpDisabled to 1" if you want to disable experience for additonal acrobatic actions
+;;;;   0  - Disables bonus experience for acrobatics jump attacks
 ;;;; < 1  - Reduces experience (multiplicative)
 ;;;; = 1  - No change (uses second acrobatics use increment)
 ;;;; > 1  - Increases experience (multiplicative)
 set Recurved.AcrobaticsJumpAttackExpMulti to 1.0
 
+;;; Jump attack bonus calculations add the multiplier from weapon experience normalization by default. Set this
+;;; setting to 1 to not include extra experience from weapon normalization.
+set Recurved.AcrobaticsJumpAttackWeaponExpDisabled to 0
+
 ;;; Multiplies the Acrobatic skill experience gained from dodging, which this mod grants experience for
 ;;; if AcrobaticsActionsExpDisabled is not set. This bonus action uses the second use increment normally reserved
 ;;; only for falls (default is 3 exp). Values less than 1 decrease the experience. Values greater than 1 increase.
-;;;;   0  - Ignored. "set AcrobaticsActionsExpDisabled to 1" if you want to disable experience for additonal acrobatic actions
+;;;;   0  - Disables bonus experience for acrobatics combat dodging
 ;;;; < 1  - Reduces experience (multiplicative)
 ;;;; = 1  - No change (uses second acrobatics use increment)
 ;;;; > 1  - Increases experience (multiplicative)
 set Recurved.AcrobaticsDodgeExpMulti to 1.0
 
-;;; Multiplies the Athletics skill experience gained from attacking granted by this mod
+;;; Multiplies the Athletics skill experience gained from attacking granted by this mod.
 ;;; if AthleticsActionsExpDisabled is not set. This bonus action uses the athletic skills type's first use increment for regular attacks
 ;;; and the second for power attacks. Values less than 1 decrease the experience. Values greater than 1 increase.
-;;;;   0  - Ignored. "set AthleticsActionsExpDisabled to 1" if you want to disable experience for additonal athletics actions
+;;;;   0  - Disables bonus experience for athletics attack attacks
 ;;;; < 1  - Reduces experience (multiplicative)
 ;;;; = 1  - No change (uses second athletics use increment)
 ;;;; > 1  - Increases experience (multiplicative)
-set Recurved.AthleticsAttackExpMulti to 3.0
+set Recurved.AthleticsAttackExpMulti to 2.0
+
+;;; Athletics attack bonus calculations add the multiplier from weapon experience normalization by default. Set this
+;;; setting to 1 to not include extra experience from weapon normalization.
+set Recurved.AthleticsAttackWeaponExpDisabled to 0
 
 ;;; Athletics Run Experience Settings
 ;;; ------------------------------------
@@ -162,7 +147,7 @@ set Recurved.RunExpIncContinuousSeconds to 4
 ;;;;; >= 0.1  - Added for every RunExpIncContinuousSeconds cycle, then used to multiply experience gains.
 ;;;;;           Example: A setting of .2 would multiply athletics experience by 100% after for 5 x RunExpIncContinuousSeconds.
 ;;;;;                    .2 + .2 + .2 + .2 + .2 = 1  ; = 100% increase after 10 seconds
-set Recurved.RunExperienceMultiplier to .4
+set Recurved.RunExperienceMultiplier to .3
 
 ;;;; Maximum amount of times a RunExperienceMultiplier will be applied in one continuous run.
 set Recurved.RunExpIncreaseMaxIncreases to 5
@@ -214,8 +199,8 @@ set Recurved.Tier5MaxAttributeUp to 8
 set Recurved.Tier1LevelUpSkillIncs to 15
 set Recurved.Tier2LevelUpSkillIncs to 12
 set Recurved.Tier3LevelUpSkillIncs to 10
-set Recurved.Tier4LevelUpSkillIncs to 10
-set Recurved.Tier5LevelUpSkillIncs to 8
+set Recurved.Tier4LevelUpSkillIncs to 8
+set Recurved.Tier5LevelUpSkillIncs to 6
 
 ;; Adds additonal attribute progression on Major Skill ups. Normally a skill increase
 ;;; adds 1 progress towards higher attribute gains. This setting allows for increasing
@@ -225,7 +210,7 @@ set Recurved.Tier5LevelUpSkillIncs to 8
 set Recurved.Tier1MajorAttributeBonus to 1
 set Recurved.Tier2MajorAttributeBonus to 1
 set Recurved.Tier3MajorAttributeBonus to 1
-set Recurved.Tier4MajorAttributeBonus to 1
+set Recurved.Tier4MajorAttributeBonus to 2
 set Recurved.Tier5MajorAttributeBonus to 2
 
 ;; Increases an attribute's secondary attribute progress on Major skill increase. Has no effect if 
@@ -235,6 +220,14 @@ set Recurved.Tier2SecondaryAttributeBonus to 1
 set Recurved.Tier3SecondaryAttributeBonus to 1
 set Recurved.Tier4SecondaryAttributeBonus to 1
 set Recurved.Tier5SecondaryAttributeBonus to 2
+
+;; Converts endurance increases to the normalized amount when calculating helath increases on level ups. This is done
+;; to compensate the lower attribute inceases in lower levels.
+set Recurved.Tier1EnduranceNormalizeAmount to 5
+set Recurved.Tier2EnduranceNormalizeAmount to 5
+set Recurved.Tier3EnduranceNormalizeAmount to 5
+set Recurved.Tier4EnduranceNormalizeAmount to 5
+set Recurved.Tier5EnduranceNormalizeAmount to 5
 
 ;; Maps attributes to secondary. When a major skill increase occurs, then both the skill's governing
 ;;; attribute and the associated secondary attribute will gain progress towards attribute increases.
@@ -247,14 +240,6 @@ set Recurved.PersonalitySecondary to Recurved.AgilityAvc
 set Recurved.AgilitySecondary to Recurved.EnduranceAvc
 set Recurved.EnduranceSecondary to Recurved.WillpowerAvc
 set Recurved.WillpowerSecondary to Recurved.StrengthAvc
-
-;; Converts endurance increases to the normalized amount when calculating helath increases on level ups. This is done
-;; to compensate the lower attribute inceases in lower levels.
-set Recurved.Tier1EnduranceNormalizeAmount to 5
-set Recurved.Tier2EnduranceNormalizeAmount to 5
-set Recurved.Tier3EnduranceNormalizeAmount to 5
-set Recurved.Tier4EnduranceNormalizeAmount to 5
-set Recurved.Tier5EnduranceNormalizeAmount to 5
 
 ; ## Magicka Exp School Settings ##
 ;; Magicka spent when casting a spell is compared to the settings below to determine the percentage of the maximum

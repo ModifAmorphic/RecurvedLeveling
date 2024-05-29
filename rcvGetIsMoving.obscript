@@ -59,9 +59,11 @@ Begin _Function { actor moveType direction }
 
 	;; Check for exclusive running
 	if (moveType == 1)
-		if (actor.IsJumping)
+		if (actor.IsInAir)
 			set isMoving to 0
 		elseif (actor.IsDodging)
+			set isMoving to 0
+		elseif (actor.IsRidingHorse)
 			set isMoving to 0
 		endif
 	endif
