@@ -38,12 +38,7 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 		; Subscribe to Skill Up Events on restart
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
 		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
-		;SetEventHandler "OnMagicApply" rcvOnMagicApplySubscriber "second"::PlayerRef
-		;; Seems to cause crashes. Doesn't seem worth it to avoid a few
-		;; strings in save files.
-		; SetEventHandler "SaveGame" rcvSaveGameSubscriber
 		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
-		;SetEventHandler "OnHealthDamage" rcvOnHealthDamageSubscriber ;"object"::PlayerRef
 		DebugPrint "recurve: Subscribed event handlers."
 		; add the restarted event
 		call rcvAddEvent Recurved.EventTypeGameRestarted RecurvedController.GlobalTick 0 ar_Null

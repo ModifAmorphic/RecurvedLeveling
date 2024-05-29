@@ -367,10 +367,6 @@ float WeaponUseInc2Mult
 ; for calculating exp bonuses
 array_var SchoolExpMaxMagicka
 
-; Tracks last spell cast to avoid duplicating bonus exp for spells with multiple effects
-int LastCastTick
-ref LastSpellCast
-
 ; History of events, used mostly for messaging
 array_var EventHistory
 
