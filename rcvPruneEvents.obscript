@@ -24,7 +24,7 @@ Begin Function { pruneAll }
         let eventTick := Recurved.EventHistory[i]["tick"]
         ; prune events that happened before the cutoff, or events that occured before a GlobalTick reset.
         if (eventTick < pruneBefore || eventTick > RecurvedController.GlobalTick)
-            set prunedEvents += 1
+            let prunedEvents += 1
         else
             ar_Append tmpEvents Recurved.EventHistory[i]
         endif
