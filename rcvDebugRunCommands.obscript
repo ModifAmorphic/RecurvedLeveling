@@ -105,6 +105,9 @@ Begin _Function {}
         endif
         set RecurvedMessenger.ForceEffectsRefresh to 1
     endif
+    if (Recurved.PruneAllEvents)
+        call rcvPruneEvents 1
+    endif
     if (Recurved.GetNormalizedEndurance)
         PrintToConsole "recurve: Normalized Endurance: %.4f" Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedValue"]
         PrintToConsole "recurve: Normalized Increase: %g" Recurved.Levels[player.getlevel - 1]["attributes"][Recurved.EnduranceAvc]["normalizedIncrease"]
@@ -132,6 +135,7 @@ Begin _Function {}
     set Recurved.ResetRecurvedEffects to 0
     set Recurved.RefreshCurrentLevel to 0
     set Recurved.RefreshCurrentLevelCurve to 0
+    set Recurved.PruneAllEvents to 0
     set Recurved.GetNormalizedEndurance to 0
     set Recurved.SetNormalizedEndurance to 0
     set Recurved.SetHealth to 0

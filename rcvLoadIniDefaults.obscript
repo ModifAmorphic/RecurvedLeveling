@@ -13,6 +13,9 @@ set Recurved.AttributeGuardDisabled to 0
 ;; Disables soft caps on minor skills
 set Recurved.MinorSkillSoftCapsDisabled to 0
 
+;; Disables changing racial and specialty skill bonuses from permanent to modified bonuses
+set Recurved.ModifySkillBonusesDisabled to 0
+
 ;; Disables additional bonus progress points towards attribute increases 
 ;;; when major skills increase in level
 set Recurved.AttributeBonusDisabled to 0
@@ -249,36 +252,42 @@ set Recurved.AlterationNoviceMagicka to 40
 set Recurved.AlterationApprenticeMagicka to 54
 set Recurved.AlterationJourneymanMagicka to 131
 set Recurved.AlterationExpertMagicka to 221
+set Recurved.AlterationMasterMagicka to 443
 ;;; Conjuration
 set Recurved.ConjurationNoviceMagicka to 50
 set Recurved.ConjurationApprenticeMagicka to 60
 set Recurved.ConjurationJourneymanMagicka to 145
 set Recurved.ConjurationExpertMagicka to 390
+set Recurved.ConjurationMasterMagicka to 700
 ;;; Destruction
 set Recurved.DestructionNoviceMagicka to 25
 set Recurved.DestructionApprenticeMagicka to 54
 set Recurved.DestructionJourneymanMagicka to 129
 set Recurved.DestructionExpertMagicka to 378
+set Recurved.DestructionMasterMagicka to 842
 ;;; Illusion
 set Recurved.IllusionNoviceMagicka to 35
 set Recurved.IllusionApprenticeMagicka to 52
 set Recurved.IllusionJourneymanMagicka to 142
 set Recurved.IllusionExpertMagicka to 332
+set Recurved.IllusionMasterMagicka to 507
 ;;; Mysticism
 set Recurved.MysticismNoviceMagicka to 35
 set Recurved.MysticismApprenticeMagicka to 60
 set Recurved.MysticismJourneymanMagicka to 135
 set Recurved.MysticismExpertMagicka to 323
+set Recurved.MysticismMasterMagicka to 810
 ;;;  Restoration
 set Recurved.RestorationNoviceMagicka to 16
 set Recurved.RestorationApprenticeMagicka to 61
 set Recurved.RestorationJourneymanMagicka to 140
 set Recurved.RestorationExpertMagicka to 277
+set Recurved.RestorationMasterMagicka to 466
 
 ; ## Message Settings ##
 
 ; Time to wait between when messages are shown
-set Recurved.MessageWaitSeconds to 15
+set Recurved.MessageWaitSeconds to 30
 ; Event must have occured within X seconds for it to be shown
 set Recurved.MessageWindowSeconds to 5
 ; Outputs formulas for experience calculations

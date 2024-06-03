@@ -72,7 +72,7 @@ Begin _Function{ skillCodes effectType }
 		loop
 		; if effect didn't exist yet, or did but was inactive add it now
 		if (addEffect)
-			let spellEffect := call rcvAddEffect skillCodes[s] effectType
+			let spellEffect := call rcvAddExpEffect skillCodes[s] effectType
 		endif
 		let s += 1
 	loop

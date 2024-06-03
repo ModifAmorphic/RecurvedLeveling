@@ -41,6 +41,9 @@ int EffectSoftcap
 
 short isFirstPass
 
+; Debugging
+;float secondsPassed
+
 ; Effects Vars
 array_var Effects
 ref LastConfiguredMagicEffect
@@ -53,11 +56,11 @@ Begin _GameMode
 	if (GetGameLoaded)
 		set isWaiting to 1
 		set waitTick to RecurvedController.GlobalTick
-		if (GetGameRestarted)
+		;if (GetGameRestarted)
 			let PrevPenalizedAttributes := ar_Construct "Array"
 			let PrevSoftcapped := ar_Construct "Array"
 			set waitTick to 0
-		endif
+		;endif
 		return
 	endif
 
@@ -96,6 +99,10 @@ Begin _GameMode
 		endif
 		set isFirstPass to 0
 	endif
+	
+	; Debugging
+	; set secondsPassed to GetSecondsPassed
+	; DebugPrint "recurve: %.2f seconds passed since last effects processing." secondsPassed
 	
 	call rcvProcessEffects ForceEffectsRefresh
 	; Refreshing needs to happen in 2 passes otherwise the effects won't be registered correctly.

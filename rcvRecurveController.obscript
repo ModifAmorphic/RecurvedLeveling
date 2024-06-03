@@ -28,6 +28,8 @@ short isTutorialCheckActive
 short isTutorialQuestPassed
 short isClassSelected
 
+; float secondsPassed
+
 ; Sleep Menu
 ;; Not needed anymore, but left in as a way to cause an update manually.
 begin MenuMode 1012
@@ -70,6 +72,8 @@ Begin _GameMode
 	set isGameRestarted to GetGameRestarted
 	set isGameLoaded to GetGameLoaded
 
+	; set secondsPassed to GetSecondsPassed
+	; DebugPrint "recurve: %.2f seconds passed since last GlobalTick %g." secondsPassed RecurvedController.GlobalTick
 	; Runs every tick
 	if Eval((call rcvRecurveControllerOnTick isGameRestarted isGameLoaded))
 		; rcvRecurveControllerOnTick determined there was an update pending.

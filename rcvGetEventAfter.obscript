@@ -13,24 +13,28 @@ array_var eventResult
 Begin _Function { eventType afterTick stopOnFirstHit } ; Gets the most recent event that has occured after the tick
     let eventCount := ar_Size Recurved.EventHistory
 
-    ;DebugPrint "recurve: Scanning %g events event type %g that occured after tick %g" eventCount eventType afterTick
-    if (stopOnFirstHit == 0)
-        let eventResult := ar_Construct "Array"
-    endif
+    ;DebugPrint "recurve: Scanning %g events event type %g that occured after tick %g. stopOnFirstHit=%g" eventCount eventType afterTick stopOnFirstHit
+    let eventResult := ar_Construct "Array"
     set i to eventCount
     while (i > 0)
         let i -= 1
+        ; DebugPrint "recurve: Dumping i=%g" i
+        ; ar_dump Recurved.EventHistory[i]
         if Eval(Recurved.EventHistory[i]["tick"] > afterTick)
             ;DebugPrint "recurve: EventHistory EventType: %g, searched EventType: %g." Recurved.EventHistory[i]["eventType"] eventType
             if Eval(Recurved.EventHistory[i]["eventType"] == eventType)
+                let event := ar_Construct "StringMap"
+                let event["eventType"] := Recurved.EventHistory[i]["eventType"]
+                let event["tick"] := Recurved.EventHistory[i]["tick"]
+                let event["data1"] := Recurved.EventHistory[i]["data1"]
+                let event["data2"] := Recurved.EventHistory[i]["data2"]
+                let event["dataArray"] := Recurved.EventHistory[i]["dataArray"]
+                ar_Append eventResult event
                 if (stopOnFirstHit)
                     ;DebugPrint "recurve: Found event type %g that occured at tick %g" eventType Recurved.EventHistory[i]["tick"]
-                    let eventResult := ar_Copy Recurved.EventHistory[i]
                     break
                 else
                     ;DebugPrint "recurve: Added event type %g that occured at tick %g to results." eventType Recurved.EventHistory[i]["tick"]
-                    let event := ar_Copy Recurved.EventHistory[i]
-                    ar_Append eventResult event
                 endif
             endif
         else

@@ -4,6 +4,7 @@ scn rcvAddAttributeGuards
 int i
 int attrIndex
 int skillCode
+int skillValue
 int attribSkillCount
 int maxLvlProgress
 float progressRatio
@@ -38,10 +39,15 @@ Begin _Function { attributes lvlProgress skillIncsForMaxAttrib levelCurve } ; Ad
 		set i to 0
 		while (i < attribSkillCount)
 			let skillCode := majorSkills[i]["code"]
-			call rcvAddSkillUseIncOverride skillCode expReducer expReducer Recurved.OverrideReasonAttributeGuard
-			DebugPrint "recurve: Attribute Guard added use exp overrides for skill %g, attribute %g. Experience Multiplier: %g. skillIncsForMaxAttrib: %g" skillCode attributes[attrIndex] expReducer skillIncsForMaxAttrib
+			let skillValue := player.GetBaseAv3C skillCode
+			if (skillValue < 100)
+				call rcvAddSkillUseIncOverride skillCode expReducer expReducer Recurved.OverrideReasonAttributeGuard
+				DebugPrint "recurve: Attribute Guard added use exp overrides for skill %g, attribute %g. Experience Multiplier: %g. skillIncsForMaxAttrib: %g" skillCode attributes[attrIndex] expReducer skillIncsForMaxAttrib
+				ar_Append skillsModified skillCode
+			else
+				DebugPrint "recurve: Excluding maxed skill %v {%g} from attribute guard." skillCode skillCode
+			endif
 			let i += 1
-			ar_Append skillsModified skillCode
 		loop
 		let attrIndex += 1
 	loop

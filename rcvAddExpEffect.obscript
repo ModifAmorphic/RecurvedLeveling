@@ -1,5 +1,5 @@
 ; Works but requires completely hijacking a magic effect
-scn rcvAddEffect
+scn rcvAddExpEffect
 
 int i
 array_var recurvedEffect

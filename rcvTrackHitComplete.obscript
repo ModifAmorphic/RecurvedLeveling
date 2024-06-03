@@ -49,6 +49,7 @@ Begin _Function {  }
             endif
         elseif (RecurvedHitTracker.AttackType == RecurvedHitTracker.AttackTypeMagic)
             if Eval(call rcvGetIsRecurvedSpell RecurvedHitTracker.Spell)
+                DebugPrint "recurve: Ignoring recurved spell for bonus experience."
 		        return
 	        endif
             call rcvApplyBonusMagicaExp RecurvedHitTracker.Spell RecurvedHitTracker.Attacker

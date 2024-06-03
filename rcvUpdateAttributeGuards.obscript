@@ -12,6 +12,7 @@ int addLvlProgress
 int maxLvlProgress
 short isMajorSkill
 short isProtectionApplied
+short isAttributeMaxed
 array_var maxedAttrProgress
 array_var maxedAttributes
 int maxedAttrProgressCount
@@ -47,18 +48,18 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 	let secondaryAttrbCode := Recurved.AttributeSecondaries[attributeCode]
 	let levelCurve := call rcvGetLevelCurve player.GetLevel 0 0
 
-	DebugPrint "recurve: Attribute Guard processing started for for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
+	DebugPrint "recurve: Attribute Guard processing started for Attribute %g, Secondary Attribute %g, Skill: %g, SkillIncrease: %g." attributeCode secondaryAttrbCode skillCode skillIncrease
 	; Get a list of attributes whose progress is maxed (or will be maxed with this increase)
 	let maxedAttrProgress := ar_Construct "Array"
 	let maxedAttributes := call rcvGetMaxedAttributes 0
 	set i to 0
 	while (i < 7)
-		; skip already maxed attributes
-		if Eval((ar_Find i maxedAttributes) >= 0)
-			DebugPrint "recurve: Excluding maxed attribute %v {%g} from attribute guard calculations." i i
-			let i += 1
-			continue
-		endif
+		let isAttributeMaxed := (ar_Find i maxedAttributes) >= 0
+		; if Eval((ar_Find i maxedAttributes) >= 0)
+		; 	DebugPrint "recurve: Excluding maxed attribute %v {%g} from attribute guard calculations." i i
+		; 	let i += 1
+		; 	continue
+		; endif
 		set progressPoints to GetPCAttributeBonusC i
 		; Add the incoming skill increase
 		if (i == attributeCode)
@@ -76,11 +77,17 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 		DebugPrint "recurve: Calculated skill %g's incoming increase of %g will set progress points to %g for attribute %g." skillCode skillIncrease progressPoints i
 		if (progressPoints >= 10)
 			ar_Append maxedAttrProgress i
+			if (isAttributeMaxed == 0)
+				set maxedAttrProgressCount to maxedAttrProgressCount + 1
+			endif
+		elseif (isAttributeMaxed)
+			; add maxed out attributes but don't count them 
+			ar_Append maxedAttrProgress i
 		endif
 		let i += 1
 	loop
 	
-	let maxedAttrProgressCount := (ar_Size maxedAttrProgress)
+	;let maxedAttrProgressCount := (ar_Size maxedAttrProgress)
 	DebugPrint "recurve: Found %g attributes whose progress was or will be maxed." maxedAttrProgressCount
 
 	set i to 0
@@ -120,6 +127,7 @@ Begin _Function { skillCode skillIncrease } ; Checks for potential Attribute pro
 			DebugPrint "Leveling failsafe enabled. Only %g of %g Attributes had reached max increase values for the level. Level progress %g/%g" maxedAttrProgressCount maxedAttrProgressReq lvlProgress maxLvlProgress
 		else
 			; If attribute failsafe not triggered, then apply the progressive guard prevention
+
 			let limitedSkills := call rcvAddAttributeGuards maxedAttrProgress lvlProgress skillIncsForMaxAttrib levelCurve
 			let skillsCapped := ar_Size limitedSkills
 		endif

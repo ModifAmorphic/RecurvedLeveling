@@ -1,6 +1,7 @@
 scn rcvApplyActionExtraExp
 
 int skillCode
+int skillLevel
 array_var levelCurve
 int useIncNo
 float useIncMult
@@ -24,10 +25,22 @@ Begin _Function { actionType }
 	endif
 	let levelCurve := call rcvGetLevelCurve player.GetLevel 0 0
 	set fatigue to player.GetActorValueC 10
+
+	if (actionType == Recurved.ActionAttack || actionType == Recurved.ActionPowerAttack)
+		set skillCode to 13
+		set skillLevel to player.GetBaseAV3C skillCode
+	elseif (actionType == Recurved.ActionCombatDodge || actionType == Recurved.ActionJumpAttack)
+		set skillCode to 26
+		set skillLevel to player.GetBaseAV3C skillCode
+	endif
+	; ; Exit if max skill level reached
+	; if (skillLevel > 99)
+	; 	DebugPrint "recurve: Skill Level for skill %g is already at maximum. No bonus exp will be applied. (skillLevel=%g)" skillCode skillLevel
+	; 	return
+	; endif
 	; Add use increment for the action
 	if (actionType == Recurved.ActionAttack)
 		set useIncNo to 0
-		set skillCode to 13
 		; Add weapon experience multiplier if both settings are not disabled
 		if (Recurved.AthleticsAttackWeaponExpDisabled == 0 && Recurved.WeaponExpNormalizedDisabled == 0)
 			set weapIncMult to Recurved.WeaponUseInc1Mult - 1
@@ -42,7 +55,6 @@ Begin _Function { actionType }
 		endif
 	elseif (actionType == Recurved.ActionPowerAttack)
 		set useIncNo to 1
-		set skillCode to 13
 		; Add weapon experience multiplier if both settings are not disabled
 		if (Recurved.AthleticsAttackWeaponExpDisabled == 0 && Recurved.WeaponExpNormalizedDisabled == 0)
 			set weapIncMult to Recurved.WeaponUseInc2Mult - 1
@@ -57,12 +69,10 @@ Begin _Function { actionType }
 		endif
 	elseif (actionType == Recurved.ActionCombatDodge)
 		set useIncNo to 1
-		set skillCode to 26
 		set useIncMult to Recurved.AcrobaticsDodgeExpMulti
 		set fatigueUse to (-1)
 	elseif (actionType == Recurved.ActionJumpAttack)
 		set useIncNo to 1
-		set skillCode to 26
 		; Add weapon experience multiplier if both settings are not disabled
 		if (Recurved.AcrobaticsJumpAttackWeaponExpDisabled == 0 && Recurved.WeaponExpNormalizedDisabled == 0)
 			set weapIncMult to Recurved.WeaponUseInc1Mult - 1

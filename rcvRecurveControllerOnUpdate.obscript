@@ -12,17 +12,22 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 	if hasRestartedSinceUpdate
 		DebugPrint "recurve: Loading..."
 		; Prune events and update event time offsets, Reset GlobalTick back to 1
-		call rcvResetGlobalTick
-		set RecurvedController.lastEventPurge to 0
-		set RecurvedController.lastActionsFoundOn to 0
-		set RecurvedController.lastPreLevelUpCheck to 0
-		DebugPrint "Increasing Marksman by +5 temporarily."
+		; call rcvResetGlobalTick
+		; set RecurvedController.lastEventPurge to 0
+		; set RecurvedController.lastActionsFoundOn to 0
+		; set RecurvedController.lastPreLevelUpCheck to 0
 		;player.ModActorValue "Marksman" 5
 	endif
 	
 	; Load data on game load event
 	if hasLoadedSinceUpdate
+		call rcvResetGlobalTick
+		set RecurvedController.lastEventPurge to 0
+		set RecurvedController.lastActionsFoundOn to 0
+		set RecurvedController.lastPreLevelUpCheck to 0
+		
 		call rcvLoadData hasLoadedSinceUpdate hasRestartedSinceUpdate
+		call rcvModifyRaceSkills
 		; Ensure existing protections are removed in case this was
 		; recently disabled
 		if Recurved.AttributeGuardDisabled

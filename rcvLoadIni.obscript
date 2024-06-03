@@ -33,35 +33,41 @@ Begin _Function { } ; Loads ini file, setting default values first.
 	; Read School Magicka settings into array
 
 	let Recurved.SchoolExpMaxMagicka := ar_Construct "Array"
-	let let Recurved.SchoolExpMaxMagicka[0] := ar_Construct "Array"
+	let Recurved.SchoolExpMaxMagicka[0] := ar_Construct "Array"
 	let Recurved.SchoolExpMaxMagicka[0][0] := Recurved.AlterationNoviceMagicka
 	let Recurved.SchoolExpMaxMagicka[0][1] := Recurved.AlterationApprenticeMagicka
 	let Recurved.SchoolExpMaxMagicka[0][2] := Recurved.AlterationJourneymanMagicka
 	let Recurved.SchoolExpMaxMagicka[0][3] := Recurved.AlterationExpertMagicka
-	let let Recurved.SchoolExpMaxMagicka[1] := ar_Construct "Array"
+	let Recurved.SchoolExpMaxMagicka[0][4] := Recurved.AlterationMasterMagicka
+	let Recurved.SchoolExpMaxMagicka[1] := ar_Construct "Array"
 	let Recurved.SchoolExpMaxMagicka[1][0] := Recurved.ConjurationNoviceMagicka
 	let Recurved.SchoolExpMaxMagicka[1][1] := Recurved.ConjurationApprenticeMagicka
 	let Recurved.SchoolExpMaxMagicka[1][2] := Recurved.ConjurationJourneymanMagicka
 	let Recurved.SchoolExpMaxMagicka[1][3] := Recurved.ConjurationExpertMagicka
-	let let Recurved.SchoolExpMaxMagicka[2] := ar_Construct "Array"
+	let Recurved.SchoolExpMaxMagicka[1][4] := Recurved.ConjurationMasterMagicka
+	let Recurved.SchoolExpMaxMagicka[2] := ar_Construct "Array"
 	let Recurved.SchoolExpMaxMagicka[2][0] := Recurved.DestructionNoviceMagicka
 	let Recurved.SchoolExpMaxMagicka[2][1] := Recurved.DestructionApprenticeMagicka
 	let Recurved.SchoolExpMaxMagicka[2][2] := Recurved.DestructionJourneymanMagicka
 	let Recurved.SchoolExpMaxMagicka[2][3] := Recurved.DestructionExpertMagicka
-	let let Recurved.SchoolExpMaxMagicka[3] := ar_Construct "Array"
+	let Recurved.SchoolExpMaxMagicka[2][4] := Recurved.DestructionMasterMagicka
+	let Recurved.SchoolExpMaxMagicka[3] := ar_Construct "Array"
 	let Recurved.SchoolExpMaxMagicka[3][0] := Recurved.IllusionNoviceMagicka
 	let Recurved.SchoolExpMaxMagicka[3][1] := Recurved.IllusionApprenticeMagicka
 	let Recurved.SchoolExpMaxMagicka[3][2] := Recurved.IllusionJourneymanMagicka
 	let Recurved.SchoolExpMaxMagicka[3][3] := Recurved.IllusionExpertMagicka
-	let let Recurved.SchoolExpMaxMagicka[4] := ar_Construct "Array"
+	let Recurved.SchoolExpMaxMagicka[3][4] := Recurved.IllusionMasterMagicka
+	let Recurved.SchoolExpMaxMagicka[4] := ar_Construct "Array"
 	let Recurved.SchoolExpMaxMagicka[4][0] := Recurved.MysticismNoviceMagicka
 	let Recurved.SchoolExpMaxMagicka[4][1] := Recurved.MysticismApprenticeMagicka
 	let Recurved.SchoolExpMaxMagicka[4][2] := Recurved.MysticismJourneymanMagicka
 	let Recurved.SchoolExpMaxMagicka[4][3] := Recurved.MysticismExpertMagicka
-	let let Recurved.SchoolExpMaxMagicka[5] := ar_Construct "Array"
+	let Recurved.SchoolExpMaxMagicka[4][4] := Recurved.MysticismMasterMagicka
+	let Recurved.SchoolExpMaxMagicka[5] := ar_Construct "Array"
 	let Recurved.SchoolExpMaxMagicka[5][0] := Recurved.RestorationNoviceMagicka
 	let Recurved.SchoolExpMaxMagicka[5][1] := Recurved.RestorationApprenticeMagicka
 	let Recurved.SchoolExpMaxMagicka[5][2] := Recurved.RestorationJourneymanMagicka
 	let Recurved.SchoolExpMaxMagicka[5][3] := Recurved.RestorationExpertMagicka
+	let Recurved.SchoolExpMaxMagicka[5][4] := Recurved.RestorationMasterMagicka
 
 End

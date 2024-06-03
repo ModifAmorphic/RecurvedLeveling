@@ -37,11 +37,11 @@ Begin _GameMode
 		set fQuestDelayTime to 1
 		set isWaiting to 1
 		set waitTick to RecurvedController.GlobalTick
-		if (GetGameRestarted)
+		;if (GetGameRestarted)
 			set waitTick to 0
 			set PlayerStoppedRunning to 0
 			set PlayerStartedRunning to 1
-		endif
+		;endif
 		set wasDodging to 0
 		set fatigue to 0
 		set prevFatigue to 0

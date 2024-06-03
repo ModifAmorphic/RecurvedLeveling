@@ -1,0 +1,70 @@
+scn rcvModifyRaceSkills
+
+short valueCode
+long baseValue
+long adjBaseValue
+long bonus
+int specialization
+int skillSpecialization
+int i
+array_var skillMod
+string_var skillName
+
+Begin _Function {}
+	DebugPrint "recurve: Modify Skills. ModifySkillBonusesDisabled=%g. ModdedSkillCount=%g" Recurved.ModifySkillBonusesDisabled (ar_Size Recurved.ModdedSkillValues)
+	; if skill modifications are disabled, then check if any current modifications need to be backed out then exit
+	if (Recurved.ModifySkillBonusesDisabled)
+		if Eval((ar_Size Recurved.ModdedSkillValues) > 1)
+			while (i < ar_Size Recurved.ModdedSkillValues)
+				let valueCode := Recurved.ModdedSkillValues[i]["code"]
+				let bonus := Recurved.ModdedSkillValues[i]["bonusValue"]
+				set baseValue to player.GetBaseAV3C valueCode
+				set adjBaseValue to baseValue + bonus
+				player.ModActorValueC valueCode (-bonus)
+				player.SetActorValueC valueCode adjBaseValue
+				let i += 1
+				DebugPrint "recurve: Removed skill modification of %g for skill %v and added back in as part of the base value." bonus valueCode
+			loop
+			let Recurved.ModdedSkillValues := ar_Null
+		endif
+		return
+	endif
+
+	; check if skill values have already been applied and if so, exit and don't reapply
+	if Eval((ar_Size Recurved.ModdedSkillValues) > 0)
+		DebugPrint "recurve: Skill modifications already made."
+		return
+	endif
+
+	let Recurved.ModdedSkillValues := ar_Construct "Array"
+	set valueCode to 12
+	set specialization to player.GetClassSpecialization
+	while (valueCode < 33)
+		set bonus to player.GetRaceSkillBonus valueCode
+		set skillSpecialization to GetSkillSpecializationC valueCode
+		if (specialization == skillSpecialization)
+			set bonus to bonus + 5
+		endif
+		if (bonus)
+			let skillMod := ar_Construct "StringMap"
+			let skillMod["code"] := valueCode
+			let skillMod["bonusValue"] := bonus
+			ar_Append Recurved.ModdedSkillValues skillMod
+			
+			; Remove the bonus from the base value
+			set baseValue to player.GetBaseAV3C valueCode
+			set adjBaseValue to baseValue - bonus
+			if (adjBaseValue < 0)
+				set adjBaseValue to 0
+			endif
+			player.SetActorValueC valueCode adjBaseValue
+			set skillName to ActorValueToStringC valueCode
+			sv_Replace " |" skillName
+			; add the bonus back in as a modification
+			player.ModActorValue skillName bonus
+			DebugPrint "recurve: Skill %z {%g} had a bonus of %g applied to the base value. Base value changed from %g to %g." skillName valueCode bonus baseValue adjBaseValue
+		endif
+		set valueCode to valueCode + 1
+	loop
+	sv_Destruct skillName
+End

@@ -9,7 +9,6 @@ short isGameLoaded
 short hasUpdate
 Begin _Function { isGameRestarted isGameLoaded }
 	set RecurvedController.GlobalTick to RecurvedController.GlobalTick + 1
-	
 	; load ini and set constants on load
 	if isGameLoaded
 		call rcvSetConstants
