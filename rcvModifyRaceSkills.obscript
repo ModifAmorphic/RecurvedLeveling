@@ -9,11 +9,12 @@ int skillSpecialization
 int i
 array_var skillMod
 string_var skillName
-
-Begin _Function {}
-	DebugPrint "recurve: Modify Skills. ModifySkillBonusesDisabled=%g. ModdedSkillCount=%g" Recurved.ModifySkillBonusesDisabled (ar_Size Recurved.ModdedSkillValues)
+; inputs
+short tryRemoveMods
+Begin _Function { tryRemoveMods }
+	DebugPrint "recurve: Modify Skills. ModifySkillBonusesDisabled=%g. ModdedSkillCount=%g. tryRemoveMods=%g." Recurved.ModifySkillBonusesDisabled (ar_Size Recurved.ModdedSkillValues) tryRemoveMods
 	; if skill modifications are disabled, then check if any current modifications need to be backed out then exit
-	if (Recurved.ModifySkillBonusesDisabled)
+	if (Recurved.ModifySkillBonusesDisabled || tryRemoveMods)
 		if Eval((ar_Size Recurved.ModdedSkillValues) > 1)
 			while (i < ar_Size Recurved.ModdedSkillValues)
 				let valueCode := Recurved.ModdedSkillValues[i]["code"]
@@ -25,14 +26,15 @@ Begin _Function {}
 				let i += 1
 				DebugPrint "recurve: Removed skill modification of %g for skill %v and added back in as part of the base value." bonus valueCode
 			loop
-			let Recurved.ModdedSkillValues := ar_Null
+			let Recurved.ModdedSkillValues := ar_Construct "Array"
 		endif
 		return
 	endif
 
 	; check if skill values have already been applied and if so, exit and don't reapply
 	if Eval((ar_Size Recurved.ModdedSkillValues) > 0)
-		DebugPrint "recurve: Skill modifications already made."
+		DebugPrint "recurve: %g Skill modifications already in place." (ar_Size Recurved.ModdedSkillValues)
+		ar_Dump Recurved.ModdedSkillValues
 		return
 	endif
 

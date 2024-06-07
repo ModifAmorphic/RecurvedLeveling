@@ -1,12 +1,15 @@
 scn rcvRecurveControllerOnUpdate ; Called when there is an "Update" to be processed during a RecurveController GameMode tick
 
-; inputs
-short hasRestartedSinceUpdate
-short isGameRestarted
-short hasLoadedSinceUpdate
-short isGameLoaded
 short setCurveTwice
-Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoadedSinceUpdate }
+
+; inputs
+short isGameRestarted
+short hasRestartedSinceUpdate
+short isGameLoaded
+short hasLoadedSinceUpdate
+short hasSavedSinceUpdate
+
+Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoadedSinceUpdate hasSavedSinceUpdate }
 	DebugPrint "recurve: Controller Update: isGameRestarted=%g, isGameLoaded=%g, hasRestartedSinceUpdate=%g, hasLoadedSinceUpdate=%g, isClassSelected=%g, IsTutorialComplete=%g, UpdateFlag=%g, fQuestDelayTime=%.2f, RecurvedControllerInterval=%.2f" isGameRestarted isGameLoaded hasRestartedSinceUpdate hasLoadedSinceUpdate RecurvedController.isClassSelected RecurvedController.IsTutorialComplete RecurvedController.UpdateFlag RecurvedController.fQuestDelayTime Recurved.RecurvedControllerInterval	
 
 	if hasRestartedSinceUpdate
@@ -25,9 +28,8 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 		set RecurvedController.lastEventPurge to 0
 		set RecurvedController.lastActionsFoundOn to 0
 		set RecurvedController.lastPreLevelUpCheck to 0
-		
+
 		call rcvLoadData hasLoadedSinceUpdate hasRestartedSinceUpdate
-		call rcvModifyRaceSkills
 		; Ensure existing protections are removed in case this was
 		; recently disabled
 		if Recurved.AttributeGuardDisabled
@@ -37,10 +39,16 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 		; Add the GameLoaded event
 		call rcvAddEvent Recurved.EventTypeGameLoaded RecurvedController.GlobalTick 0 ar_Null
 	endif
+
+	; ensure skill modifications have been made
+	if hasLoadedSinceUpdate || hasSavedSinceUpdate
+		call rcvModifyRaceSkills 0
+	endif
 	
 	; On restarts, subcribe to event handlers
 	if hasRestartedSinceUpdate
 		; Subscribe to Skill Up Events on restart
+		SetEventHandler "SaveGame" rcvOnSaveGameSubscriber
 		SetEventHandler "OnSkillUp" rcvOnSkillUpSubscriber
 		SetEventHandler "OnScriptedSkillUp" rcvOnScriptedSkillUpSubscriber
 		SetEventHandler "OnActorEquip" rcvOnActorEquipSubscriber
@@ -105,6 +113,7 @@ Begin _Function { isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoaded
 	set RecurvedController.isLevelMenuInit to 0
 	set RecurvedController.IsPlayerLeveling to 0
 	set RecurvedController.UpdateFlag to 0
+	set RecurvedController.hasSavedSinceUpdate to 0
 
 	if hasLoadedSinceUpdate
 		PrintToConsole "Recurved Levels Initialized and Active."

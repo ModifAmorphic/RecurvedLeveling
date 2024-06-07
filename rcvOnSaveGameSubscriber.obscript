@@ -1,0 +1,12 @@
+scn rcvOnSaveGameSubscriber
+
+string_var fileName
+
+Begin _Function { fileName }
+	call rcvModifyRaceSkills 1
+	DebugPrint "recurve: Attempted to remove skill modifications. %g modifications remain." (ar_Size Recurved.ModdedSkillValues)
+	sv_Destruct fileName
+	set RecurvedController.UpdateFlag to 1
+	set RecurvedController.hasSavedSinceUpdate to 1
+	;call rcvAddEvent Recurved.EventTypeGameSaved 0 0 ar_Null
+End

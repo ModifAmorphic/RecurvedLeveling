@@ -20,6 +20,7 @@ short hasRestartedSinceUpdate
 short hasLoadedSinceUpdate
 short isGameRestarted
 short isGameLoaded
+short hasSavedSinceUpdate
 
 int lastPreLevelUpCheck ; For tracking a PreLevelUp event
 
@@ -77,7 +78,7 @@ Begin _GameMode
 	; Runs every tick
 	if Eval((call rcvRecurveControllerOnTick isGameRestarted isGameLoaded))
 		; rcvRecurveControllerOnTick determined there was an update pending.
-		call rcvRecurveControllerOnUpdate isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoadedSinceUpdate
+		call rcvRecurveControllerOnUpdate isGameRestarted hasRestartedSinceUpdate isGameLoaded hasLoadedSinceUpdate hasSavedSinceUpdate
 	endif
 	if (GlobalTick % Recurved.EventsProcessingTickModulus)
 		if Eval(call rcvApplyActionEventsExp lastActionsFoundOn)
